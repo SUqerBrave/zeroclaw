@@ -40,6 +40,7 @@ export CC=aarch64-linux-gnu-gcc
 export CXX=aarch64-linux-gnu-g++
 export AR=aarch64-linux-gnu-ar
 export STRIP=aarch64-linux-gnu-strip
+export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
 
 # 编译
 cargo build \
