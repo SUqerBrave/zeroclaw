@@ -29,3 +29,8 @@ venv/
 *.pem
 credentials.json
 .worktrees/
+
+# Provider-specific configuration templates (may contain example tokens)
+docs/*-SETUP.md
+docs/*_config_template.toml
+configure-r68s-*.sh
