@@ -34,3 +34,5 @@ credentials.json
 docs/*-SETUP.md
 docs/*_config_template.toml
 configure-r68s-*.sh
+skills/
+bin/

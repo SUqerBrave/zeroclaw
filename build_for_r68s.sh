@@ -1,22 +1,34 @@
 #!/bin/bash
-# ZeroClaw R68S 交叉编译脚本
+# ZeroClaw R68S 静态链接交叉编译脚本
 # 用法: ./build_for_r68s.sh
 
 set -e
 
 echo "=========================================="
-echo "ZeroClaw R68S 交叉编译脚本"
+echo "ZeroClaw R68S 静态链接交叉编译脚本"
 echo "目标架构: aarch64-unknown-linux-musl"
 echo "=========================================="
 
-# 检查工具链
-if ! command -v cross &> /dev/null; then
-    echo "⚠️  cross 工具未安装，使用本地 cargo..."
-    CARGO=cargo
-else
-    echo "✓ 使用 cross 工具链"
-    CARGO=cross
+# 检查 musl 交叉编译工具链
+if ! command -v aarch64-linux-musl-gcc &> /dev/null; then
+    echo "❌ 未找到 aarch64-linux-musl-gcc"
+    echo ""
+    echo "请安装 musl 交叉编译工具链："
+    echo "  cd /tmp"
+    echo "  wget https://musl.cc/aarch64-linux-musl-cross.tgz"
+    echo "  tar xf aarch64-linux-musl-cross.tgz"
+    echo "  sudo mv aarch64-linux-musl-cross /usr/local/"
+    echo "  echo 'export PATH=/usr/local/aarch64-linux-musl-cross/bin:\$PATH' >> ~/.bashrc"
+    echo "  source ~/.bashrc"
+    exit 1
 fi
+
+echo "✓ 找到 aarch64-linux-musl-gcc"
+
+# 设置环境变量
+export PATH=/usr/local/aarch64-linux-musl-cross/bin:$PATH
+export CC=aarch64-linux-musl-gcc
+export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=aarch64-linux-musl-gcc
 
 # 检查目标架构
 if rustup target list --installed | grep -q "aarch64-unknown-linux-musl"; then
@@ -53,6 +65,18 @@ echo ""
 echo "文件信息:"
 ls -lh target/aarch64-unknown-linux-musl/release/zeroclaw
 echo ""
+echo "验证静态链接:"
+if readelf -d target/aarch64-unknown-linux-musl/release/zeroclaw | grep -E "NEEDED|INTERP" > /dev/null; then
+    echo "⚠️  警告: 二进制可能包含动态依赖"
+else
+    echo "✓ 确认: 静态链接成功（无动态依赖）"
+fi
+echo ""
 echo "传输到 R68S:"
 echo "  scp target/aarch64-unknown-linux-musl/release/zeroclaw root@192.168.1.1:/tmp/"
+echo ""
+echo "在 R68S 上运行:"
+echo "  ssh root@192.168.1.1"
+echo "  chmod +x /tmp/zeroclaw"
+echo "  /tmp/zeroclaw --help"
 echo "=========================================="

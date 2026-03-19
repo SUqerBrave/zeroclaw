@@ -308,6 +308,76 @@ Use these rules to keep the trait/factory architecture stable under growth.
 - When shared docs wording changes, sync corresponding localized docs for supported locales in the same PR (or explicitly document deferral and follow-up PR).
 - For docs snapshots, add new date-stamped files for new sprints rather than rewriting historical context.
 
+### 7.7 R68S / ARM64 Static Link Builds
+
+R68S (RK3568) and similar ARM64 embedded devices require **statically linked** binaries for reliable execution. Dynamic GNU builds often fail due to glibc version mismatches.
+
+**Prerequisites (one-time setup):**
+
+```bash
+# Download and install musl cross-compilation toolchain
+cd /tmp
+wget https://musl.cc/aarch64-linux-musl-cross.tgz
+tar xf aarch64-linux-musl-cross.tgz
+sudo mv aarch64-linux-musl-cross /usr/local/
+
+# Add to PATH
+echo 'export PATH=/usr/local/aarch64-linux-musl-cross/bin:$PATH' >> ~/.bashrc
+source ~/.bashrc
+
+# Verify installation
+aarch64-linux-musl-gcc --version  # Should show GCC 11.x or later
+```
+
+**Build static binaries:**
+
+```bash
+# Set environment variables for musl static linking
+export PATH=/usr/local/aarch64-linux-musl-cross/bin:$PATH
+export CC=aarch64-linux-musl-gcc
+export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=aarch64-linux-musl-gcc
+
+# Add Rust target (if not already added)
+rustup target add aarch64-unknown-linux-musl
+
+# Build main zeroclaw binary
+cargo build --release --target aarch64-unknown-linux-musl
+
+# Build skills (example: zc-email)
+cd skills/email-tool
+cargo build --release --target aarch64-unknown-linux-musl
+```
+
+**Verify static linking:**
+
+```bash
+# Check for dynamic dependencies (should return "not a dynamic executable")
+readelf -d target/aarch64-unknown-linux-musl/release/zeroclaw | grep NEEDED || echo "✓ Static linked"
+
+# Or check with readelf for NEEDED/INTERP sections (static binaries have neither)
+readelf -d target/aarch64-unknown-linux-musl/release/zeroclaw | grep -E "NEEDED|INTERP"
+```
+
+**Deploy to R68S:**
+
+```bash
+# Transfer to device
+scp target/aarch64-unknown-linux-musl/release/zeroclaw root@<r68s-ip>:/tmp/zeroclaw
+scp skills/email-tool/target/aarch64-unknown-linux-musl/release/zc-email root@<r68s-ip>:/tmp/zc-email
+
+# On R68S: test execution
+ssh root@<r68s-ip>
+chmod +x /tmp/zeroclaw /tmp/zc-email
+/tmp/zeroclaw --help
+/tmp/zc-email --help
+```
+
+**Common pitfalls:**
+
+- ✅ Use `aarch64-unknown-linux-musl` target (static), **not** `aarch64-unknown-linux-gnu` (dynamic)
+- ✅ Verify with `readelf -d` that no `NEEDED` or `INTERP` sections exist
+- ✅ On-device `ldd ./binary` should report "not a dynamic program"
+- ❌ GNU builds will fail with "Error loading shared library ld-linux-aarch64.so.1" or symbol errors
 
 ## 8) Validation Matrix
 
