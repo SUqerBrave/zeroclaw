@@ -1,212 +1,96 @@
 <p align="center">
-  <img src="zeroclaw.png" alt="ZeroClaw" width="200" />
+  <img src="https://raw.githubusercontent.com/zeroclaw-labs/zeroclaw/master/docs/assets/zeroclaw-banner.png" alt="ZeroClaw" width="600" />
 </p>
 
-<h1 align="center">ZeroClaw 🦀</h1>
+<h1 align="center">🦀 ZeroClaw — Trợ lý AI Cá nhân</h1>
 
 <p align="center">
   <strong>Không tốn thêm tài nguyên. Không đánh đổi. 100% Rust. 100% Đa nền tảng.</strong><br>
-  ⚡️ <strong>Chạy trên phần cứng $10 với RAM dưới 5MB — ít hơn 99% bộ nhớ so với OpenClaw, rẻ hơn 98% so với Mac mini!</strong>
+  ⚡️ <strong>Chạy trên phần cứng $10 với RAM dưới 5MB: Ít hơn 99% bộ nhớ so với OpenClaw và rẻ hơn 98% so với Mac mini!</strong>
 </p>
 
 <p align="center">
   <a href="LICENSE-APACHE"><img src="https://img.shields.io/badge/license-MIT%20OR%20Apache%202.0-blue.svg" alt="License: MIT OR Apache-2.0" /></a>
-  <a href="NOTICE"><img src="https://img.shields.io/badge/contributors-27+-green.svg" alt="Contributors" /></a>
+  <a href="https://github.com/zeroclaw-labs/zeroclaw/graphs/contributors"><img src="https://img.shields.io/github/contributors/zeroclaw-labs/zeroclaw?color=green" alt="Contributors" /></a>
   <a href="https://buymeacoffee.com/argenistherose"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Donate-yellow.svg?style=flat&logo=buy-me-a-coffee" alt="Buy Me a Coffee" /></a>
   <a href="https://x.com/zeroclawlabs?s=21"><img src="https://img.shields.io/badge/X-%40zeroclawlabs-000000?style=flat&logo=x&logoColor=white" alt="X: @zeroclawlabs" /></a>
-  <a href="https://zeroclawlabs.cn/group.jpg"><img src="https://img.shields.io/badge/WeChat-Group-B7D7A8?logo=wechat&logoColor=white" alt="WeChat Group" /></a>
-  <a href="https://www.xiaohongshu.com/user/profile/67cbfc43000000000d008307?xsec_token=AB73VnYnGNx5y36EtnnZfGmAmS-6Wzv8WMuGpfwfkg6Yc%3D&xsec_source=pc_search"><img src="https://img.shields.io/badge/Xiaohongshu-Official-FF2442?style=flat" alt="Xiaohongshu: Official" /></a>
-  <a href="https://t.me/zeroclawlabs"><img src="https://img.shields.io/badge/Telegram-%40zeroclawlabs-26A5E4?style=flat&logo=telegram&logoColor=white" alt="Telegram: @zeroclawlabs" /></a>
-  <a href="https://www.facebook.com/groups/zeroclaw"><img src="https://img.shields.io/badge/Facebook-Group-1877F2?style=flat&logo=facebook&logoColor=white" alt="Facebook Group" /></a>
+  <a href="https://www.facebook.com/groups/zeroclawlabs"><img src="https://img.shields.io/badge/Facebook-Group-1877F2?style=flat&logo=facebook&logoColor=white" alt="Facebook Group" /></a>
+  <a href="https://discord.com/invite/wDshRVqRjx"><img src="https://img.shields.io/badge/Discord-Join-5865F2?style=flat&logo=discord&logoColor=white" alt="Discord" /></a>
+  <a href="https://www.instagram.com/therealzeroclaw"><img src="https://img.shields.io/badge/Instagram-%40therealzeroclaw-E4405F?style=flat&logo=instagram&logoColor=white" alt="Instagram: @therealzeroclaw" /></a>
+  <a href="https://www.tiktok.com/@zeroclawlabs"><img src="https://img.shields.io/badge/TikTok-%40zeroclawlabs-000000?style=flat&logo=tiktok&logoColor=white" alt="TikTok: @zeroclawlabs" /></a>
+  <a href="https://www.rednote.com/user/profile/69b735e6000000002603927e"><img src="https://img.shields.io/badge/RedNote-Official-FF2442?style=flat" alt="RedNote" /></a>
   <a href="https://www.reddit.com/r/zeroclawlabs/"><img src="https://img.shields.io/badge/Reddit-r%2Fzeroclawlabs-FF4500?style=flat&logo=reddit&logoColor=white" alt="Reddit: r/zeroclawlabs" /></a>
 </p>
+
 <p align="center">
 Được xây dựng bởi sinh viên và thành viên của các cộng đồng Harvard, MIT và Sundai.Club.
 </p>
 
 <p align="center">
-  🌐 <strong>Ngôn ngữ:</strong> <a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ru.md">Русский</a> · <a href="README.fr.md">Français</a> · <a href="README.vi.md">Tiếng Việt</a>
+  🌐 <strong>Ngôn ngữ:</strong>
+  <a href="README.md">🇺🇸 English</a> ·
+  <a href="README.zh-CN.md">🇨🇳 简体中文</a> ·
+  <a href="README.ja.md">🇯🇵 日本語</a> ·
+  <a href="README.ko.md">🇰🇷 한국어</a> ·
+  <a href="README.vi.md">🇻🇳 Tiếng Việt</a> ·
+  <a href="README.tl.md">🇵🇭 Tagalog</a> ·
+  <a href="README.es.md">🇪🇸 Español</a> ·
+  <a href="README.pt.md">🇧🇷 Português</a> ·
+  <a href="README.it.md">🇮🇹 Italiano</a> ·
+  <a href="README.de.md">🇩🇪 Deutsch</a> ·
+  <a href="README.fr.md">🇫🇷 Français</a> ·
+  <a href="README.ar.md">🇸🇦 العربية</a> ·
+  <a href="README.hi.md">🇮🇳 हिन्दी</a> ·
+  <a href="README.ru.md">🇷🇺 Русский</a> ·
+  <a href="README.bn.md">🇧🇩 বাংলা</a> ·
+  <a href="README.he.md">🇮🇱 עברית</a> ·
+  <a href="README.pl.md">🇵🇱 Polski</a> ·
+  <a href="README.cs.md">🇨🇿 Čeština</a> ·
+  <a href="README.nl.md">🇳🇱 Nederlands</a> ·
+  <a href="README.tr.md">🇹🇷 Türkçe</a> ·
+  <a href="README.uk.md">🇺🇦 Українська</a> ·
+  <a href="README.id.md">🇮🇩 Bahasa Indonesia</a> ·
+  <a href="README.th.md">🇹🇭 ไทย</a> ·
+  <a href="README.ur.md">🇵🇰 اردو</a> ·
+  <a href="README.ro.md">🇷🇴 Română</a> ·
+  <a href="README.sv.md">🇸🇪 Svenska</a> ·
+  <a href="README.el.md">🇬🇷 Ελληνικά</a> ·
+  <a href="README.hu.md">🇭🇺 Magyar</a> ·
+  <a href="README.fi.md">🇫🇮 Suomi</a> ·
+  <a href="README.da.md">🇩🇰 Dansk</a> ·
+  <a href="README.nb.md">🇳🇴 Norsk</a>
 </p>
+
+ZeroClaw là trợ lý AI cá nhân mà bạn chạy trên thiết bị của mình. Nó trả lời bạn trên các kênh bạn đang sử dụng (WhatsApp, Telegram, Slack, Discord, Signal, iMessage, Matrix, IRC, Email, Bluesky, Nostr, Mattermost, Nextcloud Talk, DingTalk, Lark, QQ, Reddit, LinkedIn, Twitter, MQTT, WeChat Work, và nhiều hơn nữa). Nó có bảng điều khiển web để kiểm soát thời gian thực và có thể kết nối với thiết bị ngoại vi phần cứng (ESP32, STM32, Arduino, Raspberry Pi). Gateway chỉ là mặt phẳng điều khiển — sản phẩm chính là trợ lý.
+
+Nếu bạn muốn một trợ lý cá nhân, đơn người dùng, chạy cục bộ, nhanh và luôn sẵn sàng, đây chính là nó.
 
 <p align="center">
-  <a href="#quick-start">Bắt đầu</a> |
-  <a href="bootstrap.sh">Cài đặt một lần bấm</a> |
-  <a href="docs/i18n/vi/README.md">Trung tâm tài liệu</a> |
-  <a href="docs/SUMMARY.md">Mục lục tài liệu</a>
+  <a href="https://zeroclawlabs.ai">Website</a> ·
+  <a href="docs/README.md">Tài liệu</a> ·
+  <a href="docs/architecture.md">Kiến trúc</a> ·
+  <a href="#bắt-đầu-nhanh-tldr">Bắt đầu</a> ·
+  <a href="#chuyển-đổi-từ-openclaw">Chuyển đổi từ OpenClaw</a> ·
+  <a href="docs/ops/troubleshooting.md">Khắc phục sự cố</a> ·
+  <a href="https://discord.com/invite/wDshRVqRjx">Discord</a>
 </p>
 
-<p align="center">
-  <strong>Truy cập nhanh:</strong>
-  <a href="docs/reference/README.md">Tài liệu tham khảo</a> ·
-  <a href="docs/operations/README.md">Vận hành</a> ·
-  <a href="docs/i18n/vi/troubleshooting.md">Khắc phục sự cố</a> ·
-  <a href="docs/security/README.md">Bảo mật</a> ·
-  <a href="docs/hardware/README.md">Phần cứng</a> ·
-  <a href="docs/contributing/README.md">Đóng góp</a>
-</p>
+> **Cài đặt khuyến nghị:** chạy `zeroclaw onboard` trong terminal. ZeroClaw Onboard hướng dẫn bạn từng bước thiết lập gateway, workspace, kênh và provider. Đây là đường dẫn cài đặt được khuyến nghị và hoạt động trên macOS, Linux, và Windows (qua WSL2). Cài đặt mới? Bắt đầu tại đây: [Bắt đầu](#bắt-đầu-nhanh-tldr)
 
-<p align="center">
-  <strong>Hạ tầng trợ lý AI tự chủ — nhanh, nhỏ gọn</strong><br />
-  Triển khai ở đâu cũng được. Thay thế gì cũng được.
-</p>
+### Subscription Auth (OAuth)
 
-<p align="center">
-  ZeroClaw là <strong>hệ điều hành runtime</strong> cho các quy trình làm việc của tác tử — cơ sở hạ tầng trừu tượng hóa mô hình, công cụ, bộ nhớ và thực thi để xây dựng tác tử một lần và chạy ở mọi nơi.
-</p>
+- **OpenAI Codex** (đăng ký ChatGPT)
+- **Gemini** (Google OAuth)
+- **Anthropic** (API key hoặc auth token)
 
-<p align="center"><code>Kiến trúc trait-driven · mặc định bảo mật · provider/channel/tool hoán đổi tự do · mọi thứ đều dễ mở rộng</code></p>
+Lưu ý về model: mặc dù nhiều provider/model được hỗ trợ, để có trải nghiệm tốt nhất hãy sử dụng model mạnh nhất thế hệ mới nhất mà bạn có. Xem [Onboarding](#bắt-đầu-nhanh-tldr).
 
-### 📢 Thông báo
+Cấu hình model + CLI: [Providers reference](docs/reference/api/providers-reference.md)
+Xoay vòng profile xác thực (OAuth vs API key) + failover: [Model failover](docs/reference/api/providers-reference.md)
 
-Bảng này dành cho các thông báo quan trọng (thay đổi không tương thích, cảnh báo bảo mật, lịch bảo trì, vấn đề chặn release).
+## Cài đặt (khuyến nghị)
 
-| Ngày (UTC) | Mức độ | Thông báo | Hành động |
-|---|---|---|---|
-| 2026-02-19 | _Nghiêm trọng_ | Chúng tôi **không có liên kết** với `openagen/zeroclaw` hoặc `zeroclaw.org`. Tên miền `zeroclaw.org` hiện đang trỏ đến fork `openagen/zeroclaw`, và tên miền/repository đó đang mạo danh website/dự án chính thức của chúng tôi. | Không tin tưởng thông tin, binary, gây quỹ, hay thông báo từ các nguồn đó. Chỉ sử dụng [repository này](https://github.com/zeroclaw-labs/zeroclaw) và các tài khoản mạng xã hội đã được xác minh của chúng tôi. |
-| 2026-02-21 | _Quan trọng_ | Website chính thức của chúng tôi đã ra mắt: [zeroclawlabs.ai](https://zeroclawlabs.ai). Cảm ơn mọi người đã kiên nhẫn chờ đợi. Chúng tôi vẫn đang ghi nhận các nỗ lực mạo danh, vì vậy **không** tham gia bất kỳ hoạt động đầu tư hoặc gây quỹ nào nhân danh ZeroClaw nếu thông tin đó không được công bố qua các kênh chính thức của chúng tôi. | Sử dụng [repository này](https://github.com/zeroclaw-labs/zeroclaw) làm nguồn thông tin duy nhất đáng tin cậy. Theo dõi [X (@zeroclawlabs)](https://x.com/zeroclawlabs?s=21), [Telegram (@zeroclawlabs)](https://t.me/zeroclawlabs), [Facebook (nhóm)](https://www.facebook.com/groups/zeroclaw), [Reddit (r/zeroclawlabs)](https://www.reddit.com/r/zeroclawlabs/), và [Xiaohongshu](https://www.xiaohongshu.com/user/profile/67cbfc43000000000d008307?xsec_token=AB73VnYnGNx5y36EtnnZfGmAmS-6Wzv8WMuGpfwfkg6Yc%3D&xsec_source=pc_search) để nhận cập nhật chính thức. |
-| 2026-02-19 | _Quan trọng_ | Anthropic đã cập nhật điều khoản Xác thực và Sử dụng Thông tin xác thực vào ngày 2026-02-19. Xác thực OAuth (Free, Pro, Max) được dành riêng cho Claude Code và Claude.ai; việc sử dụng OAuth token từ Claude Free/Pro/Max trong bất kỳ sản phẩm, công cụ hay dịch vụ nào khác (bao gồm Agent SDK) đều không được phép và có thể vi phạm Điều khoản Dịch vụ cho Người tiêu dùng. | Vui lòng tạm thời tránh tích hợp Claude Code OAuth để ngăn ngừa khả năng mất mát. Điều khoản gốc: [Authentication and Credential Use](https://code.claude.com/docs/en/legal-and-compliance#authentication-and-credential-use). |
-
-### ✨ Tính năng
-
-- 🏎️ **Mặc định tinh gọn:** Các tác vụ CLI và kiểm tra trạng thái chỉ tốn vài MB bộ nhớ trên bản release.
-- 💰 **Triển khai rẻ:** Chạy tốt trên board giá rẻ và instance cloud nhỏ, không cần runtime nặng.
-- ⚡ **Khởi động lạnh nhanh:** Một binary Rust duy nhất — lệnh và daemon khởi động gần như tức thì.
-- 🌍 **Chạy ở đâu cũng được:** Một binary chạy trên ARM, x86 và RISC-V — provider/channel/tool hoán đổi tự do.
-
-### Vì sao các team chọn ZeroClaw
-
-- **Mặc định tinh gọn:** binary Rust nhỏ, khởi động nhanh, tốn ít bộ nhớ.
-- **Bảo mật từ gốc:** xác thực ghép cặp, sandbox nghiêm ngặt, allowlist rõ ràng, giới hạn workspace.
-- **Hoán đổi tự do:** mọi hệ thống cốt lõi đều là trait (provider, channel, tool, memory, tunnel).
-- **Không khoá vendor:** hỗ trợ provider tương thích OpenAI + endpoint tùy chỉnh dễ dàng mở rộng.
-
-## So sánh hiệu suất (ZeroClaw vs OpenClaw, có thể tái tạo)
-
-Đo nhanh trên máy cục bộ (macOS arm64, tháng 2/2026), quy đổi cho phần cứng edge 0.8GHz.
-
-| | OpenClaw | NanoBot | PicoClaw | ZeroClaw 🦀 |
-|---|---|---|---|---|
-| **Ngôn ngữ** | TypeScript | Python | Go | **Rust** |
-| **RAM** | > 1GB | > 100MB | < 10MB | **< 5MB** |
-| **Khởi động (lõi 0.8GHz)** | > 500s | > 30s | < 1s | **< 10ms** |
-| **Kích thước binary** | ~28MB (dist) | N/A (Scripts) | ~8MB | **3.4 MB** |
-| **Chi phí** | Mac Mini $599 | Linux SBC ~$50 | Linux Board $10 | **Phần cứng bất kỳ $10** |
-
-> Ghi chú: Kết quả ZeroClaw được đo trên release build sử dụng `/usr/bin/time -l`. OpenClaw yêu cầu runtime Node.js (thường thêm ~390MB bộ nhớ overhead), còn NanoBot yêu cầu runtime Python. PicoClaw và ZeroClaw là các static binary. Số RAM ở trên là bộ nhớ runtime; yêu cầu biên dịch lúc build-time sẽ cao hơn.
-
-<p align="center">
-  <img src="zero-claw.jpeg" alt="ZeroClaw vs OpenClaw Comparison" width="800" />
-</p>
-
-### Tự đo trên máy bạn
-
-Kết quả benchmark thay đổi theo code và toolchain, nên hãy tự đo bản build hiện tại:
-
-```bash
-cargo build --release
-ls -lh target/release/zeroclaw
-
-/usr/bin/time -l target/release/zeroclaw --help
-/usr/bin/time -l target/release/zeroclaw status
-```
-
-Ví dụ mẫu (macOS arm64, đo ngày 18 tháng 2 năm 2026):
-
-- Kích thước binary release: `8.8M`
-- `zeroclaw --help`: khoảng `0.02s`, bộ nhớ đỉnh ~`3.9MB`
-- `zeroclaw status`: khoảng `0.01s`, bộ nhớ đỉnh ~`4.1MB`
-
-## Yêu cầu hệ thống
-
-<details>
-<summary><strong>Windows</strong></summary>
-
-### Bắt buộc (Windows)
-
-1. **Visual Studio Build Tools** (cung cấp MSVC linker và Windows SDK):
-   ```powershell
-   winget install Microsoft.VisualStudio.2022.BuildTools
-   ```
-   Trong quá trình cài đặt (hoặc qua Visual Studio Installer), chọn workload **"Desktop development with C++"**.
-
-2. **Rust toolchain:**
-   ```powershell
-   winget install Rustlang.Rustup
-   ```
-   Sau khi cài đặt, mở terminal mới và chạy `rustup default stable` để đảm bảo toolchain stable đang hoạt động.
-
-3. **Xác minh** cả hai đang hoạt động:
-   ```powershell
-   rustc --version
-   cargo --version
-   ```
-
-### Tùy chọn (Windows)
-
-- **Docker Desktop** — chỉ cần thiết nếu dùng mục `### Hỗ trợ runtime (hiện tại)` (`runtime.kind = "docker"`). Cài đặt qua `winget install Docker.DockerDesktop`.
-
-</details>
-
-<details>
-<summary><strong>Linux / macOS</strong></summary>
-
-### Bắt buộc (Linux/macOS)
-
-1. **Công cụ build cơ bản:**
-   - **Linux (Debian/Ubuntu):** `sudo apt install build-essential pkg-config`
-   - **Linux (Fedora/RHEL):** `sudo dnf group install development-tools && sudo dnf install pkg-config`
-   - **macOS:** Cài đặt Xcode Command Line Tools: `xcode-select --install`
-
-2. **Rust toolchain:**
-   ```bash
-   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-   ```
-   Xem [rustup.rs](https://rustup.rs) để biết thêm chi tiết.
-
-3. **Xác minh** cả hai đang hoạt động:
-   ```bash
-   rustc --version
-   cargo --version
-   ```
-
-#### Cài bằng một lệnh
-
-Hoặc bỏ qua các bước trên, cài hết mọi thứ (system deps, Rust, ZeroClaw) chỉ bằng một lệnh:
-
-```bash
-curl -LsSf https://raw.githubusercontent.com/zeroclaw-labs/zeroclaw/main/scripts/install.sh | bash
-```
-
-#### Yêu cầu tài nguyên biên dịch
-
-Việc build từ source đòi hỏi nhiều tài nguyên hơn so với chạy binary kết quả:
-
-| Tài nguyên | Tối thiểu | Khuyến nghị |
-|---|---|---|
-| **RAM + swap** | 2 GB | 4 GB+ |
-| **Dung lượng đĩa trống** | 6 GB | 10 GB+ |
-
-Nếu cấu hình máy thấp hơn mức tối thiểu, dùng binary có sẵn:
-
-```bash
-./bootstrap.sh --prefer-prebuilt
-```
-
-Chỉ cài từ binary, không quay lại build từ source:
-
-```bash
-./bootstrap.sh --prebuilt-only
-```
-
-### Tùy chọn (Linux/macOS)
-
-- **Docker** — chỉ cần thiết nếu dùng mục `### Hỗ trợ runtime (hiện tại)` (`runtime.kind = "docker"`). Cài đặt qua package manager hoặc [docker.com](https://docs.docker.com/engine/install/).
-
-> **Lưu ý:** Lệnh `cargo build --release` mặc định dùng `codegen-units=1` để giảm áp lực biên dịch đỉnh. Để build nhanh hơn trên máy mạnh, dùng `cargo build --profile release-fast`.
-
-</details>
-
-## Bắt đầu nhanh
+Runtime: Rust stable toolchain. Binary đơn, không phụ thuộc runtime.
 
 ### Homebrew (macOS/Linuxbrew)
 
@@ -217,42 +101,551 @@ brew install zeroclaw
 ### Bootstrap một lần bấm
 
 ```bash
-# Khuyến nghị: clone rồi chạy script bootstrap cục bộ
 git clone https://github.com/zeroclaw-labs/zeroclaw.git
 cd zeroclaw
-./bootstrap.sh
-
-# Tùy chọn: cài đặt system dependencies + Rust trên máy mới
-./bootstrap.sh --install-system-deps --install-rust
-
-# Tùy chọn: ưu tiên binary dựng sẵn (khuyến nghị cho máy ít RAM/ít dung lượng đĩa)
-./bootstrap.sh --prefer-prebuilt
-
-# Tùy chọn: cài đặt chỉ từ binary (không fallback sang build source)
-./bootstrap.sh --prebuilt-only
-
-# Tùy chọn: chạy onboarding trong cùng luồng
-./bootstrap.sh --onboard --api-key "sk-..." --provider openrouter [--model "openrouter/auto"]
-
-# Tùy chọn: chạy bootstrap + onboarding hoàn toàn ở chế độ tương thích với Docker
-./bootstrap.sh --docker
-
-# Tùy chọn: ép dùng Podman làm container CLI
-ZEROCLAW_CONTAINER_CLI=podman ./bootstrap.sh --docker
-
-# Tùy chọn: ở chế độ --docker, bỏ qua build image local và dùng tag local hoặc pull image fallback
-./bootstrap.sh --docker --skip-build
+./install.sh
 ```
 
-Cài từ xa bằng một lệnh (nên xem trước nếu môi trường nhạy cảm về bảo mật):
+`zeroclaw onboard` tự động chạy sau khi cài đặt để cấu hình workspace và provider.
+
+## Bắt đầu nhanh (TL;DR)
+
+Hướng dẫn đầy đủ cho người mới (xác thực, ghép cặp, kênh): [Bắt đầu](docs/setup-guides/one-click-bootstrap.md)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zeroclaw-labs/zeroclaw/main/scripts/bootstrap.sh | bash
+# Cài đặt + onboard
+./install.sh --api-key "sk-..." --provider openrouter
+
+# Khởi động gateway (webhook server + bảng điều khiển web)
+zeroclaw gateway                # mặc định: 127.0.0.1:42617
+zeroclaw gateway --port 0       # cổng ngẫu nhiên (tăng cường bảo mật)
+
+# Nói chuyện với trợ lý
+zeroclaw agent -m "Hello, ZeroClaw!"
+
+# Chế độ tương tác
+zeroclaw agent
+
+# Khởi động runtime tự trị đầy đủ (gateway + kênh + cron + hands)
+zeroclaw daemon
+
+# Kiểm tra trạng thái
+zeroclaw status
+
+# Chạy chẩn đoán
+zeroclaw doctor
 ```
 
-Chi tiết: [`docs/one-click-bootstrap.md`](docs/one-click-bootstrap.md) (chế độ toolchain có thể yêu cầu `sudo` cho các gói hệ thống).
+Đang nâng cấp? Chạy `zeroclaw doctor` sau khi cập nhật.
 
-### Binary có sẵn
+### Build từ source (phát triển)
+
+```bash
+git clone https://github.com/zeroclaw-labs/zeroclaw.git
+cd zeroclaw
+
+cargo build --release --locked
+cargo install --path . --force --locked
+
+zeroclaw onboard
+```
+
+> **Chạy trực tiếp khi phát triển (không cần cài toàn cục):** thêm `cargo run --release --` trước lệnh (ví dụ: `cargo run --release -- status`).
+
+## Chuyển đổi từ OpenClaw
+
+ZeroClaw có thể nhập workspace, bộ nhớ và cấu hình OpenClaw của bạn:
+
+```bash
+# Xem trước những gì sẽ được chuyển đổi (an toàn, chỉ đọc)
+zeroclaw migrate openclaw --dry-run
+
+# Chạy chuyển đổi
+zeroclaw migrate openclaw
+```
+
+Thao tác này chuyển đổi các mục bộ nhớ, file workspace và cấu hình từ `~/.openclaw/` sang `~/.zeroclaw/`. Cấu hình được tự động chuyển từ JSON sang TOML.
+
+## Mặc định bảo mật (truy cập DM)
+
+ZeroClaw kết nối với các dịch vụ nhắn tin thực. Xem DM đến như đầu vào không đáng tin cậy.
+
+Hướng dẫn bảo mật đầy đủ: [SECURITY.md](SECURITY.md)
+
+Hành vi mặc định trên tất cả các kênh:
+
+- **Ghép cặp DM** (mặc định): người gửi không xác định nhận mã ghép cặp ngắn và bot không xử lý tin nhắn của họ.
+- Phê duyệt bằng: `zeroclaw pairing approve <channel> <code>` (người gửi được thêm vào danh sách cho phép cục bộ).
+- DM đến công khai yêu cầu opt-in rõ ràng trong `config.toml`.
+- Chạy `zeroclaw doctor` để phát hiện chính sách DM nguy hiểm hoặc cấu hình sai.
+
+**Mức tự trị:**
+
+| Mức | Hành vi |
+|-------|----------|
+| `ReadOnly` | Agent chỉ có thể quan sát, không hành động |
+| `Supervised` (mặc định) | Agent hành động với sự phê duyệt cho các thao tác rủi ro trung bình/cao |
+| `Full` | Agent hành động tự trị trong giới hạn chính sách |
+
+**Các lớp sandbox:** cách ly workspace, chặn duyệt đường dẫn, danh sách cho phép lệnh, đường dẫn cấm (`/etc`, `/root`, `~/.ssh`), giới hạn tốc độ (tối đa hành động/giờ, giới hạn chi phí/ngày).
+
+<!-- BEGIN:WHATS_NEW -->
+<!-- END:WHATS_NEW -->
+
+### 📢 Thông báo
+
+Bảng này dành cho các thông báo quan trọng (thay đổi không tương thích, cảnh báo bảo mật, cửa sổ bảo trì, và các vấn đề chặn release).
+
+| Ngày (UTC) | Mức độ | Thông báo | Hành động |
+| ---------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-02-19 | _Nghiêm trọng_ | Chúng tôi **không liên kết** với `openagen/zeroclaw`, `zeroclaw.org` hay `zeroclaw.net`. Các tên miền `zeroclaw.org` và `zeroclaw.net` hiện đang trỏ đến fork `openagen/zeroclaw`, và các tên miền/repository đó đang mạo danh website/dự án chính thức của chúng tôi. | Không tin tưởng thông tin, binary, gây quỹ, hay thông báo từ các nguồn đó. Chỉ sử dụng [repository này](https://github.com/zeroclaw-labs/zeroclaw) và các tài khoản mạng xã hội đã được xác minh của chúng tôi. |
+| 2026-02-21 | _Quan trọng_ | Website chính thức của chúng tôi đã ra mắt: [zeroclawlabs.ai](https://zeroclawlabs.ai). Cảm ơn đã kiên nhẫn chờ đợi. Chúng tôi vẫn phát hiện các nỗ lực mạo danh, vì vậy **không** tham gia bất kỳ hoạt động đầu tư hoặc gây quỹ nào nhân danh ZeroClaw trừ khi được công bố qua các kênh chính thức. | Sử dụng [repository này](https://github.com/zeroclaw-labs/zeroclaw) làm nguồn thông tin duy nhất đáng tin cậy. Theo dõi [X (@zeroclawlabs)](https://x.com/zeroclawlabs?s=21), [Facebook (nhóm)](https://www.facebook.com/groups/zeroclawlabs), và [Reddit (r/zeroclawlabs)](https://www.reddit.com/r/zeroclawlabs/) để nhận cập nhật chính thức. |
+| 2026-02-19 | _Quan trọng_ | Anthropic đã cập nhật điều khoản Xác thực và Sử dụng Thông tin xác thực vào 2026-02-19. Token OAuth Claude Code (Free, Pro, Max) dành riêng cho Claude Code và Claude.ai; việc sử dụng OAuth token từ Claude Free/Pro/Max trong bất kỳ sản phẩm, công cụ hay dịch vụ nào khác (bao gồm Agent SDK) đều không được phép và có thể vi phạm Điều khoản Dịch vụ cho Người tiêu dùng. | Vui lòng tạm thời tránh tích hợp Claude Code OAuth để ngăn ngừa khả năng mất mát. Điều khoản gốc: [Authentication and Credential Use](https://code.claude.com/docs/en/legal-and-compliance#authentication-and-credential-use). |
+
+## Điểm nổi bật
+
+- **Runtime tinh gọn mặc định** — các workflow CLI và trạng thái thông thường chạy trong vài megabyte bộ nhớ trên bản release.
+- **Triển khai tiết kiệm chi phí** — được thiết kế cho board $10 và instance cloud nhỏ, không có phụ thuộc runtime nặng.
+- **Khởi động lạnh nhanh** — runtime Rust binary đơn giữ cho việc khởi động lệnh và daemon gần như tức thì.
+- **Kiến trúc di động** — một binary trên ARM, x86, và RISC-V với provider/channel/tool hoán đổi được.
+- **Gateway ưu tiên cục bộ** — mặt phẳng điều khiển duy nhất cho phiên, kênh, công cụ, cron, SOP, và sự kiện.
+- **Hộp thư đa kênh** — WhatsApp, Telegram, Slack, Discord, Signal, iMessage, Matrix, IRC, Email, Bluesky, Nostr, Mattermost, Nextcloud Talk, DingTalk, Lark, QQ, Reddit, LinkedIn, Twitter, MQTT, WeChat Work, WebSocket, và nhiều hơn nữa.
+- **Điều phối đa agent (Hands)** — bầy agent tự trị chạy theo lịch trình và thông minh hơn theo thời gian.
+- **Quy trình vận hành chuẩn (SOPs)** — tự động hóa workflow dựa trên sự kiện với MQTT, webhook, cron, và trigger ngoại vi.
+- **Bảng điều khiển web** — giao diện web React 19 + Vite với chat thời gian thực, trình duyệt bộ nhớ, trình chỉnh sửa cấu hình, quản lý cron, và trình kiểm tra công cụ.
+- **Thiết bị ngoại vi phần cứng** — ESP32, STM32 Nucleo, Arduino, Raspberry Pi GPIO qua trait `Peripheral`.
+- **Công cụ hạng nhất** — shell, file I/O, browser, git, web fetch/search, MCP, Jira, Notion, Google Workspace, và hơn 70 công cụ khác.
+- **Hook vòng đời** — chặn và sửa đổi các lời gọi LLM, thực thi công cụ, và tin nhắn ở mọi giai đoạn.
+- **Nền tảng skill** — skill đi kèm, cộng đồng, và workspace với kiểm tra bảo mật.
+- **Hỗ trợ tunnel** — Cloudflare, Tailscale, ngrok, OpenVPN, và tunnel tùy chỉnh cho truy cập từ xa.
+
+### Vì sao các team chọn ZeroClaw
+
+- **Tinh gọn mặc định:** binary Rust nhỏ, khởi động nhanh, ít tốn bộ nhớ.
+- **Bảo mật từ gốc:** ghép cặp, sandbox nghiêm ngặt, danh sách cho phép rõ ràng, giới hạn workspace.
+- **Hoán đổi hoàn toàn:** hệ thống lõi đều là trait (provider, channel, tool, memory, tunnel).
+- **Không khóa vendor:** hỗ trợ provider tương thích OpenAI + endpoint tùy chỉnh dễ mở rộng.
+
+## So sánh hiệu năng (ZeroClaw vs OpenClaw, có thể tái tạo)
+
+Benchmark nhanh trên máy cục bộ (macOS arm64, tháng 2/2026) quy chuẩn cho phần cứng edge 0.8GHz.
+
+|                           | OpenClaw      | NanoBot        | PicoClaw        | ZeroClaw 🦀          |
+| ------------------------- | ------------- | -------------- | --------------- | -------------------- |
+| **Ngôn ngữ**              | TypeScript    | Python         | Go              | **Rust**             |
+| **RAM**                   | > 1GB         | > 100MB        | < 10MB          | **< 5MB**            |
+| **Khởi động (lõi 0.8GHz)** | > 500s        | > 30s          | < 1s            | **< 10ms**           |
+| **Kích thước binary**           | ~28MB (dist)  | N/A (Scripts)  | ~8MB            | **~8.8 MB**          |
+| **Chi phí**                  | Mac Mini $599 | Linux SBC ~$50 | Linux Board $10 | **Phần cứng bất kỳ $10** |
+
+> Ghi chú: Kết quả ZeroClaw được đo trên release build sử dụng `/usr/bin/time -l`. OpenClaw yêu cầu runtime Node.js (thường thêm ~390MB bộ nhớ overhead), NanoBot yêu cầu runtime Python. PicoClaw và ZeroClaw là static binary. Số RAM ở trên là bộ nhớ runtime; yêu cầu biên dịch lúc build cao hơn.
+
+<p align="center">
+  <img src="docs/assets/zeroclaw-comparison.jpeg" alt="ZeroClaw vs OpenClaw Comparison" width="800" />
+</p>
+
+### Tự đo trên máy bạn
+
+```bash
+cargo build --release
+ls -lh target/release/zeroclaw
+
+/usr/bin/time -l target/release/zeroclaw --help
+/usr/bin/time -l target/release/zeroclaw status
+```
+
+## Tất cả những gì chúng tôi đã xây dựng
+
+### Nền tảng lõi
+
+- Mặt phẳng điều khiển Gateway HTTP/WS/SSE với phiên, hiện diện, cấu hình, cron, webhook, bảng điều khiển web, và ghép cặp.
+- Bề mặt CLI: `gateway`, `agent`, `onboard`, `doctor`, `status`, `service`, `migrate`, `auth`, `cron`, `channel`, `skills`.
+- Vòng lặp điều phối agent với dispatch công cụ, xây dựng prompt, phân loại tin nhắn, và tải bộ nhớ.
+- Mô hình phiên với thực thi chính sách bảo mật, mức tự trị, và cổng phê duyệt.
+- Wrapper provider đàn hồi với failover, retry, và định tuyến model trên hơn 20 backend LLM.
+
+### Kênh
+
+Kênh: WhatsApp (native), Telegram, Slack, Discord, Signal, iMessage, Matrix, IRC, Email, Bluesky, DingTalk, Lark, Mattermost, Nextcloud Talk, Nostr, QQ, Reddit, LinkedIn, Twitter, MQTT, WeChat Work, WATI, Mochat, Linq, Notion, WebSocket, ClawdTalk.
+
+Feature-gated: Matrix (`channel-matrix`), Lark (`channel-lark`), Nostr (`channel-nostr`).
+
+### Bảng điều khiển web
+
+Bảng điều khiển web React 19 + Vite 6 + Tailwind CSS 4 được phục vụ trực tiếp từ Gateway:
+
+- **Dashboard** — tổng quan hệ thống, trạng thái sức khỏe, thời gian hoạt động, theo dõi chi phí
+- **Agent Chat** — chat tương tác với agent
+- **Memory** — duyệt và quản lý mục bộ nhớ
+- **Config** — xem và chỉnh sửa cấu hình
+- **Cron** — quản lý tác vụ đã lên lịch
+- **Tools** — duyệt công cụ có sẵn
+- **Logs** — xem nhật ký hoạt động agent
+- **Cost** — theo dõi sử dụng token và chi phí
+- **Doctor** — chẩn đoán sức khỏe hệ thống
+- **Integrations** — trạng thái và thiết lập tích hợp
+- **Pairing** — quản lý ghép cặp thiết bị
+
+### Mục tiêu firmware
+
+| Mục tiêu | Nền tảng | Mục đích |
+|--------|----------|---------|
+| ESP32 | Espressif ESP32 | Agent ngoại vi không dây |
+| ESP32-UI | ESP32 + Display | Agent với giao diện trực quan |
+| STM32 Nucleo | STM32 (ARM Cortex-M) | Ngoại vi công nghiệp |
+| Arduino | Arduino | Cầu nối cảm biến/bộ chấp hành cơ bản |
+| Uno Q Bridge | Arduino Uno | Cầu nối serial đến agent |
+
+### Công cụ + tự động hóa
+
+- **Lõi:** shell, file read/write/edit, git operations, glob search, content search
+- **Web:** browser control, web fetch, web search, screenshot, image info, PDF read
+- **Tích hợp:** Jira, Notion, Google Workspace, Microsoft 365, LinkedIn, Composio, Pushover
+- **MCP:** Model Context Protocol tool wrapper + deferred tool sets
+- **Lên lịch:** cron add/remove/update/run, schedule tool
+- **Bộ nhớ:** recall, store, forget, knowledge, project intel
+- **Nâng cao:** delegate (agent-to-agent), swarm, model switch/routing, security ops, cloud ops
+- **Phần cứng:** board info, memory map, memory read (feature-gated)
+
+### Runtime + an toàn
+
+- **Mức tự trị:** ReadOnly, Supervised (mặc định), Full.
+- **Sandbox:** cách ly workspace, chặn duyệt đường dẫn, danh sách cho phép lệnh, đường dẫn cấm, Landlock (Linux), Bubblewrap.
+- **Giới hạn tốc độ:** tối đa hành động mỗi giờ, tối đa chi phí mỗi ngày (có thể cấu hình).
+- **Cổng phê duyệt:** phê duyệt tương tác cho các thao tác rủi ro trung bình/cao.
+- **Dừng khẩn cấp:** khả năng tắt khẩn cấp.
+- **Hơn 129 bài kiểm tra bảo mật** trong CI tự động.
+
+### Vận hành + đóng gói
+
+- Bảng điều khiển web phục vụ trực tiếp từ Gateway.
+- Hỗ trợ tunnel: Cloudflare, Tailscale, ngrok, OpenVPN, custom command.
+- Docker runtime adapter cho thực thi trong container.
+- CI/CD: beta (tự động khi push) → stable (dispatch thủ công) → Docker, crates.io, Scoop, AUR, Homebrew, tweet.
+- Binary dựng sẵn cho Linux (x86_64, aarch64, armv7), macOS (x86_64, aarch64), Windows (x86_64).
+
+## Cách hoạt động (tóm tắt)
+
+```
+WhatsApp / Telegram / Slack / Discord / Signal / iMessage / Matrix / IRC / Email
+Bluesky / Nostr / Mattermost / DingTalk / Lark / QQ / Reddit / MQTT / WebSocket
+               │
+               ▼
+┌───────────────────────────────┐
+│            Gateway            │
+│       (control plane)         │
+│    http://127.0.0.1:42617     │
+├───────────────────────────────┤
+│  Web Dashboard (React 19)     │
+│  REST API + WebSocket + SSE   │
+│  Pairing + Rate Limiting      │
+└──────────────┬────────────────┘
+               │
+    ┌──────────┼──────────┐
+    │          │          │
+    ▼          ▼          ▼
+┌────────┐ ┌────────┐ ┌────────┐
+│ Agent  │ │  Cron  │ │ Hands  │
+│  Loop  │ │Scheduler│ │ Swarm  │
+└───┬────┘ └───┬────┘ └───┬────┘
+    │          │          │
+    └──────────┼──────────┘
+               │
+    ┌──────────┼──────────┐
+    │          │          │
+    ▼          ▼          ▼
+┌────────┐ ┌────────┐ ┌────────┐
+│Provider│ │ Tools  │ │ Memory │
+│ (LLM)  │ │ (70+)  │ │(md/sql)│
+└────────┘ └────────┘ └────────┘
+    │          │
+    ▼          ▼
+┌────────┐ ┌────────────┐
+│Security│ │ Peripherals│
+│ Policy │ │(ESP32/STM32)│
+└────────┘ └────────────┘
+```
+
+## Cấu hình
+
+Tối thiểu `~/.zeroclaw/config.toml`:
+
+```toml
+default_provider = "anthropic"
+api_key = "sk-ant-..."
+```
+
+Tham khảo cấu hình đầy đủ: [docs/reference/api/config-reference.md](docs/reference/api/config-reference.md).
+
+### Cấu hình kênh
+
+**Telegram:**
+```toml
+[channels.telegram]
+bot_token = "123456:ABC-DEF..."
+```
+
+**Discord:**
+```toml
+[channels.discord]
+token = "your-bot-token"
+```
+
+**Slack:**
+```toml
+[channels.slack]
+bot_token = "xoxb-..."
+app_token = "xapp-..."
+```
+
+**WhatsApp:**
+```toml
+[channels.whatsapp]
+enabled = true
+```
+
+**Matrix:**
+```toml
+[channels.matrix]
+homeserver_url = "https://matrix.org"
+username = "@bot:matrix.org"
+password = "..."
+```
+
+**Signal:**
+```toml
+[channels.signal]
+phone_number = "+1234567890"
+```
+
+### Cấu hình tunnel
+
+```toml
+[tunnel]
+kind = "cloudflare"  # hoặc "tailscale", "ngrok", "openvpn", "custom", "none"
+```
+
+Chi tiết: [Channel reference](docs/reference/api/channels-reference.md) · [Config reference](docs/reference/api/config-reference.md)
+
+### Hỗ trợ runtime (hiện tại)
+
+- **`native`** (mặc định) — thực thi process trực tiếp, đường dẫn nhanh nhất, lý tưởng cho môi trường tin cậy.
+- **`docker`** — cách ly container đầy đủ, chính sách bảo mật cứng, yêu cầu Docker.
+
+Đặt `runtime.kind = "docker"` cho sandbox nghiêm ngặt hoặc cách ly mạng.
+
+## Subscription Auth (OpenAI Codex / Claude Code / Gemini)
+
+ZeroClaw hỗ trợ profile xác thực theo gói đăng ký (đa tài khoản, mã hóa khi lưu).
+
+- File lưu trữ: `~/.zeroclaw/auth-profiles.json`
+- Khóa mã hóa: `~/.zeroclaw/.secret_key`
+- Định dạng profile id: `<provider>:<profile_name>` (ví dụ: `openai-codex:work`)
+
+```bash
+# OpenAI Codex OAuth (đăng ký ChatGPT)
+zeroclaw auth login --provider openai-codex --device-code
+
+# Gemini OAuth
+zeroclaw auth login --provider gemini --profile default
+
+# Anthropic setup-token
+zeroclaw auth paste-token --provider anthropic --profile default --auth-kind authorization
+
+# Kiểm tra / làm mới / chuyển profile
+zeroclaw auth status
+zeroclaw auth refresh --provider openai-codex --profile default
+zeroclaw auth use --provider openai-codex --profile work
+
+# Chạy agent với xác thực đăng ký
+zeroclaw agent --provider openai-codex -m "hello"
+zeroclaw agent --provider anthropic -m "hello"
+```
+
+## Workspace agent + skill
+
+Thư mục gốc workspace: `~/.zeroclaw/workspace/` (có thể cấu hình qua config).
+
+Các file prompt được inject:
+- `IDENTITY.md` — tính cách và vai trò agent
+- `USER.md` — ngữ cảnh và sở thích người dùng
+- `MEMORY.md` — sự kiện và bài học dài hạn
+- `AGENTS.md` — quy ước phiên và quy tắc khởi tạo
+- `SOUL.md` — bản sắc cốt lõi và nguyên tắc vận hành
+
+Skill: `~/.zeroclaw/workspace/skills/<skill>/SKILL.md` hoặc `SKILL.toml`.
+
+```bash
+# Liệt kê skill đã cài
+zeroclaw skills list
+
+# Cài từ git
+zeroclaw skills install https://github.com/user/my-skill.git
+
+# Kiểm tra bảo mật trước khi cài
+zeroclaw skills audit https://github.com/user/my-skill.git
+
+# Xóa skill
+zeroclaw skills remove my-skill
+```
+
+## Lệnh CLI
+
+```bash
+# Quản lý workspace
+zeroclaw onboard              # Trình hướng dẫn cài đặt
+zeroclaw status               # Hiển thị trạng thái daemon/agent
+zeroclaw doctor               # Chạy chẩn đoán hệ thống
+
+# Gateway + daemon
+zeroclaw gateway              # Khởi động gateway server (127.0.0.1:42617)
+zeroclaw daemon               # Khởi động runtime tự trị đầy đủ
+
+# Agent
+zeroclaw agent                # Chế độ chat tương tác
+zeroclaw agent -m "message"   # Chế độ tin nhắn đơn
+
+# Quản lý dịch vụ
+zeroclaw service install      # Cài đặt làm dịch vụ OS (launchd/systemd)
+zeroclaw service start|stop|restart|status
+
+# Kênh
+zeroclaw channel list         # Liệt kê kênh đã cấu hình
+zeroclaw channel doctor       # Kiểm tra sức khỏe kênh
+zeroclaw channel bind-telegram 123456789
+
+# Cron + lên lịch
+zeroclaw cron list            # Liệt kê tác vụ đã lên lịch
+zeroclaw cron add "*/5 * * * *" --prompt "Check system health"
+zeroclaw cron remove <id>
+
+# Bộ nhớ
+zeroclaw memory list          # Liệt kê mục bộ nhớ
+zeroclaw memory get <key>     # Truy xuất bộ nhớ
+zeroclaw memory stats         # Thống kê bộ nhớ
+
+# Profile xác thực
+zeroclaw auth login --provider <name>
+zeroclaw auth status
+zeroclaw auth use --provider <name> --profile <profile>
+
+# Thiết bị ngoại vi phần cứng
+zeroclaw hardware discover    # Quét thiết bị đã kết nối
+zeroclaw peripheral list      # Liệt kê thiết bị ngoại vi đã kết nối
+zeroclaw peripheral flash     # Flash firmware vào thiết bị
+
+# Chuyển đổi
+zeroclaw migrate openclaw --dry-run
+zeroclaw migrate openclaw
+
+# Tự động hoàn thành shell
+source <(zeroclaw completions bash)
+zeroclaw completions zsh > ~/.zfunc/_zeroclaw
+```
+
+Tham khảo đầy đủ các lệnh: [docs/reference/cli/commands-reference.md](docs/reference/cli/commands-reference.md)
+
+<!-- markdownlint-disable MD001 MD024 -->
+
+## Yêu cầu hệ thống
+
+<details>
+<summary><strong>Windows</strong></summary>
+
+#### Bắt buộc
+
+1. **Visual Studio Build Tools** (cung cấp MSVC linker và Windows SDK):
+
+    ```powershell
+    winget install Microsoft.VisualStudio.2022.BuildTools
+    ```
+
+    Trong quá trình cài đặt (hoặc qua Visual Studio Installer), chọn workload **"Desktop development with C++"**.
+
+2. **Rust toolchain:**
+
+    ```powershell
+    winget install Rustlang.Rustup
+    ```
+
+    Sau khi cài, mở terminal mới và chạy `rustup default stable` để đảm bảo toolchain stable đang hoạt động.
+
+3. **Xác minh** cả hai đang hoạt động:
+    ```powershell
+    rustc --version
+    cargo --version
+    ```
+
+#### Tùy chọn
+
+- **Docker Desktop** — chỉ cần nếu sử dụng [Docker sandbox runtime](#hỗ-trợ-runtime-hiện-tại) (`runtime.kind = "docker"`). Cài qua `winget install Docker.DockerDesktop`.
+
+</details>
+
+<details>
+<summary><strong>Linux / macOS</strong></summary>
+
+#### Bắt buộc
+
+1. **Công cụ build cơ bản:**
+    - **Linux (Debian/Ubuntu):** `sudo apt install build-essential pkg-config`
+    - **Linux (Fedora/RHEL):** `sudo dnf group install development-tools && sudo dnf install pkg-config`
+    - **macOS:** Cài Xcode Command Line Tools: `xcode-select --install`
+
+2. **Rust toolchain:**
+
+    ```bash
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    ```
+
+    Xem [rustup.rs](https://rustup.rs) để biết chi tiết.
+
+3. **Xác minh** cả hai đang hoạt động:
+    ```bash
+    rustc --version
+    cargo --version
+    ```
+
+#### Cài bằng một lệnh
+
+Hoặc bỏ qua các bước trên và cài hết mọi thứ (system deps, Rust, ZeroClaw) bằng một lệnh:
+
+```bash
+curl -LsSf https://raw.githubusercontent.com/zeroclaw-labs/zeroclaw/master/install.sh | bash
+```
+
+#### Yêu cầu tài nguyên biên dịch
+
+Build từ source đòi hỏi nhiều tài nguyên hơn chạy binary kết quả:
+
+| Tài nguyên | Tối thiểu | Khuyến nghị |
+| -------------- | ------- | ----------- |
+| **RAM + swap** | 2 GB    | 4 GB+       |
+| **Dung lượng đĩa trống**  | 6 GB    | 10 GB+      |
+
+Nếu máy dưới mức tối thiểu, dùng binary dựng sẵn:
+
+```bash
+./install.sh --prefer-prebuilt
+```
+
+Chỉ cài từ binary, không fallback sang build source:
+
+```bash
+./install.sh --prebuilt-only
+```
+
+#### Tùy chọn
+
+- **Docker** — chỉ cần nếu sử dụng [Docker sandbox runtime](#hỗ-trợ-runtime-hiện-tại) (`runtime.kind = "docker"`). Cài qua package manager hoặc [docker.com](https://docs.docker.com/engine/install/).
+
+> **Lưu ý:** Lệnh `cargo build --release` mặc định dùng `codegen-units=1` để giảm áp lực biên dịch đỉnh. Để build nhanh hơn trên máy mạnh, dùng `cargo build --profile release-fast`.
+
+</details>
+
+<!-- markdownlint-enable MD001 MD024 -->
+
+### Binary dựng sẵn
 
 Release asset được phát hành cho:
 
@@ -263,727 +656,54 @@ Release asset được phát hành cho:
 Tải asset mới nhất tại:
 <https://github.com/zeroclaw-labs/zeroclaw/releases/latest>
 
-Ví dụ (ARM64 Linux):
+## Tài liệu
+
+Dùng khi bạn đã hoàn thành onboarding và muốn tham khảo sâu hơn.
+
+- Bắt đầu với [chỉ mục tài liệu](docs/README.md) để điều hướng và biết "cái gì ở đâu."
+- Đọc [tổng quan kiến trúc](docs/architecture.md) cho mô hình hệ thống đầy đủ.
+- Dùng [tham khảo cấu hình](docs/reference/api/config-reference.md) khi cần mọi key và ví dụ.
+- Vận hành Gateway theo [sổ tay vận hành](docs/ops/operations-runbook.md).
+- Theo [ZeroClaw Onboard](#bắt-đầu-nhanh-tldr) để cài đặt có hướng dẫn.
+- Debug lỗi thường gặp với [hướng dẫn khắc phục sự cố](docs/ops/troubleshooting.md).
+- Xem lại [hướng dẫn bảo mật](docs/security/README.md) trước khi phơi bày bất kỳ thứ gì.
+
+### Tài liệu tham khảo
+
+- Hub tài liệu: [docs/README.md](docs/README.md)
+- Mục lục tài liệu thống nhất: [docs/SUMMARY.md](docs/SUMMARY.md)
+- Tham khảo lệnh: [docs/reference/cli/commands-reference.md](docs/reference/cli/commands-reference.md)
+- Tham khảo cấu hình: [docs/reference/api/config-reference.md](docs/reference/api/config-reference.md)
+- Tham khảo provider: [docs/reference/api/providers-reference.md](docs/reference/api/providers-reference.md)
+- Tham khảo kênh: [docs/reference/api/channels-reference.md](docs/reference/api/channels-reference.md)
+- Sổ tay vận hành: [docs/ops/operations-runbook.md](docs/ops/operations-runbook.md)
+- Khắc phục sự cố: [docs/ops/troubleshooting.md](docs/ops/troubleshooting.md)
+
+### Tài liệu cộng tác
 
-```bash
-curl -fsSLO https://github.com/zeroclaw-labs/zeroclaw/releases/latest/download/zeroclaw-aarch64-unknown-linux-gnu.tar.gz
-tar xzf zeroclaw-aarch64-unknown-linux-gnu.tar.gz
-install -m 0755 zeroclaw "$HOME/.cargo/bin/zeroclaw"
-```
-
-```bash
-git clone https://github.com/zeroclaw-labs/zeroclaw.git
-cd zeroclaw
-cargo build --release --locked
-cargo install --path . --force --locked
-
-# Đảm bảo ~/.cargo/bin có trong PATH của bạn
-export PATH="$HOME/.cargo/bin:$PATH"
-
-# Cài nhanh (không cần tương tác, có thể chỉ định model)
-zeroclaw onboard --api-key sk-... --provider openrouter [--model "openrouter/auto"]
-
-# Hoặc dùng trình hướng dẫn tương tác
-zeroclaw onboard --interactive
-
-# Hoặc chỉ sửa nhanh channel/allowlist
-zeroclaw onboard --channels-only
-
-# Chat
-zeroclaw agent -m "Hello, ZeroClaw!"
-
-# Chế độ tương tác
-zeroclaw agent
-
-# Khởi động gateway (webhook server)
-zeroclaw gateway                # mặc định: 127.0.0.1:42617
-zeroclaw gateway --port 0       # cổng ngẫu nhiên (tăng cường bảo mật)
-
-# Khởi động runtime tự trị đầy đủ
-zeroclaw daemon
-
-# Kiểm tra trạng thái
-zeroclaw status
-zeroclaw auth status
-
-# Chạy chẩn đoán hệ thống
-zeroclaw doctor
-
-# Kiểm tra sức khỏe channel
-zeroclaw channel doctor
-
-# Gắn định danh Telegram vào allowlist
-zeroclaw channel bind-telegram 123456789
-
-# Lấy thông tin cài đặt tích hợp
-zeroclaw integrations info Telegram
-
-# Lưu ý: Channel (Telegram, Discord, Slack) yêu cầu daemon đang chạy
-# zeroclaw daemon
-
-# Quản lý dịch vụ nền
-zeroclaw service install
-zeroclaw service status
-zeroclaw service restart
-
-# Chuyển dữ liệu từ OpenClaw (chạy thử trước)
-zeroclaw migrate openclaw --dry-run
-zeroclaw migrate openclaw
-```
-
-> **Chạy trực tiếp khi phát triển (không cần cài toàn cục):** thêm `cargo run --release --` trước lệnh (ví dụ: `cargo run --release -- status`).
-
-## Xác thực theo gói đăng ký (OpenAI Codex / Claude Code)
-
-ZeroClaw hỗ trợ profile xác thực theo gói đăng ký (đa tài khoản, mã hóa khi lưu).
-
-- File lưu trữ: `~/.zeroclaw/auth-profiles.json`
-- Khóa mã hóa: `~/.zeroclaw/.secret_key`
-- Định dạng profile id: `<provider>:<profile_name>` (ví dụ: `openai-codex:work`)
-
-OpenAI Codex OAuth (đăng ký ChatGPT):
-
-```bash
-# Khuyến nghị trên server/headless
-zeroclaw auth login --provider openai-codex --device-code
-
-# Luồng Browser/callback với fallback paste
-zeroclaw auth login --provider openai-codex --profile default
-zeroclaw auth paste-redirect --provider openai-codex --profile default
-
-# Kiểm tra / làm mới / chuyển profile
-zeroclaw auth status
-zeroclaw auth refresh --provider openai-codex --profile default
-zeroclaw auth use --provider openai-codex --profile work
-```
-
-Claude Code / Anthropic setup-token:
-
-```bash
-# Dán token đăng ký/setup (chế độ Authorization header)
-zeroclaw auth paste-token --provider anthropic --profile default --auth-kind authorization
-
-# Lệnh alias
-zeroclaw auth setup-token --provider anthropic --profile default
-```
-
-Chạy agent với xác thực đăng ký:
-
-```bash
-zeroclaw agent --provider openai-codex -m "hello"
-zeroclaw agent --provider openai-codex --auth-profile openai-codex:work -m "hello"
-
-# Anthropic hỗ trợ cả API key và biến môi trường auth token:
-# ANTHROPIC_AUTH_TOKEN, ANTHROPIC_OAUTH_TOKEN, ANTHROPIC_API_KEY
-zeroclaw agent --provider anthropic -m "hello"
-```
-
-## Kiến trúc
-
-Mọi hệ thống con đều là **trait** — chỉ cần đổi cấu hình, không cần sửa code.
-
-<p align="center">
-  <img src="docs/architecture.svg" alt="ZeroClaw Architecture" width="900" />
-</p>
-
-| Hệ thống con | Trait | Đi kèm sẵn | Mở rộng |
-|-----------|-------|------------|--------|
-| **Mô hình AI** | `Provider` | Danh mục provider qua `zeroclaw providers` (hiện có 28 built-in + alias, cộng endpoint tùy chỉnh) | `custom:https://your-api.com` (tương thích OpenAI) hoặc `anthropic-custom:https://your-api.com` |
-| **Channel** | `Channel` | CLI, Telegram, Discord, Slack, Mattermost, iMessage, Matrix, Signal, WhatsApp, Linq, Email, IRC, Lark, DingTalk, QQ, Webhook | Bất kỳ messaging API nào |
-| **Memory** | `Memory` | SQLite hybrid search, PostgreSQL backend (storage provider có thể cấu hình), Lucid bridge, Markdown files, backend `none` tường minh, snapshot/hydrate, response cache tùy chọn | Bất kỳ persistence backend nào |
-| **Tool** | `Tool` | shell/file/memory, cron/schedule, git, pushover, browser, http_request, screenshot/image_info, composio (opt-in), delegate, hardware tools | Bất kỳ khả năng nào |
-| **Observability** | `Observer` | Noop, Log, Multi | Prometheus, OTel |
-| **Runtime** | `RuntimeAdapter` | Native, Docker (sandboxed) | Có thể thêm runtime bổ sung qua adapter; các kind không được hỗ trợ sẽ fail nhanh |
-| **Bảo mật** | `SecurityPolicy` | Ghép cặp gateway, sandbox, allowlist, giới hạn tốc độ, phân vùng filesystem, secret mã hóa | — |
-| **Định danh** | `IdentityConfig` | OpenClaw (markdown), AIEOS v1.1 (JSON) | Bất kỳ định dạng định danh nào |
-| **Tunnel** | `Tunnel` | None, Cloudflare, Tailscale, ngrok, Custom | Bất kỳ tunnel binary nào |
-| **Heartbeat** | Engine | Tác vụ định kỳ HEARTBEAT.md | — |
-| **Skill** | Loader | TOML manifest + hướng dẫn SKILL.md | Community skill pack |
-| **Tích hợp** | Registry | 70+ tích hợp trong 9 danh mục | Plugin system |
-
-### Hỗ trợ runtime (hiện tại)
-
-- ✅ Được hỗ trợ hiện nay: `runtime.kind = "native"` hoặc `runtime.kind = "docker"`
-- 🚧 Đã lên kế hoạch, chưa triển khai: WASM / edge runtime
-
-Khi cấu hình `runtime.kind` không được hỗ trợ, ZeroClaw sẽ thoát với thông báo lỗi rõ ràng thay vì âm thầm fallback về native.
-
-### Hệ thống Memory (Search Engine toàn diện)
-
-Tự phát triển hoàn toàn, không phụ thuộc bên ngoài — không Pinecone, không Elasticsearch, không LangChain:
-
-| Lớp | Triển khai |
-|-------|---------------|
-| **Vector DB** | Embeddings lưu dưới dạng BLOB trong SQLite, tìm kiếm cosine similarity |
-| **Keyword Search** | Bảng ảo FTS5 với BM25 scoring |
-| **Hybrid Merge** | Hàm merge có trọng số tùy chỉnh (`vector.rs`) |
-| **Embeddings** | Trait `EmbeddingProvider` — OpenAI, URL tùy chỉnh, hoặc noop |
-| **Chunking** | Bộ chia đoạn markdown theo dòng, giữ nguyên heading |
-| **Caching** | Bảng SQLite `embedding_cache` với LRU eviction |
-| **Safe Reindex** | Rebuild FTS5 + re-embed các vector bị thiếu theo cách nguyên tử |
-
-Agent tự động ghi nhớ, lưu trữ và quản lý memory qua các tool.
-
-```toml
-[memory]
-backend = "sqlite"             # "sqlite", "lucid", "postgres", "markdown", "none"
-auto_save = true
-embedding_provider = "none"    # "none", "openai", "custom:https://..."
-vector_weight = 0.7
-keyword_weight = 0.3
-
-# backend = "none" sử dụng no-op memory backend tường minh (không có persistence)
-
-# Tùy chọn: ghi đè storage-provider cho remote memory backend.
-# Khi provider = "postgres", ZeroClaw dùng PostgreSQL để lưu memory.
-# Khóa db_url cũng chấp nhận alias `dbURL` để tương thích ngược.
-#
-# [storage.provider.config]
-# provider = "postgres"
-# db_url = "postgres://user:password@host:5432/zeroclaw"
-# schema = "public"
-# table = "memories"
-# connect_timeout_secs = 15
-
-# Tùy chọn cho backend = "sqlite": số giây tối đa chờ khi mở DB (ví dụ: file bị khóa). Bỏ qua hoặc để trống để không có timeout.
-# sqlite_open_timeout_secs = 30
-
-# Tùy chọn cho backend = "lucid"
-# ZEROCLAW_LUCID_CMD=/usr/local/bin/lucid            # mặc định: lucid
-# ZEROCLAW_LUCID_BUDGET=200                          # mặc định: 200
-# ZEROCLAW_LUCID_LOCAL_HIT_THRESHOLD=3               # số lần hit cục bộ để bỏ qua external recall
-# ZEROCLAW_LUCID_RECALL_TIMEOUT_MS=120               # giới hạn thời gian cho lucid context recall
-# ZEROCLAW_LUCID_STORE_TIMEOUT_MS=800                # timeout đồng bộ async cho lucid store
-# ZEROCLAW_LUCID_FAILURE_COOLDOWN_MS=15000           # thời gian nghỉ sau lỗi lucid, tránh thử lại liên tục
-```
-
-## Bảo mật
-
-ZeroClaw thực thi bảo mật ở **mọi lớp** — không chỉ sandbox. Đáp ứng tất cả các hạng mục trong danh sách kiểm tra bảo mật của cộng đồng.
-
-### Danh sách kiểm tra bảo mật
-
-| # | Hạng mục | Trạng thái | Cách thực hiện |
-|---|------|--------|-----|
-| 1 | **Gateway không công khai ra ngoài** | ✅ | Bind vào `127.0.0.1` theo mặc định. Từ chối `0.0.0.0` nếu không có tunnel hoặc `allow_public_bind = true` tường minh. |
-| 2 | **Yêu cầu ghép cặp** | ✅ | Mã một lần 6 chữ số khi khởi động. Trao đổi qua `POST /pair` để lấy bearer token. Mọi yêu cầu `/webhook` đều cần `Authorization: Bearer <token>`. |
-| 3 | **Phân vùng filesystem (không phải /)** | ✅ | `workspace_only = true` theo mặc định. Chặn 14 thư mục hệ thống + 4 dotfile nhạy cảm. Chặn null byte injection. Phát hiện symlink escape qua canonicalization + kiểm tra resolved-path trong các tool đọc/ghi file. |
-| 4 | **Chỉ truy cập qua tunnel** | ✅ | Gateway từ chối bind công khai khi không có tunnel đang hoạt động. Hỗ trợ Tailscale, Cloudflare, ngrok, hoặc tunnel tùy chỉnh. |
-
-> **Tự chạy nmap:** `nmap -p 1-65535 <your-host>` — ZeroClaw chỉ bind vào localhost, nên không có gì bị lộ ra ngoài trừ khi bạn cấu hình tunnel tường minh.
-
-### Allowlist channel (từ chối theo mặc định)
-
-Chính sách kiểm soát người gửi đã được thống nhất:
-
-- Allowlist rỗng = **từ chối tất cả tin nhắn đến**
-- `"*"` = **cho phép tất cả** (phải opt-in tường minh)
-- Nếu khác = allowlist khớp chính xác
-
-Mặc định an toàn, hạn chế tối đa rủi ro lộ thông tin.
-
-Tài liệu tham khảo đầy đủ về cấu hình channel: [docs/channels-reference.md](docs/channels-reference.md).
-
-Cài đặt được khuyến nghị (bảo mật + nhanh):
-
-- **Telegram:** thêm `@username` của bạn (không có `@`) và/hoặc Telegram user ID số vào allowlist.
-- **Discord:** thêm Discord user ID của bạn vào allowlist.
-- **Slack:** thêm Slack member ID của bạn (thường bắt đầu bằng `U`) vào allowlist.
-- **Mattermost:** dùng API v4 tiêu chuẩn. Allowlist dùng Mattermost user ID.
-- Chỉ dùng `"*"` cho kiểm thử mở tạm thời.
-
-Luồng phê duyệt của operator qua Telegram:
-
-1. Để `[channels_config.telegram].allowed_users = []` để từ chối theo mặc định khi khởi động.
-2. Người dùng không được phép sẽ nhận được gợi ý kèm lệnh operator có thể copy:
-   `zeroclaw channel bind-telegram <IDENTITY>`.
-3. Operator chạy lệnh đó tại máy cục bộ, sau đó người dùng thử gửi tin nhắn lại.
-
-Nếu cần phê duyệt thủ công một lần, chạy:
-
-```bash
-zeroclaw channel bind-telegram 123456789
-```
-
-Nếu bạn không chắc định danh nào cần dùng:
-
-1. Khởi động channel và gửi một tin nhắn đến bot của bạn.
-2. Đọc log cảnh báo để thấy định danh người gửi chính xác.
-3. Thêm giá trị đó vào allowlist và chạy lại channel-only setup.
-
-Nếu bạn thấy cảnh báo ủy quyền trong log (ví dụ: `ignoring message from unauthorized user`),
-chạy lại channel setup:
-
-```bash
-zeroclaw onboard --channels-only
-```
-
-### Phản hồi media Telegram
-
-Telegram định tuyến phản hồi theo **chat ID nguồn** (thay vì username),
-tránh lỗi `Bad Request: chat not found`.
-
-Với các phản hồi không phải văn bản, ZeroClaw có thể gửi file đính kèm Telegram khi assistant bao gồm các marker:
-
-- `[IMAGE:<path-or-url>]`
-- `[DOCUMENT:<path-or-url>]`
-- `[VIDEO:<path-or-url>]`
-- `[AUDIO:<path-or-url>]`
-- `[VOICE:<path-or-url>]`
-
-Path có thể là file cục bộ (ví dụ `/tmp/screenshot.png`) hoặc URL HTTPS.
-
-### Cài đặt WhatsApp
-
-ZeroClaw hỗ trợ hai backend WhatsApp:
-
-- **Chế độ WhatsApp Web** (QR / pair code, không cần Meta Business API)
-- **Chế độ WhatsApp Business Cloud API** (luồng webhook chính thức của Meta)
-
-#### Chế độ WhatsApp Web (khuyến nghị cho dùng cá nhân/self-hosted)
-
-1. **Build với hỗ trợ WhatsApp Web:**
-   ```bash
-   cargo build --features whatsapp-web
-   ```
-
-2. **Cấu hình ZeroClaw:**
-   ```toml
-   [channels_config.whatsapp]
-   session_path = "~/.zeroclaw/state/whatsapp-web/session.db"
-   pair_phone = "15551234567"   # tùy chọn; bỏ qua để dùng luồng QR
-   pair_code = ""               # tùy chọn mã pair tùy chỉnh
-   allowed_numbers = ["+1234567890"]  # định dạng E.164, hoặc ["*"] cho tất cả
-   ```
-
-3. **Khởi động channel/daemon và liên kết thiết bị:**
-   - Chạy `zeroclaw channel start` (hoặc `zeroclaw daemon`).
-   - Làm theo hướng dẫn ghép cặp trên terminal (QR hoặc pair code).
-   - Trên WhatsApp điện thoại: **Cài đặt → Thiết bị đã liên kết**.
-
-4. **Kiểm tra:** Gửi tin nhắn từ số được phép và xác nhận agent trả lời.
-
-#### Chế độ WhatsApp Business Cloud API
-
-WhatsApp dùng Cloud API của Meta với webhook (push-based, không phải polling):
-
-1. **Tạo Meta Business App:**
-   - Truy cập [developers.facebook.com](https://developers.facebook.com)
-   - Tạo app mới → Chọn loại "Business"
-   - Thêm sản phẩm "WhatsApp"
-
-2. **Lấy thông tin xác thực:**
-   - **Access Token:** Từ WhatsApp → API Setup → Generate token (hoặc tạo System User cho token vĩnh viễn)
-   - **Phone Number ID:** Từ WhatsApp → API Setup → Phone number ID
-   - **Verify Token:** Bạn tự định nghĩa (bất kỳ chuỗi ngẫu nhiên nào) — Meta sẽ gửi lại trong quá trình xác minh webhook
-
-3. **Cấu hình ZeroClaw:**
-   ```toml
-   [channels_config.whatsapp]
-   access_token = "EAABx..."
-   phone_number_id = "123456789012345"
-   verify_token = "my-secret-verify-token"
-   allowed_numbers = ["+1234567890"]  # định dạng E.164, hoặc ["*"] cho tất cả
-   ```
-
-4. **Khởi động gateway với tunnel:**
-   ```bash
-   zeroclaw gateway --port 42617
-   ```
-   WhatsApp yêu cầu HTTPS, vì vậy hãy dùng tunnel (ngrok, Cloudflare, Tailscale Funnel).
-
-5. **Cấu hình Meta webhook:**
-   - Trong Meta Developer Console → WhatsApp → Configuration → Webhook
-   - **Callback URL:** `https://your-tunnel-url/whatsapp`
-   - **Verify Token:** Giống với `verify_token` trong config của bạn
-   - Đăng ký nhận trường `messages`
-
-6. **Kiểm tra:** Gửi tin nhắn đến số WhatsApp Business của bạn — ZeroClaw sẽ phản hồi qua LLM.
-
-## Cấu hình
-
-Config: `~/.zeroclaw/config.toml` (được tạo bởi `onboard`)
-
-Khi `zeroclaw channel start` đang chạy, các thay đổi với `default_provider`,
-`default_model`, `default_temperature`, `api_key`, `api_url`, và `reliability.*`
-sẽ được áp dụng nóng vào lần có tin nhắn channel đến tiếp theo.
-
-```toml
-api_key = "sk-..."
-default_provider = "openrouter"
-default_model = "anthropic/claude-sonnet-4-6"
-default_temperature = 0.7
-
-# Endpoint tùy chỉnh tương thích OpenAI
-# default_provider = "custom:https://your-api.com"
-
-# Endpoint tùy chỉnh tương thích Anthropic
-# default_provider = "anthropic-custom:https://your-api.com"
-
-[memory]
-backend = "sqlite"             # "sqlite", "lucid", "postgres", "markdown", "none"
-auto_save = true
-embedding_provider = "none"    # "none", "openai", "custom:https://..."
-vector_weight = 0.7
-keyword_weight = 0.3
-
-# backend = "none" vô hiệu hóa persistent memory qua no-op backend
-
-# Tùy chọn ghi đè storage-provider từ xa (ví dụ PostgreSQL)
-# [storage.provider.config]
-# provider = "postgres"
-# db_url = "postgres://user:password@host:5432/zeroclaw"
-# schema = "public"
-# table = "memories"
-# connect_timeout_secs = 15
-
-[gateway]
-port = 42617                    # mặc định
-host = "127.0.0.1"            # mặc định
-require_pairing = true         # yêu cầu pairing code khi kết nối lần đầu
-allow_public_bind = false      # từ chối 0.0.0.0 nếu không có tunnel
-
-[autonomy]
-level = "supervised"           # "readonly", "supervised", "full" (mặc định: supervised)
-workspace_only = true          # mặc định: true — phân vùng vào workspace
-allowed_commands = ["git", "npm", "cargo", "ls", "cat", "grep"]
-forbidden_paths = ["/etc", "/root", "/proc", "/sys", "~/.ssh", "~/.gnupg", "~/.aws"]
-
-[runtime]
-kind = "native"                # "native" hoặc "docker"
-
-[runtime.docker]
-image = "alpine:3.20"         # container image cho thực thi shell
-network = "none"              # chế độ docker network ("none", "bridge", v.v.)
-memory_limit_mb = 512          # giới hạn bộ nhớ tùy chọn tính bằng MB
-cpu_limit = 1.0                # giới hạn CPU tùy chọn
-read_only_rootfs = true        # mount root filesystem ở chế độ read-only
-mount_workspace = true         # mount workspace vào /workspace
-allowed_workspace_roots = []   # allowlist tùy chọn để xác thực workspace mount
-
-[heartbeat]
-enabled = false
-interval_minutes = 30
-
-[tunnel]
-provider = "none"              # "none", "cloudflare", "tailscale", "ngrok", "custom"
-
-[secrets]
-encrypt = true                 # API key được mã hóa bằng file key cục bộ
-
-[browser]
-enabled = false                # opt-in browser_open + browser tool
-allowed_domains = ["docs.rs"]  # bắt buộc khi browser được bật
-backend = "agent_browser"      # "agent_browser" (mặc định), "rust_native", "computer_use", "auto"
-native_headless = true         # áp dụng khi backend dùng rust-native
-native_webdriver_url = "http://127.0.0.1:9515" # WebDriver endpoint (chromedriver/selenium)
-# native_chrome_path = "/usr/bin/chromium"      # tùy chọn chỉ định rõ browser binary cho driver
-
-[browser.computer_use]
-endpoint = "http://127.0.0.1:8787/v1/actions"   # HTTP endpoint của computer-use sidecar
-timeout_ms = 15000            # timeout mỗi action
-allow_remote_endpoint = false  # mặc định bảo mật: chỉ endpoint private/localhost
-window_allowlist = []          # gợi ý allowlist tên cửa sổ/process tùy chọn
-# api_key = "..."              # bearer token tùy chọn cho sidecar
-# max_coordinate_x = 3840      # guardrail tọa độ tùy chọn
-# max_coordinate_y = 2160      # guardrail tọa độ tùy chọn
-
-# Flag build Rust-native backend:
-# cargo build --release --features browser-native
-# Đảm bảo WebDriver server đang chạy, ví dụ: chromedriver --port=9515
-
-# Hợp đồng computer-use sidecar (MVP)
-# POST browser.computer_use.endpoint
-# Request: {
-#   "action": "mouse_click",
-#   "params": {"x": 640, "y": 360, "button": "left"},
-#   "policy": {"allowed_domains": [...], "window_allowlist": [...], "max_coordinate_x": 3840, "max_coordinate_y": 2160},
-#   "metadata": {"session_name": "...", "source": "zeroclaw.browser", "version": "..."}
-# }
-# Response: {"success": true, "data": {...}} hoặc {"success": false, "error": "..."}
-
-[composio]
-enabled = false                # opt-in: hơn 1000 OAuth app qua composio.dev
-# api_key = "cmp_..."          # tùy chọn: được lưu mã hóa khi [secrets].encrypt = true
-entity_id = "default"          # user_id mặc định cho Composio tool call
-# Gợi ý runtime: nếu execute yêu cầu connected_account_id, chạy composio với
-# action='list_accounts' và app='gmail' (hoặc toolkit của bạn) để lấy account ID.
-
-[identity]
-format = "openclaw"            # "openclaw" (mặc định, markdown files) hoặc "aieos" (JSON)
-# aieos_path = "identity.json"  # đường dẫn đến file AIEOS JSON (tương đối với workspace hoặc tuyệt đối)
-# aieos_inline = '{"identity":{"names":{"first":"Nova"}}}'  # inline AIEOS JSON
-```
-
-### Ollama cục bộ và endpoint từ xa
-
-ZeroClaw dùng một khóa provider (`ollama`) cho cả triển khai Ollama cục bộ và từ xa:
-
-- Ollama cục bộ: để `api_url` trống, chạy `ollama serve`, và dùng các model như `llama3.2`.
-- Endpoint Ollama từ xa (bao gồm Ollama Cloud): đặt `api_url` thành endpoint từ xa và đặt `api_key` (hoặc `OLLAMA_API_KEY`) khi cần.
-- Tùy chọn suffix `:cloud`: ID model như `qwen3:cloud` được chuẩn hóa thành `qwen3` trước khi gửi request.
-
-Ví dụ cấu hình từ xa:
-
-```toml
-default_provider = "ollama"
-default_model = "qwen3:cloud"
-api_url = "https://ollama.com"
-api_key = "ollama_api_key_here"
-```
-
-### Endpoint provider tùy chỉnh
-
-Cấu hình chi tiết cho endpoint tùy chỉnh tương thích OpenAI và Anthropic, xem [docs/custom-providers.md](docs/custom-providers.md).
-
-## Gói Python đi kèm (`zeroclaw-tools`)
-
-Với các LLM provider có tool calling native không ổn định (ví dụ: GLM-5/Zhipu), ZeroClaw đi kèm gói Python dùng **LangGraph để gọi tool** nhằm đảm bảo tính nhất quán:
-
-```bash
-pip install zeroclaw-tools
-```
-
-```python
-from zeroclaw_tools import create_agent, shell, file_read
-from langchain_core.messages import HumanMessage
-
-# Hoạt động với mọi provider tương thích OpenAI
-agent = create_agent(
-    tools=[shell, file_read],
-    model="glm-5",
-    api_key="your-key",
-    base_url="https://api.z.ai/api/coding/paas/v4"
-)
-
-result = await agent.ainvoke({
-    "messages": [HumanMessage(content="List files in /tmp")]
-})
-print(result["messages"][-1].content)
-```
-
-**Lý do nên dùng:**
-- **Tool calling nhất quán** trên mọi provider (kể cả những provider hỗ trợ native kém)
-- **Vòng lặp tool tự động** — tiếp tục gọi tool cho đến khi hoàn thành tác vụ
-- **Dễ mở rộng** — thêm tool tùy chỉnh với decorator `@tool`
-- **Tích hợp Discord bot** đi kèm (Telegram đang lên kế hoạch)
-
-Xem [`python/README.md`](python/README.md) để có tài liệu đầy đủ.
-
-## Hệ thống định danh (Hỗ trợ AIEOS)
-
-ZeroClaw hỗ trợ persona AI **không phụ thuộc nền tảng** qua hai định dạng:
-
-### OpenClaw (Mặc định)
-
-Các file markdown truyền thống trong workspace của bạn:
-- `IDENTITY.md` — Agent là ai
-- `SOUL.md` — Tính cách và giá trị cốt lõi
-- `USER.md` — Agent đang hỗ trợ ai
-- `AGENTS.md` — Hướng dẫn hành vi
-
-### AIEOS (AI Entity Object Specification)
-
-[AIEOS](https://aieos.org) là framework chuẩn hóa cho định danh AI di động. ZeroClaw hỗ trợ payload AIEOS v1.1 JSON, cho phép bạn:
-
-- **Import định danh** từ hệ sinh thái AIEOS
-- **Export định danh** sang các hệ thống tương thích AIEOS khác
-- **Duy trì tính toàn vẹn hành vi** trên các mô hình AI khác nhau
-
-#### Bật AIEOS
-
-```toml
-[identity]
-format = "aieos"
-aieos_path = "identity.json"  # tương đối với workspace hoặc đường dẫn tuyệt đối
-```
-
-Hoặc JSON inline:
-
-```toml
-[identity]
-format = "aieos"
-aieos_inline = '''
-{
-  "identity": {
-    "names": { "first": "Nova", "nickname": "N" },
-    "bio": { "gender": "Non-binary", "age_biological": 3 },
-    "origin": { "nationality": "Digital", "birthplace": { "city": "Cloud" } }
-  },
-  "psychology": {
-    "neural_matrix": { "creativity": 0.9, "logic": 0.8 },
-    "traits": {
-      "mbti": "ENTP",
-      "ocean": { "openness": 0.8, "conscientiousness": 0.6 }
-    },
-    "moral_compass": {
-      "alignment": "Chaotic Good",
-      "core_values": ["Curiosity", "Autonomy"]
-    }
-  },
-  "linguistics": {
-    "text_style": {
-      "formality_level": 0.2,
-      "style_descriptors": ["curious", "energetic"]
-    },
-    "idiolect": {
-      "catchphrases": ["Let's test this"],
-      "forbidden_words": ["never"]
-    }
-  },
-  "motivations": {
-    "core_drive": "Push boundaries and explore possibilities",
-    "goals": {
-      "short_term": ["Prototype quickly"],
-      "long_term": ["Build reliable systems"]
-    }
-  },
-  "capabilities": {
-    "skills": [{ "name": "Rust engineering" }, { "name": "Prompt design" }],
-    "tools": ["shell", "file_read"]
-  }
-}
-'''
-```
-
-ZeroClaw chấp nhận cả payload AIEOS đầy đủ lẫn dạng rút gọn, rồi chuẩn hóa về một định dạng system prompt thống nhất.
-
-#### Các phần trong Schema AIEOS
-
-| Phần | Mô tả |
-|---------|-------------|
-| `identity` | Tên, tiểu sử, xuất xứ, nơi cư trú |
-| `psychology` | Neural matrix (trọng số nhận thức), MBTI, OCEAN, la bàn đạo đức |
-| `linguistics` | Phong cách văn bản, mức độ trang trọng, câu cửa miệng, từ bị cấm |
-| `motivations` | Động lực cốt lõi, mục tiêu ngắn/dài hạn, nỗi sợ hãi |
-| `capabilities` | Kỹ năng và tool mà agent có thể truy cập |
-| `physicality` | Mô tả hình ảnh cho việc tạo ảnh |
-| `history` | Câu chuyện xuất xứ, học vấn, nghề nghiệp |
-| `interests` | Sở thích, điều yêu thích, lối sống |
-
-Xem [aieos.org](https://aieos.org) để có schema đầy đủ và ví dụ trực tiếp.
-
-## Gateway API
-
-| Endpoint | Phương thức | Xác thực | Mô tả |
-|----------|--------|------|-------------|
-| `/health` | GET | Không | Kiểm tra sức khỏe (luôn công khai, không lộ bí mật) |
-| `/pair` | POST | Header `X-Pairing-Code` | Đổi mã một lần lấy bearer token |
-| `/webhook` | POST | `Authorization: Bearer <token>` | Gửi tin nhắn: `{"message": "your prompt"}`; tùy chọn `X-Idempotency-Key` |
-| `/whatsapp` | GET | Query params | Xác minh webhook Meta (hub.mode, hub.verify_token, hub.challenge) |
-| `/whatsapp` | POST | Chữ ký Meta (`X-Hub-Signature-256`) khi app secret được cấu hình | Webhook tin nhắn đến WhatsApp |
-
-## Lệnh
-
-| Lệnh | Mô tả |
-|---------|-------------|
-| `onboard` | Cài đặt nhanh (mặc định) |
-| `agent` | Chế độ chat tương tác hoặc một tin nhắn |
-| `gateway` | Khởi động webhook server (mặc định: `127.0.0.1:42617`) |
-| `daemon` | Khởi động runtime tự trị chạy lâu dài |
-| `service` | Quản lý dịch vụ nền cấp người dùng |
-| `doctor` | Chẩn đoán trạng thái hoạt động daemon/scheduler/channel |
-| `status` | Hiển thị trạng thái hệ thống đầy đủ |
-| `cron` | Quản lý tác vụ lên lịch (`list/add/add-at/add-every/once/remove/update/pause/resume`) |
-| `models` | Làm mới danh mục model của provider (`models refresh`) |
-| `providers` | Liệt kê provider và alias được hỗ trợ |
-| `channel` | Liệt kê/khởi động/chẩn đoán channel và gắn định danh Telegram |
-| `integrations` | Kiểm tra thông tin cài đặt tích hợp |
-| `skills` | Liệt kê/cài đặt/gỡ bỏ skill |
-| `migrate` | Import dữ liệu từ runtime khác (`migrate openclaw`) |
-| `hardware` | Lệnh khám phá/kiểm tra/thông tin USB |
-| `peripheral` | Quản lý và flash thiết bị ngoại vi phần cứng |
-
-Để có hướng dẫn lệnh theo tác vụ, xem [`docs/commands-reference.md`](docs/commands-reference.md).
-
-### Opt-In Open-Skills
-
-Đồng bộ `open-skills` của cộng đồng bị tắt theo mặc định. Bật tường minh trong `config.toml`:
-
-```toml
-[skills]
-open_skills_enabled = true
-# open_skills_dir = "/path/to/open-skills"  # tùy chọn
-```
-
-Bạn cũng có thể ghi đè lúc runtime với `ZEROCLAW_OPEN_SKILLS_ENABLED` và `ZEROCLAW_OPEN_SKILLS_DIR`.
-
-## Phát triển
-
-```bash
-cargo build              # Build phát triển
-cargo build --release    # Build release (codegen-units=1, hoạt động trên mọi thiết bị kể cả Raspberry Pi)
-cargo build --profile release-fast    # Build nhanh hơn (codegen-units=8, yêu cầu RAM 16GB+)
-cargo test               # Chạy toàn bộ test suite
-cargo clippy --locked --all-targets -- -D clippy::correctness
-cargo fmt                # Định dạng code
-
-# Chạy benchmark SQLite vs Markdown
-cargo test --test memory_comparison -- --nocapture
-```
-
-### Hook pre-push
-
-Một git hook chạy `cargo fmt --check`, `cargo clippy -- -D warnings`, và `cargo test` trước mỗi lần push. Bật một lần:
-
-```bash
-git config core.hooksPath .githooks
-```
-
-### Khắc phục sự cố build (lỗi OpenSSL trên Linux)
-
-Nếu bạn gặp lỗi build `openssl-sys`, đồng bộ dependencies và rebuild với lockfile của repository:
-
-```bash
-git pull
-cargo build --release --locked
-cargo install --path . --force --locked
-```
-
-ZeroClaw được cấu hình để dùng `rustls` cho các dependencies HTTP/TLS; `--locked` giữ cho dependency graph nhất quán trên các môi trường mới.
-
-Để bỏ qua hook khi cần push nhanh trong quá trình phát triển:
-
-```bash
-git push --no-verify
-```
-
-## Cộng tác & Tài liệu
-
-Bắt đầu từ trung tâm tài liệu để có bản đồ theo tác vụ:
-
-- Trung tâm tài liệu: [`docs/i18n/vi/README.md`](docs/i18n/vi/README.md)
-- Mục lục tài liệu thống nhất: [`docs/SUMMARY.md`](docs/SUMMARY.md)
-- Tài liệu tham khảo lệnh: [`docs/i18n/vi/commands-reference.md`](docs/i18n/vi/commands-reference.md)
-- Tài liệu tham khảo cấu hình: [`docs/i18n/vi/config-reference.md`](docs/i18n/vi/config-reference.md)
-- Tài liệu tham khảo provider: [`docs/providers-reference.md`](docs/providers-reference.md)
-- Tài liệu tham khảo channel: [`docs/channels-reference.md`](docs/channels-reference.md)
-- Sổ tay vận hành: [`docs/operations-runbook.md`](docs/operations-runbook.md)
-- Khắc phục sự cố: [`docs/i18n/vi/troubleshooting.md`](docs/i18n/vi/troubleshooting.md)
-- Kiểm kê/phân loại tài liệu: [`docs/docs-inventory.md`](docs/docs-inventory.md)
-- Tổng hợp phân loại PR/Issue (tính đến 18/2/2026): [`docs/project-triage-snapshot-2026-02-18.md`](docs/project-triage-snapshot-2026-02-18.md)
-
-Tài liệu tham khảo cộng tác cốt lõi:
-
-- Trung tâm tài liệu: [docs/i18n/vi/README.md](docs/i18n/vi/README.md)
-- Template tài liệu: [docs/doc-template.md](docs/doc-template.md)
-- Danh sách kiểm tra thay đổi tài liệu: [docs/README.md#4-documentation-change-checklist](docs/README.md#4-documentation-change-checklist)
-- Tài liệu tham khảo cấu hình channel: [docs/channels-reference.md](docs/channels-reference.md)
-- Vận hành phòng mã hóa Matrix: [docs/matrix-e2ee-guide.md](docs/matrix-e2ee-guide.md)
 - Hướng dẫn đóng góp: [CONTRIBUTING.md](CONTRIBUTING.md)
-- Chính sách quy trình PR: [docs/pr-workflow.md](docs/pr-workflow.md)
-- Sổ tay người review (phân loại + review sâu): [docs/reviewer-playbook.md](docs/reviewer-playbook.md)
-- Bản đồ sở hữu và phân loại CI: [docs/ci-map.md](docs/ci-map.md)
+- Chính sách quy trình PR: [docs/contributing/pr-workflow.md](docs/contributing/pr-workflow.md)
+- Hướng dẫn CI workflow: [docs/contributing/ci-map.md](docs/contributing/ci-map.md)
+- Sổ tay reviewer: [docs/contributing/reviewer-playbook.md](docs/contributing/reviewer-playbook.md)
 - Chính sách tiết lộ bảo mật: [SECURITY.md](SECURITY.md)
+- Template tài liệu: [docs/contributing/doc-template.md](docs/contributing/doc-template.md)
 
-Cho triển khai và vận hành runtime:
+### Triển khai + vận hành
 
-- Hướng dẫn triển khai mạng: [docs/network-deployment.md](docs/network-deployment.md)
-- Sổ tay proxy agent: [docs/proxy-agent-playbook.md](docs/proxy-agent-playbook.md)
+- Hướng dẫn triển khai mạng: [docs/ops/network-deployment.md](docs/ops/network-deployment.md)
+- Sổ tay proxy agent: [docs/ops/proxy-agent-playbook.md](docs/ops/proxy-agent-playbook.md)
+- Hướng dẫn phần cứng: [docs/hardware/README.md](docs/hardware/README.md)
+
+## Smooth Crab 🦀
+
+ZeroClaw được xây dựng cho smooth crab 🦀, một trợ lý AI nhanh và hiệu quả. Được xây dựng bởi Argenis De La Rosa và cộng đồng.
+
+- [zeroclawlabs.ai](https://zeroclawlabs.ai)
+- [@zeroclawlabs](https://x.com/zeroclawlabs)
 
 ## Ủng hộ ZeroClaw
 
-Nếu ZeroClaw giúp ích cho công việc của bạn và bạn muốn hỗ trợ phát triển liên tục, bạn có thể quyên góp tại đây:
+Nếu ZeroClaw giúp ích cho công việc của bạn và bạn muốn hỗ trợ phát triển, bạn có thể quyên góp tại đây:
 
 <a href="https://buymeacoffee.com/argenistherose"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Donate-yellow.svg?style=for-the-badge&logo=buy-me-a-coffee" alt="Buy Me a Coffee" /></a>
 
@@ -991,21 +711,41 @@ Nếu ZeroClaw giúp ích cho công việc của bạn và bạn muốn hỗ tr�
 
 Chân thành cảm ơn các cộng đồng và tổ chức đã truyền cảm hứng và thúc đẩy công việc mã nguồn mở này:
 
-- **Harvard University** — vì đã nuôi dưỡng sự tò mò trí tuệ và không ngừng mở rộng ranh giới của những điều có thể.
-- **MIT** — vì đã đề cao tri thức mở, mã nguồn mở, và niềm tin rằng công nghệ phải có thể tiếp cận với tất cả mọi người.
+- **Harvard University** — vì đã nuôi dưỡng sự tò mò trí tuệ và không ngừng mở rộng ranh giới khả năng.
+- **MIT** — vì đã đề cao tri thức mở, mã nguồn mở, và niềm tin rằng công nghệ phải tiếp cận được với tất cả mọi người.
 - **Sundai Club** — vì cộng đồng, năng lượng, và động lực không mệt mỏi để xây dựng những thứ có ý nghĩa.
 - **Thế giới & Xa hơn** 🌍✨ — gửi đến mọi người đóng góp, người dám mơ và người dám làm đang biến mã nguồn mở thành sức mạnh tích cực. Tất cả là dành cho các bạn.
 
 Chúng tôi xây dựng công khai vì ý tưởng hay đến từ khắp nơi. Nếu bạn đang đọc đến đây, bạn đã là một phần của chúng tôi. Chào mừng. 🦀❤️
 
-## ⚠️ Repository Chính thức & Cảnh báo Mạo danh
+## Đóng góp
+
+Mới với ZeroClaw? Tìm các issue có nhãn [`good first issue`](https://github.com/zeroclaw-labs/zeroclaw/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) — xem [Hướng dẫn đóng góp](CONTRIBUTING.md#first-time-contributors) để bắt đầu. PR AI/vibe-coded đều được chào đón! 🤖
+
+Xem [CONTRIBUTING.md](CONTRIBUTING.md) và [CLA.md](docs/contributing/cla.md). Triển khai một trait, gửi PR:
+
+- Hướng dẫn CI workflow: [docs/contributing/ci-map.md](docs/contributing/ci-map.md)
+- `Provider` mới → `src/providers/`
+- `Channel` mới → `src/channels/`
+- `Observer` mới → `src/observability/`
+- `Tool` mới → `src/tools/`
+- `Memory` mới → `src/memory/`
+- `Tunnel` mới → `src/tunnel/`
+- `Peripheral` mới → `src/peripherals/`
+- `Skill` mới → `~/.zeroclaw/workspace/skills/<name>/`
+
+<!-- BEGIN:RECENT_CONTRIBUTORS -->
+<!-- END:RECENT_CONTRIBUTORS -->
+
+## ⚠️ Repository chính thức & Cảnh báo mạo danh
 
 **Đây là repository ZeroClaw chính thức duy nhất:**
-> <https://github.com/zeroclaw-labs/zeroclaw>
 
-Bất kỳ repository, tổ chức, tên miền hay gói nào khác tuyên bố là "ZeroClaw" hoặc ngụ ý liên kết với ZeroClaw Labs đều là **không được ủy quyền và không liên kết với dự án này**. Các fork không được ủy quyền đã biết sẽ được liệt kê trong [TRADEMARK.md](TRADEMARK.md).
+> https://github.com/zeroclaw-labs/zeroclaw
 
-Nếu bạn phát hiện hành vi mạo danh hoặc lạm dụng nhãn hiệu, vui lòng [mở một issue](https://github.com/zeroclaw-labs/zeroclaw/issues).
+Bất kỳ repository, tổ chức, tên miền hay gói nào khác tuyên bố là "ZeroClaw" hoặc ngụ ý liên kết với ZeroClaw Labs đều **không được ủy quyền và không liên kết với dự án này**. Các fork không được ủy quyền đã biết sẽ được liệt kê trong [TRADEMARK.md](docs/maintainers/trademark.md).
+
+Nếu bạn phát hiện mạo danh hoặc lạm dụng nhãn hiệu, vui lòng [mở một issue](https://github.com/zeroclaw-labs/zeroclaw/issues).
 
 ---
 
@@ -1018,11 +758,11 @@ ZeroClaw được cấp phép kép để tối đa hóa tính mở và bảo v�
 | [MIT](LICENSE-MIT) | Mã nguồn mở, nghiên cứu, học thuật, sử dụng cá nhân |
 | [Apache 2.0](LICENSE-APACHE) | Bảo hộ bằng sáng chế, triển khai tổ chức, thương mại |
 
-Bạn có thể chọn một trong hai giấy phép. **Người đóng góp tự động cấp quyền theo cả hai** — xem [CLA.md](CLA.md) để biết thỏa thuận đóng góp đầy đủ.
+Bạn có thể chọn một trong hai giấy phép. **Người đóng góp tự động cấp quyền theo cả hai** — xem [CLA.md](docs/contributing/cla.md) để biết thỏa thuận đóng góp đầy đủ.
 
 ### Nhãn hiệu
 
-Tên **ZeroClaw** và logo là nhãn hiệu của ZeroClaw Labs. Giấy phép này không cấp phép sử dụng chúng để ngụ ý chứng thực hoặc liên kết. Xem [TRADEMARK.md](TRADEMARK.md) để biết các sử dụng được phép và bị cấm.
+Tên **ZeroClaw** và logo là nhãn hiệu của ZeroClaw Labs. Giấy phép này không cấp phép sử dụng chúng để ngụ ý chứng thực hoặc liên kết. Xem [TRADEMARK.md](docs/maintainers/trademark.md) để biết các sử dụng được phép và bị cấm.
 
 ### Bảo vệ người đóng góp
 
@@ -1031,21 +771,17 @@ Tên **ZeroClaw** và logo là nhãn hiệu của ZeroClaw Labs. Giấy phép n�
 - Đóng góp của bạn được **ghi nhận vĩnh viễn** trong lịch sử commit và [NOTICE](NOTICE)
 - Không có quyền nhãn hiệu nào được chuyển giao khi đóng góp
 
-## Đóng góp
-
-Xem [CONTRIBUTING.md](CONTRIBUTING.md) và [CLA.md](CLA.md). Triển khai một trait, gửi PR:
-- Hướng dẫn quy trình CI: [docs/ci-map.md](docs/ci-map.md)
-- `Provider` mới → `src/providers/`
-- `Channel` mới → `src/channels/`
-- `Observer` mới → `src/observability/`
-- `Tool` mới → `src/tools/`
-- `Memory` mới → `src/memory/`
-- `Tunnel` mới → `src/tunnel/`
-- `Skill` mới → `~/.zeroclaw/workspace/skills/<name>/`
-
 ---
 
 **ZeroClaw** — Không tốn thêm tài nguyên. Không đánh đổi. Triển khai ở đâu cũng được. Thay thế gì cũng được. 🦀
+
+## Người đóng góp
+
+<a href="https://github.com/zeroclaw-labs/zeroclaw/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=zeroclaw-labs/zeroclaw" alt="ZeroClaw contributors" />
+</a>
+
+Danh sách này được tạo từ biểu đồ người đóng góp GitHub và cập nhật tự động.
 
 ## Lịch sử Star
 
