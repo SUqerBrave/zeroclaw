@@ -2,7 +2,7 @@
 
 This reference is derived from the current CLI surface (`zeroclaw --help`).
 
-Last verified: **February 21, 2026**.
+Last verified: **March 26, 2026**.
 
 ## Top-Level Commands
 
@@ -11,6 +11,7 @@ Last verified: **February 21, 2026**.
 | `onboard` | Initialize workspace/config quickly or interactively |
 | `agent` | Run interactive chat or single-message mode |
 | `gateway` | Start webhook and WhatsApp HTTP gateway |
+| `acp` | Start ACP (Agent Control Protocol) server over stdio |
 | `daemon` | Start supervised runtime (gateway + channels + optional heartbeat/scheduler) |
 | `service` | Manage user-level OS service lifecycle |
 | `doctor` | Run diagnostics and freshness checks |
@@ -23,6 +24,7 @@ Last verified: **February 21, 2026**.
 | `integrations` | Inspect integration details |
 | `skills` | List/install/remove skills |
 | `migrate` | Import from external runtimes (currently OpenClaw) |
+| `props` | View, set, or initialize config properties |
 | `config` | Export machine-readable config schema |
 | `completions` | Generate shell completion scripts to stdout |
 | `hardware` | Discover and introspect USB hardware |
@@ -59,6 +61,20 @@ Last verified: **February 21, 2026**.
 Tip:
 
 - In interactive chat, you can ask for route changes in natural language (for example “conversation uses kimi, coding uses gpt-5.3-codex”); the assistant can persist this via tool `model_routing_config`.
+
+### `acp`
+
+- `zeroclaw acp`
+- `zeroclaw acp --max-sessions <N>`
+- `zeroclaw acp --session-timeout <SECONDS>`
+
+Start the ACP (Agent Control Protocol) server for IDE and tool integration.
+
+- Uses JSON-RPC 2.0 over stdin/stdout
+- Supports methods: `initialize`, `session/new`, `session/prompt`, `session/stop`
+- Streams agent reasoning, tool calls, and content in real-time as notifications
+- Default max sessions: 10
+- Default session timeout: 3600 seconds (1 hour)
 
 ### `gateway` / `daemon`
 
@@ -208,6 +224,36 @@ Skill manifests (`SKILL.toml`) support `prompts` and `[[tools]]`; both are injec
 - `zeroclaw peripheral flash [--port <serial_port>]`
 - `zeroclaw peripheral setup-uno-q [--host <ip_or_host>]`
 - `zeroclaw peripheral flash-nucleo`
+
+### `props`
+
+Manage individual config properties without editing `config.toml` directly.
+Properties are addressed by dotted path (e.g. `channels.matrix.mention-only`).
+
+- `zeroclaw props list` — list all properties with current values
+- `zeroclaw props list --secrets` — list only secret (encrypted) fields
+- `zeroclaw props list --filter channels.matrix` — filter by path prefix
+- `zeroclaw props get <path>` — get a single property value (secrets show set/unset status)
+- `zeroclaw props set <path> <value>` — set a property value
+- `zeroclaw props set <path>` — secret fields prompt for masked input; enum fields offer interactive selection
+- `zeroclaw props set --no-interactive <path> <value>` — scripted mode, no prompts
+- `zeroclaw props init <section>` — create an unconfigured section with defaults (`enabled=false`)
+- `zeroclaw props init` — initialize all unconfigured sections
+
+Secret fields (API keys, tokens, passwords) are automatically detected via `#[secret]`
+annotations. When setting a secret, input is masked regardless of whether a value is
+provided on the command line.
+
+Enum fields (e.g. `stream-mode`, `search-mode`) offer interactive selection via arrow
+keys when the value is omitted. Provide the value directly to skip the prompt.
+
+Shell tab-completion for property paths is included in `zeroclaw completions <shell>`.
+
+#### Adding new config fields
+
+Config structs derive `Configurable` with `#[prefix]` and `#[nested]` attributes.
+Adding a new field to an existing struct makes it immediately available via `props`.
+New enum types require a one-line `HasPropKind` impl. See `CONTRIBUTING.md` for details.
 
 ## Validation Tip
 
