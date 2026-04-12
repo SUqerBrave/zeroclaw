@@ -1,0 +1,45 @@
+# ZeroClaw R68S Configuration with Web-Search-Prime MCP
+# Copy this to /root/.zeroclaw/config.toml on your R68S
+
+[agent]
+compact_context = false
+max_tool_iterations = 10
+max_history_messages = 50
+parallel_tools = true
+
+[security]
+policy_path = "/root/.zeroclaw/policy.toml"
+pairing_enabled = true
+
+[mcp]
+# MCP (Model Context Protocol) Configuration
+enabled = true
+deferred_loading = true
+
+# ===== Web-Search-Prime MCP Server (智谱 GLM) =====
+[[mcp.servers]]
+name = "web-search-prime"
+transport = "http"
+url = "https://open.bigmodel.cn/api/mcp/web_search_prime/mcp"
+headers = { "Authorization" = "Bearer YOUR_API_KEY_HERE" }
+tool_timeout_secs = 60
+
+# Note: Replace YOUR_API_KEY_HERE with your actual 智谱 API key
+# Get API key from: https://open.bigmodel.cn/
+
+# Optional: Add more MCP servers below
+# [[mcp.servers]]
+# name = "filesystem"
+# transport = "stdio"
+# command = "npx"
+# args = ["-y", "@modelcontextprotocol/server-filesystem", "/root", "/data"]
+# tool_timeout_secs = 180
+
+[provider]
+type = "openai"  # or anthropic, openrouter, etc.
+api_key = "your_llm_api_key_here"
+model = "gpt-4o"  # or your preferred model
+
+[gateway]
+enabled = true
+bind_address = "0.0.0.0:7878"

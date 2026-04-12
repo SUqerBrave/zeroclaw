@@ -1,0 +1,33 @@
+[mcp]
+enabled = true
+deferred_loading = true
+
+[[mcp.servers]]
+name = "zai-mcp-server"
+transport = "stdio"
+command = "npx"
+args = ["-y", "@z_ai/mcp-server"]
+env = { "Z_AI_API_KEY" = "c6b36dbe8dbf49c89299320e9c85d983.OzLMnKKmZj7KmYaE", "Z_AI_MODE" = "ZHIPU" }
+tool_timeout_secs = 180
+
+[[mcp.servers]]
+name = "web-search-prime"
+transport = "http"
+url = "https://open.bigmodel.cn/api/mcp/web_search_prime/mcp"
+headers = { "Authorization" = "Bearer c6b36dbe8dbf49c89299320e9c85d983.OzLMnKKmZj7KmYaE" }
+tool_timeout_secs = 60
+
+[[mcp.servers]]
+name = "web-reader"
+transport = "http"
+url = "https://open.bigmodel.cn/api/mcp/web_reader/mcp"
+headers = { "Authorization" = "Bearer c6b36dbe8dbf49c89299320e9c85d983.OzLMnKKmZj7KmYaE" }
+tool_timeout_secs = 60
+
+[[mcp.servers]]
+name = "zread"
+transport = "http"
+url = "https://open.bigmodel.cn/api/mcp/zread/mcp"
+headers = { "Authorization" = "Bearer c6b36dbe8dbf49c89299320e9c85d983.OzLMnKKmZj7KmYaE" }
+tool_timeout_secs = 60
+

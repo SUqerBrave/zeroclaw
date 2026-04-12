@@ -1,0 +1,41 @@
+# ZeroClaw 智谱 AI MCP 配置模板
+# 使用: sed 's/%%ZHIPU_API_KEY%%/你的实际API_KEY/g' this-file > config.toml
+
+[mcp]
+enabled = true
+deferred_loading = true
+
+# ===== 所有服务使用同一个 API Key (%%ZHIPU_API_KEY%%) =====
+
+# ZAI MCP Server (stdio)
+[[mcp.servers]]
+name = "zai-mcp-server"
+transport = "stdio"
+command = "npx"
+args = ["-y", "@z_ai/mcp-server"]
+env = { "Z_AI_API_KEY" = "%%ZHIPU_API_KEY%%", "Z_AI_MODE" = "ZHIPU" }
+tool_timeout_secs = 180
+
+# Web Search Prime (HTTP)
+[[mcp.servers]]
+name = "web-search-prime"
+transport = "http"
+url = "https://open.bigmodel.cn/api/mcp/web_search_prime/mcp"
+headers = { "Authorization" = "Bearer %%ZHIPU_API_KEY%%" }
+tool_timeout_secs = 60
+
+# Web Reader (HTTP)
+[[mcp.servers]]
+name = "web-reader"
+transport = "http"
+url = "https://open.bigmodel.cn/api/mcp/web_reader/mcp"
+headers = { "Authorization" = "Bearer %%ZHIPU_API_KEY%%" }
+tool_timeout_secs = 60
+
+# ZRead (HTTP)
+[[mcp.servers]]
+name = "zread"
+transport = "http"
+url = "https://open.bigmodel.cn/api/mcp/zread/mcp"
+headers = { "Authorization" = "Bearer %%ZHIPU_API_KEY%%" }
+tool_timeout_secs = 60
