@@ -47,14 +47,15 @@ echo ""
 cargo build \
     --release \
     --target aarch64-unknown-linux-musl \
-    --features "hardware,sandbox-landlock"
+    --features "agent-runtime,hardware,sandbox-landlock,channel-wechat"
 
 # 如果编译失败，尝试不使用硬件特性
 if [ $? -ne 0 ]; then
     echo "⚠️  完整特性编译失败，尝试基础配置..."
     cargo build \
         --release \
-        --target aarch64-unknown-linux-musl
+        --target aarch64-unknown-linux-musl \
+        --features "agent-runtime,channel-wechat"
 fi
 
 echo ""

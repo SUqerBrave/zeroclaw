@@ -1,0 +1,17 @@
+schema_version = 3
+
+[providers.models.custom.xfyun]
+uri     = "https://maas-coding-api.cn-huabei-1.xf-yun.com/v2"
+model   = "astron-code-latest"
+api_key = "dummy_key"
+
+[risk_profiles.standard]
+level = "supervised"
+
+[agents.default]
+model_provider = "custom.xfyun"
+risk_profile = "standard"
+channels = ["wechat.default"]
+
+[channels.wechat.default]
+enabled = true
