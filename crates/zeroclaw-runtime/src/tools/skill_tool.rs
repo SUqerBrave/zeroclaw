@@ -18,6 +18,21 @@ use zeroclaw_api::tool::{Tool, ToolResult};
 const SKILL_SHELL_TIMEOUT_SECS: u64 = 60;
 /// Maximum output size in bytes (1 MB).
 const MAX_OUTPUT_BYTES: usize = 1_048_576;
+/// Default safe environment variables passed to skill subprocesses.
+const SAFE_ENV_VARS: &[&str] = &[
+    "PATH", "HOME", "TERM", "LANG", "LC_ALL", "USER", "SHELL", "TMPDIR",
+];
+
+/// Collect allowed env var names: safe defaults + configured passthrough.
+fn collect_allowed_env_vars(security: &SecurityPolicy) -> Vec<String> {
+    let mut vars: Vec<String> = SAFE_ENV_VARS.iter().map(|s| s.to_string()).collect();
+    for var in &security.shell_env_passthrough {
+        if !vars.contains(var) {
+            vars.push(var.clone());
+        }
+    }
+    vars
+}
 
 /// A tool derived from a skill's `[[tools]]` section that executes shell commands.
 pub struct SkillShellTool {
@@ -134,10 +149,10 @@ impl Tool for SkillShellTool {
         cmd.current_dir(&self.security.workspace_dir);
         cmd.env_clear();
 
-        // Only pass safe environment variables
-        for var in &[
-            "PATH", "HOME", "TERM", "LANG", "LC_ALL", "USER", "SHELL", "TMPDIR",
-        ] {
+        // Pass safe environment variables and any configured passthrough vars
+        // (mirrors the shell tool's env handling via shell_env_passthrough).
+        let allowed_vars = collect_allowed_env_vars(&self.security);
+        for var in &allowed_vars {
             if let Ok(val) = std::env::var(var) {
                 cmd.env(var, val);
             }

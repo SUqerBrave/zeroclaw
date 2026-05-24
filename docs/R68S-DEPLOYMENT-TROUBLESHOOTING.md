@@ -254,5 +254,102 @@ Web UI 首次配对时需要 **6 位数字配对码**，而非 `config.toml` 中
     shell_env_passthrough = ["HOME", "USER", "LANG"]
     ```
 
+## 18. 安装自定义 CLI 工具到 /usr/bin
+### 难点
+用户编写的自定义工具（如 `email-tool`）需要被 Agent 调用。
+### 解决方案
+*   **规范路径**：将交叉编译好的静态二进制文件放置在 `/usr/bin/` 目录下。
+*   **权限设置**：必须赋予可执行权限：
+    ```bash
+    chmod +x /usr/bin/your-tool-name
+    ```
+*   **安全授权**：在 `config.toml` 的 `allowed_commands` 中添加该工具的全路径或名称。
+
+## 19. 添加与配置自定义 Skills
+### 难点
+如何让 Agent 识别并使用自定义的功能逻辑（如发送邮件的特定参数组合）。
+### 解决方案
+1.  **创建技能目录**：建议统一存放在 `/var/lib/zeroclaw/skills/` 下。
+2.  **编写 SKILL.md**：每个技能目录下必须包含一个 `SKILL.md`，使用 YAML 前置元数据定义工具：
+    ```markdown
+    ---
+    name: skill-name
+    tools:
+      - name: tool_action
+        kind: shell
+        command: "/usr/bin/custom-tool --arg {{param}}"
+    ---
+    # 技能说明文档...
+    ```
+3.  **注册技能包**：在 `agents.<alias>` 配置中添加 `skill_bundles` 指向父目录：
+    ```toml
+    [agents.default]
+    skill_bundles = ["/var/lib/zeroclaw/skills"]
+    ```
+4.  **自动批准**：若不想每次调用都手动确认，将 `技能名__工具名` 加入 `auto_approve`。
+
+## 20. 安全传递工具凭据 (环境变量注入)
+### 难点
+避免在 `SKILL.md` 或脚本中明文存储第三方工具的密码（如 SMTP 授权码）。
+### 解决方案
+1.  **在 init 脚本中定义**：修改 `/etc/init.d/zeroclaw`，将秘密注入守护进程环境：
+    ```sh
+    start_service() {
+        procd_set_param env ZC_EMAIL_PASSWORD="your-secret-code"
+        procd_set_param env SMTP_FROM="your-email@qq.com"
+        # ...
+    }
+    ```
+2.  **在 config.toml 中放行**：
+    ```toml
+    [risk_profiles.standard]
+    shell_env_passthrough = ["HOME", "USER", "LANG", "ZC_EMAIL_PASSWORD", "SMTP_FROM"]
+    ```
+3.  **在工具中引用**：Rust 工具可直接使用 `std::env::var` 读取，无需在命令行参数中传递。
+
+## 21. 交叉编译避坑：优先本地工具链
+### 难点
+使用 `cross` (Docker) 编译静态二进制时，若 Docker 镜像中的 GLIBC 版本高于本地 Linux 环境，会导致 `build-script` 执行失败（version `GLIBC_2.3x` not found）。
+### 解决方案
+*   **优先本地 musl-gcc**：如果本地已安装 `aarch64-linux-musl-gcc`，应直接调用本地工具链编译。
+*   **脚本逻辑优化**：
+    ```bash
+    if command -v aarch64-linux-musl-gcc &> /dev/null; then
+        export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=aarch64-linux-musl-gcc
+        cargo build --release --target aarch64-unknown-linux-musl
+    fi
+    ```
+
 ---
 **提示**：在 R68S 上建议始终运行 `zeroclaw doctor`。如果服务无法启动，第一时间查看 `logread | grep zeroclaw`。
+
+## 22. 邮件工具失效与 AI 行为“死锁” (Email & Behavior Reset)
+### 难点
+在配置完邮件工具（如 `email-tool`）后，Agent 依然坚称自己“无法发送邮件”，或者请求后没有任何回复。
+### 原因分析
+1.  **权限死锁**：如果 `runtime-trace.jsonl` 等日志文件被 root 占用，导致 `zeroclaw` 用户无法写入，AI 会在尝试调用工具时遇到底层 IO 报错。
+2.  **认知偏差**：AI 在之前的对话中如果因为权限或配置错误失败过，它会产生“我不能发邮件”的错误记忆（Memory）。即使你后来修复了配置，它仍会基于旧记忆拒绝尝试，甚至触发系统的 `skip`（跳过回复）保护机制。
+### 解决方案
+*   **第一步：修复文件所有权**
+    确保工作目录及其所有子文件都归 `zeroclaw` 用户所有：
+    ```bash
+    chown -R zeroclaw:zeroclaw /work/zeroclaw-workspace
+    ```
+*   **第二步：显式授权工具**
+    检查 `config.toml` 中的 `[agents.default.tool_receipts]`，确保工具名在允许列表中：
+    ```toml
+    allowed_tools = ["email-tool", "email-tool__send"]
+    auto_approve = ["email-tool__send"]
+    ```
+*   **第三步：彻底重置 AI 记忆 (关键)**
+    必须清空对话记忆，让 AI 忘记之前的失败记录：
+    ```bash
+    zeroclaw memory clear --category conversation --yes
+    ```
+*   **第四步：重启并观察**
+    ```bash
+    /etc/init.d/zeroclaw restart
+    /etc/init.d/log restart  # 清空系统日志便于观察
+    logread -f | grep zeroclaw
+    ```
+    重置后，在对话中明确引导它：“现在环境已修复，请使用 email-tool 发送邮件。”
