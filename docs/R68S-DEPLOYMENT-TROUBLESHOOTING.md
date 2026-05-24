@@ -353,3 +353,25 @@ Web UI 首次配对时需要 **6 位数字配对码**，而非 `config.toml` 中
     logread -f | grep zeroclaw
     ```
     重置后，在对话中明确引导它：“现在环境已修复，请使用 email-tool 发送邮件。”
+
+## 23. 微信 (WeChat) 通道工具权限失效
+### 难点
+QQ 通道调用工具正常，但在微信通道下 Agent 提示“无权限”或“无法找到工具”，且日志中出现大量 `skip` 或 `Command not allowed`。
+### 原因分析
+1.  **路由缺失 (Agent Association)**：在 `config.toml` 的 `[peer_groups]` 配置中，微信分组（如 `wechat_default`）的 `agents` 数组为空。这导致微信消息无法路由到具有工具权限的 Agent。
+2.  **别名不匹配**：`allowed_commands` 中只允许了 `/usr/bin/tool`，但 AI 在微信对话中倾向于使用 `tool` 简写，触发路径拦截。
+### 解决方案
+*   **第一步：关联 Agent**
+    确保 `peer_groups` 正确绑定了 Agent：
+    ```toml
+    [peer_groups.wechat_default]
+    agents = ["default"]  # 必须非空
+    channel = "wechat.default"
+    ```
+*   **第二步：冗余授权**
+    在 `allowed_commands` 中同时提供全路径和简写：
+    ```toml
+    allowed_commands = ["/usr/bin/email-tool", "email-tool", ...]
+    ```
+*   **第三步：重启验证**
+    执行 `/etc/init.d/zeroclaw restart` 并再次尝试。
