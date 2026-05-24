@@ -1,0 +1,3 @@
+[submodule "skills/email-tool"]
+	path = skills/email-tool
+	url = https://github.com/SUqerBrave/email-tool.git

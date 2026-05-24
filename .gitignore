@@ -33,6 +33,7 @@ docs/*-SETUP.md
 docs/*_config_template.toml
 configure-r68s-*.sh
 skills/
+!skills/email-tool/
 bin/
 
 # Claude Code project settings (machine-specific directory config)
