@@ -2,8 +2,13 @@
 //! but are needed by the config schema. Moved here to break circular dependencies.
 
 use crate::traits::{ChannelConfig, HasPropKind, PropKind};
+<<<<<<< HEAD
 #[cfg(feature = "schema-export")]
 use serde::{Deserialize, Serialize};
+=======
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+>>>>>>> origin/master
 use std::fmt;
 use zeroclaw_macros::Configurable;
 
@@ -39,8 +44,36 @@ impl ThinkingLevel {
             _ => None,
         }
     }
+<<<<<<< HEAD
 }
 
+=======
+
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Off => "off",
+            Self::Minimal => "minimal",
+            Self::Low => "low",
+            Self::Medium => "medium",
+            Self::High => "high",
+            Self::Max => "max",
+        }
+    }
+
+    pub fn default_budget_tokens(&self) -> Option<u32> {
+        match self {
+            Self::Off | Self::Minimal | Self::Low | Self::Medium => None,
+            Self::High => Some(10_000),
+            Self::Max => Some(50_000),
+        }
+    }
+}
+
+pub use zeroclaw_api::model_provider::{
+    MAX_BUDGET_TOKENS, MIN_BUDGET_TOKENS, NativeThinkingParams,
+};
+
+>>>>>>> origin/master
 /// Configuration for thinking/reasoning level control.
 #[derive(Debug, Clone, Serialize, Deserialize, Configurable)]
 #[cfg_attr(feature = "schema-export", derive(schemars::JsonSchema))]
@@ -48,12 +81,63 @@ impl ThinkingLevel {
 pub struct ThinkingConfig {
     #[serde(default)]
     pub default_level: ThinkingLevel,
+<<<<<<< HEAD
+=======
+    /// Opt-in flag for provider-native extended thinking. When `true`, the
+    /// provider sends a dedicated `thinking` parameter with `budget_tokens`
+    /// instead of relying solely on prompt-based reasoning. Defaults to
+    /// `false` so existing High/Max users keep their prior prompt-based
+    /// behavior (cost, latency, transport path) until they explicitly migrate.
+    #[serde(default)]
+    pub native_thinking: bool,
+    #[serde(default)]
+    pub budget_tokens: HashMap<String, u32>,
+>>>>>>> origin/master
 }
 
 impl Default for ThinkingConfig {
     fn default() -> Self {
         Self {
             default_level: ThinkingLevel::Medium,
+<<<<<<< HEAD
+=======
+            native_thinking: false,
+            budget_tokens: HashMap::new(),
+        }
+    }
+}
+
+impl ThinkingConfig {
+    /// Resolve the effective `budget_tokens` for a given level.
+    ///
+    /// Only levels with a built-in default (`High`, `Max`) are eligible for
+    /// native thinking. Config overrides for levels Off–Medium are ignored
+    /// to prevent accidentally forcing `temperature = 1.0` on low levels.
+    pub fn budget_tokens_for(&self, level: ThinkingLevel) -> Option<u32> {
+        // Guard: only levels that have a built-in budget can use native thinking.
+        let default = level.default_budget_tokens()?;
+        Some(
+            self.budget_tokens
+                .get(level.as_str())
+                .copied()
+                .unwrap_or(default),
+        )
+    }
+
+    pub fn warn_unknown_budget_keys(&self) {
+        use ThinkingLevel::{High, Low, Max, Medium, Minimal, Off};
+        const ALL_LEVELS: &[ThinkingLevel] = &[Off, Minimal, Low, Medium, High, Max];
+        for key in self.budget_tokens.keys() {
+            if !ALL_LEVELS.iter().any(|l| l.as_str() == key) {
+                ::zeroclaw_log::record!(
+                    WARN,
+                    ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                        .with_attrs(::serde_json::json!({"key": key})),
+                    "Unknown thinking level in budget_tokens config; \
+                     valid levels are: off, minimal, low, medium, high, max"
+                );
+            }
+>>>>>>> origin/master
         }
     }
 }
@@ -386,7 +470,11 @@ fn default_true() -> bool {
     true
 }
 fn default_subject() -> String {
+<<<<<<< HEAD
     "ZeroClaw Message".into()
+=======
+    "Re: Message".into()
+>>>>>>> origin/master
 }
 fn default_max_attachment_bytes() -> usize {
     25 * 1024 * 1024
@@ -412,6 +500,14 @@ pub struct EmailConfig {
     pub smtp_port: u16,
     #[serde(default = "default_true")]
     pub smtp_tls: bool,
+<<<<<<< HEAD
+=======
+    #[serde(default)]
+    pub smtp_username: Option<String>,
+    #[secret]
+    #[serde(default)]
+    pub smtp_password: Option<String>,
+>>>>>>> origin/master
     pub username: String,
     #[secret]
     pub password: String,
@@ -431,6 +527,13 @@ pub struct EmailConfig {
     /// are not exposed to the model when responding via this channel.
     #[serde(default)]
     pub excluded_tools: Vec<String>,
+<<<<<<< HEAD
+=======
+    /// When `true` (default), outbound emails are rendered as HTML via Markdown conversion.
+    /// Set to `false` to send plain-text emails instead.
+    #[serde(default = "default_true")]
+    pub html_body: bool,
+>>>>>>> origin/master
 }
 
 impl ChannelConfig for EmailConfig {
@@ -452,6 +555,11 @@ impl Default for EmailConfig {
             smtp_host: String::new(),
             smtp_port: default_smtp_port(),
             smtp_tls: true,
+<<<<<<< HEAD
+=======
+            smtp_username: None,
+            smtp_password: None,
+>>>>>>> origin/master
             username: String::new(),
             password: String::new(),
             from_address: String::new(),
@@ -460,6 +568,10 @@ impl Default for EmailConfig {
             default_subject: default_subject(),
             max_attachment_bytes: default_max_attachment_bytes(),
             excluded_tools: Vec::new(),
+<<<<<<< HEAD
+=======
+            html_body: true,
+>>>>>>> origin/master
         }
     }
 }
@@ -619,6 +731,18 @@ pub struct VoiceCallConfig {
     pub excluded_tools: Vec<String>,
 }
 
+<<<<<<< HEAD
+=======
+impl crate::traits::ChannelConfig for VoiceCallConfig {
+    fn name() -> &'static str {
+        "Voice Call"
+    }
+    fn desc() -> &'static str {
+        "outbound voice call channel"
+    }
+}
+
+>>>>>>> origin/master
 impl Default for VoiceCallConfig {
     fn default() -> Self {
         Self {

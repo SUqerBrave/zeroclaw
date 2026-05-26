@@ -326,6 +326,10 @@ impl VoiceCallChannel {
             thread_ts: Some(call_id.to_string()),
             interruption_scope_id: Some(call_id.to_string()),
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         };
         tx.send(msg).await.map_err(|e| {
             ::zeroclaw_log::record!(

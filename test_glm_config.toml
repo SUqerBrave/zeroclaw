@@ -1,0 +1,15 @@
+schema_version = 3
+
+[providers.models.glm.flash]
+api_key = "fe519f6bce1644daabfd64d4e69b85dc.419FNlRF0tTvVUdW"
+model = "glm-4.6v-flash"
+# No base_url to test default behavior
+
+[[model_routes]]
+hint = "default"
+model_provider = "glm.flash"
+model = "glm-4.6v-flash"
+
+[agents.default]
+model_provider = "glm.flash"
+enabled = true

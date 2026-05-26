@@ -9,7 +9,11 @@ ZeroClaw has two independent translation layers:
 
 They are filled separately and stored separately. Both use a provider-agnostic fill pipeline: configure any OpenAI-compatible endpoint in `~/.zeroclaw/config.toml` under `[providers.models.<type>.<alias>]` and pass `--provider <type>` to the fill commands.
 
+<<<<<<< HEAD
 Local models via [Ollama](https://ollama.com) are a first-class option — no API keys required, no per-call cost. A hosted provider is also fine for release-grade quality. Translation is a local operation — run `cargo mdbook sync` before you PR.
+=======
+Local models via [Ollama](https://ollama.com) are a first-class option — no API keys required, no per-call cost. A hosted provider is also fine for release-grade quality. Translation is a local operation. Run `cargo mdbook sync` for dedicated translation-cache PRs, release translation passes, and new locales; routine English docs PRs may defer broad generated `.po` churn to a focused follow-up.
+>>>>>>> origin/master
 
 ## Provider configuration
 
@@ -65,6 +69,11 @@ The pipeline has built-in resilience:
 - **Incremental writes** — after each batch, the `.po` file is rewritten. A Ctrl-C mid-run doesn't lose the progress up to that point.
 - **Obsolete stripping** — `msgmerge` + `msgattrib --no-obsolete` keep removed source strings from accumulating as `#~` entries.
 
+<<<<<<< HEAD
+=======
+Maintainers should accept the routine English docs exception documented in [Building the docs locally](../developing/building-docs.md). Ask for `.po` updates only when the PR is itself a translation-cache pass, a release translation pass, a new-locale change, or the generated diff is small enough to review.
+
+>>>>>>> origin/master
 ## Adding a new locale
 
 1. Edit `locales.toml` at the repo root — the **only** file you need to touch:

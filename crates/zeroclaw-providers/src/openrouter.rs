@@ -408,7 +408,11 @@ impl OpenRouterModelProvider {
         response: reqwest::Response,
     ) -> anyhow::Result<String> {
         response.text().await.map_err(|error| {
+<<<<<<< HEAD
             let sanitized = super::sanitize_api_error(&format!("{}", error));
+=======
+            let sanitized = super::format_error_chain(&error);
+>>>>>>> origin/master
             ::zeroclaw_log::record!(
                 ERROR,
                 ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Fail)
@@ -498,6 +502,10 @@ impl ModelProvider for OpenRouterModelProvider {
             native_tool_calling: true,
             vision: true,
             prompt_caching: false,
+<<<<<<< HEAD
+=======
+            extended_thinking: false,
+>>>>>>> origin/master
         }
     }
 
@@ -849,7 +857,13 @@ impl ModelProvider for OpenRouterModelProvider {
             {
                 Ok(r) => r,
                 Err(e) => {
+<<<<<<< HEAD
                     let _ = tx.send(Err(StreamError::Http(e.to_string()))).await;
+=======
+                    let _ = tx
+                        .send(Err(StreamError::Http(super::format_error_chain(&e))))
+                        .await;
+>>>>>>> origin/master
                     return;
                 }
             };
@@ -1069,6 +1083,10 @@ mod tests {
         let request = ChatRequest {
             messages: &messages,
             tools: None,
+<<<<<<< HEAD
+=======
+            thinking: None,
+>>>>>>> origin/master
         };
 
         let mut stream = model_provider.stream_chat(
@@ -1107,6 +1125,10 @@ mod tests {
         let request = ChatRequest {
             messages: &messages,
             tools: None,
+<<<<<<< HEAD
+=======
+            thinking: None,
+>>>>>>> origin/master
         };
 
         let mut stream = model_provider.stream_chat(

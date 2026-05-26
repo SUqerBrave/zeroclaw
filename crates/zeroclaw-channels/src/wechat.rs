@@ -2272,6 +2272,10 @@ impl Channel for WeChatChannel {
                     thread_ts: None,
                     interruption_scope_id: None,
                     attachments: Vec::new(),
+<<<<<<< HEAD
+=======
+                    subject: None,
+>>>>>>> origin/master
                 };
 
                 if tx.send(channel_msg).await.is_err() {

@@ -26,6 +26,10 @@ mod tests {
                 native_tool_calling: true,
                 vision: true,
                 prompt_caching: false,
+<<<<<<< HEAD
+=======
+                extended_thinking: false,
+>>>>>>> origin/master
             }
         }
 
@@ -157,16 +161,28 @@ mod tests {
             native_tool_calling: true,
             vision: false,
             prompt_caching: false,
+<<<<<<< HEAD
+=======
+            extended_thinking: false,
+>>>>>>> origin/master
         };
         let caps2 = ProviderCapabilities {
             native_tool_calling: true,
             vision: false,
             prompt_caching: false,
+<<<<<<< HEAD
+=======
+            extended_thinking: false,
+>>>>>>> origin/master
         };
         let caps3 = ProviderCapabilities {
             native_tool_calling: false,
             vision: false,
             prompt_caching: false,
+<<<<<<< HEAD
+=======
+            extended_thinking: false,
+>>>>>>> origin/master
         };
 
         assert_eq!(caps1, caps2);
@@ -322,6 +338,10 @@ mod tests {
         let request = ChatRequest {
             messages: &[ChatMessage::user("Hello")],
             tools: Some(&tools),
+<<<<<<< HEAD
+=======
+            thinking: None,
+>>>>>>> origin/master
         };
 
         let response = model_provider
@@ -340,6 +360,10 @@ mod tests {
         let request = ChatRequest {
             messages: &[ChatMessage::user("Hello")],
             tools: None,
+<<<<<<< HEAD
+=======
+            thinking: None,
+>>>>>>> origin/master
         };
 
         let response = model_provider
@@ -474,6 +498,10 @@ mod tests {
                 ChatMessage::system("BASE_SYSTEM_PROMPT"),
             ],
             tools: Some(&tools),
+<<<<<<< HEAD
+=======
+            thinking: None,
+>>>>>>> origin/master
         };
 
         let response = model_provider
@@ -499,6 +527,10 @@ mod tests {
         let request = ChatRequest {
             messages: &[ChatMessage::system("BASE"), ChatMessage::user("Hello")],
             tools: Some(&tools),
+<<<<<<< HEAD
+=======
+            thinking: None,
+>>>>>>> origin/master
         };
 
         let response = model_provider
@@ -524,6 +556,10 @@ mod tests {
         let request = ChatRequest {
             messages: &[ChatMessage::user("Hello")],
             tools: Some(&tools),
+<<<<<<< HEAD
+=======
+            thinking: None,
+>>>>>>> origin/master
         };
 
         let err = model_provider
@@ -587,6 +623,10 @@ mod tests {
             ChatRequest {
                 messages: &[ChatMessage::user("hi")],
                 tools: None,
+<<<<<<< HEAD
+=======
+                thinking: None,
+>>>>>>> origin/master
             },
             "model",
             Some(TEST_GREEDY_TEMPERATURE),

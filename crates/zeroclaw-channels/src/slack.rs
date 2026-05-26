@@ -2847,6 +2847,10 @@ impl SlackChannel {
                 .map(str::to_string),
             interruption_scope_id: None,
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         })
     }
 
@@ -3172,6 +3176,10 @@ impl SlackChannel {
                                         thread_ts,
                                         interruption_scope_id: scope_id,
                                         attachments: vec![],
+<<<<<<< HEAD
+=======
+                                        subject: None,
+>>>>>>> origin/master
                                     };
                                     ::zeroclaw_log::record!(INFO, ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note).with_attrs(::serde_json::json!({"cancel_emoji": cancel_emoji, "user": user, "item_channel": item_channel, "item_ts": item_ts})), ":: reaction from on / — sending /stop");
                                     if tx.send(cancel_msg).await.is_err() {
@@ -3282,6 +3290,10 @@ impl SlackChannel {
                     },
                     interruption_scope_id: Self::inbound_interruption_scope_id(event, ts),
                     attachments: vec![],
+<<<<<<< HEAD
+=======
+                    subject: None,
+>>>>>>> origin/master
                 };
 
                 // Track thread context so start_typing can set assistant status.
@@ -4420,6 +4432,10 @@ impl Channel for SlackChannel {
                             },
                             interruption_scope_id: Self::inbound_interruption_scope_id(msg, ts),
                             attachments: vec![],
+<<<<<<< HEAD
+=======
+                            subject: None,
+>>>>>>> origin/master
                         };
 
                         if tx.send(channel_msg).await.is_err() {
@@ -4515,6 +4531,10 @@ impl Channel for SlackChannel {
                         thread_ts: Some(thread_ts.clone()),
                         interruption_scope_id: Some(thread_ts.clone()),
                         attachments: vec![],
+<<<<<<< HEAD
+=======
+                        subject: None,
+>>>>>>> origin/master
                     };
 
                     if tx.send(channel_msg).await.is_err() {
@@ -5722,6 +5742,10 @@ mod tests {
             thread_ts: None, // thread_replies=false → no fallback to ts
             interruption_scope_id: None,
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         };
 
         let msg1 = make_msg("100.000");
@@ -5749,6 +5773,10 @@ mod tests {
             thread_ts: Some(ts.to_string()), // thread_replies=true → ts as thread_ts
             interruption_scope_id: None,
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         };
 
         let msg1 = make_msg("100.000");

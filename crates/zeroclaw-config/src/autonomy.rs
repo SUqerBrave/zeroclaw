@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 #[cfg(feature = "schema-export")]
+=======
+>>>>>>> origin/master
 use serde::{Deserialize, Serialize};
 
 /// How much autonomy the agent has.

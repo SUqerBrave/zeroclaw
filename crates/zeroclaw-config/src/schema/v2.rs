@@ -99,6 +99,10 @@ pub const V3_CHANNEL_TYPES: &[&str] = &[
     "line",
     "dingtalk",
     "wecom",
+<<<<<<< HEAD
+=======
+    "wecom_ws",
+>>>>>>> origin/master
     "wechat",
     "qq",
     "twitter",

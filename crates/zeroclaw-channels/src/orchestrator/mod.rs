@@ -20,6 +20,10 @@
 #[cfg(feature = "channel-acp-server")]
 pub mod acp_server;
 pub mod media_pipeline;
+<<<<<<< HEAD
+=======
+#[cfg(feature = "channel-mqtt")]
+>>>>>>> origin/master
 pub mod mqtt;
 
 // Channel types imported directly from source crates (no shim files)
@@ -79,6 +83,11 @@ pub use crate::webhook::WebhookChannel;
 pub use crate::wechat::WeChatChannel;
 #[cfg(feature = "channel-wecom")]
 pub use crate::wecom::WeComChannel;
+<<<<<<< HEAD
+=======
+#[cfg(feature = "channel-wecom-ws")]
+pub use crate::wecom_ws::WeComWsChannel;
+>>>>>>> origin/master
 #[cfg(feature = "channel-whatsapp-cloud")]
 pub use crate::whatsapp::WhatsAppChannel;
 pub use zeroclaw_api::channel::{Channel, ChannelMessage, SendMessage};
@@ -477,6 +486,12 @@ pub fn conversation_history_key(msg: &zeroclaw_api::channel::ChannelMessage) -> 
         Some(alias) => format!("{}.{}", msg.channel, alias),
         None => msg.channel.clone(),
     };
+<<<<<<< HEAD
+=======
+    if msg.channel == "wecom_ws" {
+        return sanitize_session_key(&format!("{channel_scope}_{}", msg.reply_target));
+    }
+>>>>>>> origin/master
     // reply_target gives per-channel isolation (distinct Discord/Slack
     // channels) and thread_ts gives per-topic isolation in forum groups.
     // Sanitize so the runtime HashMap key matches `SessionStore::list_sessions`
@@ -498,6 +513,17 @@ fn followup_thread_id(msg: &zeroclaw_api::channel::ChannelMessage) -> Option<Str
 }
 
 fn interruption_scope_key(msg: &zeroclaw_api::channel::ChannelMessage) -> String {
+<<<<<<< HEAD
+=======
+    if msg.channel == "wecom_ws" && msg.reply_target.starts_with("group--") {
+        let channel_scope = match &msg.channel_alias {
+            Some(alias) => format!("{}.{}", msg.channel, alias),
+            None => msg.channel.clone(),
+        };
+        return sanitize_session_key(&format!("{channel_scope}_{}", msg.reply_target));
+    }
+
+>>>>>>> origin/master
     match &msg.interruption_scope_id {
         Some(scope) => format!(
             "{}_{}_{}_{}",
@@ -687,6 +713,15 @@ fn channel_delivery_instructions(channel_name: &str) -> Option<&'static str> {
              - Keep normal text outside markers and never wrap markers in code fences.\n\
              - Use absolute local paths when sending generated files whenever possible.\n",
         ),
+<<<<<<< HEAD
+=======
+        "wecom_ws" => Some(
+            "When responding on WeCom AI Bot WebSocket:\n\
+             - Be concise and direct\n\
+             - Use Markdown text; the channel sends progressive draft updates when enabled\n\
+             - Do not use local attachment markers; outbound image payloads are not supported yet.\n",
+        ),
+>>>>>>> origin/master
         _ => None,
     }
 }
@@ -702,6 +737,10 @@ fn build_channel_system_prompt_for_message(
         &msg.channel,
         &msg.reply_target,
         &msg.sender,
+<<<<<<< HEAD
+=======
+        &msg.id,
+>>>>>>> origin/master
         bot_mention.as_deref(),
     )
 }
@@ -711,6 +750,10 @@ fn build_channel_system_prompt(
     channel_name: &str,
     reply_target: &str,
     sender: &str,
+<<<<<<< HEAD
+=======
+    message_id: &str,
+>>>>>>> origin/master
     bot_mention: Option<&str>,
 ) -> String {
     let mut prompt = base_prompt.to_string();
@@ -774,9 +817,17 @@ fn build_channel_system_prompt(
         };
         let context = format!(
             "\n\nChannel context: You are currently responding on channel={channel_name}, \
+<<<<<<< HEAD
              reply_target={reply_target}, sender={sender}. \
              The sender field is the platform-specific user ID of the person who sent \
              this message. Use it to distinguish between different users. \
+=======
+             reply_target={reply_target}, sender={sender}, message_id={message_id}. \
+             The sender field is the platform-specific user ID of the person who sent \
+             this message. Use it to distinguish between different users. \
+             The message_id field identifies this incoming message; pass it as the \
+             `message_id` argument when calling the `reaction` tool. \
+>>>>>>> origin/master
              When scheduling delayed messages or reminders \
              via cron_add for this conversation, use {delivery_hint} so the message \
              reaches the user.\n\nCalibration note: agents in this system currently err \
@@ -869,7 +920,19 @@ fn strip_tool_summary_prefix(text: &str) -> String {
 }
 
 fn supports_runtime_model_switch(channel_name: &str) -> bool {
+<<<<<<< HEAD
     matches!(channel_name, "telegram" | "discord" | "matrix" | "slack")
+=======
+    matches!(
+        channel_name,
+        "telegram" | "discord" | "matrix" | "slack" | "wecom_ws"
+    )
+}
+
+fn is_explicitly_addressed_channel_message(channel_name: &str, content: &str) -> bool {
+    channel_name == "wecom_ws"
+        && content.contains("[WeCom group message addressed to this bot via @")
+>>>>>>> origin/master
 }
 
 fn is_matrix_channel_name(channel_name: &str) -> bool {
@@ -1984,7 +2047,24 @@ async fn handle_runtime_command_if_needed(
     };
 
     if let Err(err) = channel
+<<<<<<< HEAD
         .send(&SendMessage::new(response, &msg.reply_target).in_thread(msg.thread_ts.clone()))
+=======
+        .send(&{
+            let mut sm = SendMessage::new(response, &msg.reply_target)
+                .in_thread(msg.thread_ts.clone())
+                .in_reply_to(Some(msg.id.clone()));
+            if let Some(ref subj) = msg.subject {
+                let reply_subject = if subj.to_lowercase().starts_with("re:") {
+                    subj.clone()
+                } else {
+                    format!("Re: {}", subj)
+                };
+                sm = sm.subject(reply_subject);
+            }
+            sm
+        })
+>>>>>>> origin/master
         .await
     {
         ::zeroclaw_log::record!(
@@ -2432,6 +2512,24 @@ fn strip_think_tags_inline(s: &str) -> String {
     result.trim().to_string()
 }
 
+<<<<<<< HEAD
+=======
+fn build_email_reply(msg: &ChannelMessage, content: impl Into<String>) -> SendMessage {
+    let mut sm = SendMessage::new(content, &msg.reply_target)
+        .in_thread(msg.thread_ts.clone())
+        .in_reply_to(Some(msg.id.clone()));
+    if let Some(ref subj) = msg.subject {
+        let reply_subject = if subj.to_ascii_lowercase().starts_with("re:") {
+            subj.clone()
+        } else {
+            format!("Re: {}", subj)
+        };
+        sm = sm.subject(reply_subject);
+    }
+    sm
+}
+
+>>>>>>> origin/master
 fn starts_with_visible_tool_call_tag_example(response: &str) -> bool {
     let lower = response.trim_start().to_ascii_lowercase();
     let starts_with_tool_tag = lower.starts_with("<tool_call")
@@ -2484,6 +2582,11 @@ fn sanitize_channel_response(response: &str, tools: &[Box<dyn Tool>]) -> String 
     // Strip any [Used tools: ...] prefix that the LLM may have echoed from
     // history context. Trim first to handle leading/trailing whitespace.
     let trimmed_response = response.trim();
+<<<<<<< HEAD
+=======
+    let trimmed_response = strip_think_tags_inline(trimmed_response).trim().to_string();
+    let trimmed_response = trimmed_response.as_str();
+>>>>>>> origin/master
     // Final channel guardrail: reuse the parser classifier so channel cleanup
     // cannot drift from runtime tool-protocol detection.
     if should_suppress_top_level_tool_protocol_response(trimmed_response, &known_tool_names) {
@@ -2980,6 +3083,26 @@ fn spawn_supervised_listener_with_health_interval(
                         backoff = initial_backoff_secs.max(1);
                     }
                     Err(e) => {
+<<<<<<< HEAD
+=======
+                        if is_non_retryable_channel_listener_error(ch.name(), &e) {
+                            ::zeroclaw_log::record!(
+                                ERROR,
+                                ::zeroclaw_log::Event::new(
+                                    module_path!(),
+                                    ::zeroclaw_log::Action::Reject
+                                )
+                                .with_outcome(::zeroclaw_log::EventOutcome::Failure)
+                                .with_attrs(::serde_json::json!({"error": format!("{}", e)})),
+                                "channel listener hit non-retryable error; waiting for config change or shutdown"
+                            );
+                            zeroclaw_runtime::health::mark_component_error(&component, e.to_string());
+                            tokio::select! {
+                                () = cancel.cancelled() => return,
+                                () = std::future::pending::<()>() => unreachable!(),
+                            }
+                        }
+>>>>>>> origin/master
                         ::zeroclaw_log::record!(
                             ERROR,
                             ::zeroclaw_log::Event::new(
@@ -3006,6 +3129,25 @@ fn spawn_supervised_listener_with_health_interval(
     )
 }
 
+<<<<<<< HEAD
+=======
+fn is_non_retryable_channel_listener_error(channel_name: &str, error: &anyhow::Error) -> bool {
+    match channel_name {
+        name if name == "discord" || name.starts_with("discord-") => {
+            #[cfg(feature = "channel-discord")]
+            if error
+                .downcast_ref::<crate::discord::DiscordListenerFatalError>()
+                .is_some()
+            {
+                return true;
+            }
+            zeroclaw_providers::reliable::is_non_retryable(error)
+        }
+        _ => false,
+    }
+}
+
+>>>>>>> origin/master
 fn compute_max_in_flight_messages(channel_count: usize) -> usize {
     channel_count
         .saturating_mul(CHANNEL_PARALLELISM_PER_CHANNEL)
@@ -3286,12 +3428,16 @@ async fn process_channel_message_body(
                 route.model_provider
             );
             if let Some(channel) = target_channel.as_ref() {
+<<<<<<< HEAD
                 let _ = channel
                     .send(
                         &SendMessage::new(message, &msg.reply_target)
                             .in_thread(msg.thread_ts.clone()),
                     )
                     .await;
+=======
+                let _ = channel.send(&build_email_reply(&msg, message)).await;
+>>>>>>> origin/master
             }
             return;
         }
@@ -3497,6 +3643,7 @@ async fn process_channel_message_body(
     }
 
     // ── Reply-intent precheck ────────────────────────────────────────
+<<<<<<< HEAD
     let classifier_intent = classify_channel_reply_intent(
         active_model_provider.as_ref(),
         history[0].content.as_str(),
@@ -3506,6 +3653,23 @@ async fn process_channel_message_body(
     )
     .await
     .unwrap_or(AssistantChannelOutcome::Reply(String::new()));
+=======
+    let explicit_channel_address =
+        is_explicitly_addressed_channel_message(&msg.channel, &msg.content);
+    let classifier_intent = if explicit_channel_address {
+        AssistantChannelOutcome::Reply(String::new())
+    } else {
+        classify_channel_reply_intent(
+            active_model_provider.as_ref(),
+            history[0].content.as_str(),
+            &history,
+            route.model.as_str(),
+            runtime_defaults.temperature,
+        )
+        .await
+        .unwrap_or(AssistantChannelOutcome::Reply(String::new()))
+    };
+>>>>>>> origin/master
 
     // ACP sessions are direct user requests — there is no broadcast,
     // no peer context, no spam concern. The no-reply classifier is a
@@ -4238,16 +4402,24 @@ async fn process_channel_message_body(
                             "Failed to finalize draft; sending as new message"
                         );
                         let _ = channel
+<<<<<<< HEAD
                             .send(
                                 &SendMessage::new(&delivered_response, &msg.reply_target)
                                     .in_thread(msg.thread_ts.clone()),
                             )
+=======
+                            .send(&build_email_reply(&msg, &delivered_response))
+>>>>>>> origin/master
                             .await;
                     }
                 } else if let Err(e) = channel
                     .send(
+<<<<<<< HEAD
                         &SendMessage::new(&delivered_response, &msg.reply_target)
                             .in_thread(msg.thread_ts.clone())
+=======
+                        &build_email_reply(&msg, &delivered_response)
+>>>>>>> origin/master
                             .with_cancellation(cancellation_token.clone()),
                     )
                     .await
@@ -4936,6 +5108,13 @@ fn build_channel_by_id(
                     .with_approval_timeout_secs(tg.approval_timeout_secs),
             ))
         }
+<<<<<<< HEAD
+=======
+        #[cfg(not(feature = "channel-telegram"))]
+        "telegram" => {
+            anyhow::bail!("Telegram channel requires the `channel-telegram` feature");
+        }
+>>>>>>> origin/master
         #[cfg(feature = "channel-discord")]
         "discord" => {
             let dc = config
@@ -5224,6 +5403,61 @@ fn build_channel_by_id(
         "wecom" => {
             anyhow::bail!("WeCom channel requires the `channel-wecom` feature");
         }
+<<<<<<< HEAD
+=======
+        #[cfg(feature = "channel-wecom-ws")]
+        channel_id
+            if channel_id == "wecom_ws"
+                || channel_id == "wecom-ws"
+                || channel_id.starts_with("wecom_ws.")
+                || channel_id.starts_with("wecom-ws.") =>
+        {
+            let alias = channel_id
+                .split_once('.')
+                .map(|(_, alias)| alias)
+                .unwrap_or("default")
+                .to_string();
+            let wc =
+                config.channels.wecom_ws.get(&alias).with_context(|| {
+                    format!("WeCom WebSocket channel '{alias}' is not configured")
+                })?;
+            let peer_resolver: Arc<dyn Fn() -> Vec<String> + Send + Sync> = {
+                let cfg_arc = config_arc.clone();
+                let alias = alias.clone();
+                let configured_allowed_users = wc.allowed_users.clone();
+                Arc::new(move || {
+                    let config = cfg_arc.read();
+                    let mut peers = configured_allowed_users.clone();
+                    for peer in config.channel_external_peers("wecom-ws", &alias) {
+                        if !peers.contains(&peer) {
+                            peers.push(peer);
+                        }
+                    }
+                    for peer in config.channel_external_peers("wecom_ws", &alias) {
+                        if !peers.contains(&peer) {
+                            peers.push(peer);
+                        }
+                    }
+                    peers
+                })
+            };
+            Ok(Arc::new(WeComWsChannel::new_with_alias(
+                wc,
+                alias.clone(),
+                peer_resolver,
+                &config.channel_workspace_dir(&format!("wecom_ws.{alias}")),
+            )?))
+        }
+        #[cfg(not(feature = "channel-wecom-ws"))]
+        channel_id
+            if channel_id == "wecom_ws"
+                || channel_id == "wecom-ws"
+                || channel_id.starts_with("wecom_ws.")
+                || channel_id.starts_with("wecom-ws.") =>
+        {
+            anyhow::bail!("WeCom WebSocket channel requires the `channel-wecom-ws` feature");
+        }
+>>>>>>> origin/master
         #[cfg(feature = "channel-wechat")]
         "wechat" => {
             let wc = config
@@ -5355,6 +5589,13 @@ fn build_channel_by_id(
                 peer_resolver,
             )))
         }
+<<<<<<< HEAD
+=======
+        #[cfg(not(feature = "channel-email"))]
+        "email" => {
+            anyhow::bail!("Email channel requires the `channel-email` feature");
+        }
+>>>>>>> origin/master
         #[cfg(feature = "channel-email")]
         "gmail_push" | "gmail-push" => {
             let gp = config
@@ -5374,6 +5615,13 @@ fn build_channel_by_id(
                 peer_resolver,
             )))
         }
+<<<<<<< HEAD
+=======
+        #[cfg(not(feature = "channel-email"))]
+        "gmail_push" | "gmail-push" => {
+            anyhow::bail!("Gmail Push channel requires the `channel-email` feature");
+        }
+>>>>>>> origin/master
         #[cfg(feature = "channel-irc")]
         "irc" => {
             let irc_cfg = config
@@ -5513,7 +5761,11 @@ fn build_channel_by_id(
         }
         other => anyhow::bail!(
             "Unknown channel '{other}'. Supported: telegram, discord, slack, mattermost, signal, \
+<<<<<<< HEAD
             matrix, whatsapp, qq, lark, feishu, dingtalk, wecom, nextcloud_talk, wati, linq, \
+=======
+            matrix, whatsapp, qq, lark, feishu, dingtalk, wecom, wecom_ws, nextcloud_talk, wati, linq, \
+>>>>>>> origin/master
             email, gmail_push, irc, twitter, mochat, imessage, line, voice-call"
         ),
     }
@@ -5664,6 +5916,20 @@ fn collect_configured_channels(
         });
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-telegram"))]
+    if !config.channels.telegram.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "Telegram channel is configured but this build was compiled without \
+             `channel-telegram`; skipping Telegram."
+        );
+    }
+
+>>>>>>> origin/master
     #[cfg(feature = "channel-discord")]
     for (alias, dc) in &config.channels.discord {
         if !active_channel_aliases.contains(&format!("discord.{alias}")) {
@@ -5719,6 +5985,20 @@ fn collect_configured_channels(
         });
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-discord"))]
+    if !config.channels.discord.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "Discord channel is configured but this build was compiled without \
+             `channel-discord`; skipping Discord."
+        );
+    }
+
+>>>>>>> origin/master
     #[cfg(feature = "channel-slack")]
     for (alias, sl) in &config.channels.slack {
         if !active_channel_aliases.contains(&format!("slack.{alias}")) {
@@ -5757,6 +6037,20 @@ fn collect_configured_channels(
         });
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-slack"))]
+    if !config.channels.slack.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "Slack channel is configured but this build was compiled without \
+             `channel-slack`; skipping Slack."
+        );
+    }
+
+>>>>>>> origin/master
     #[cfg(feature = "channel-mattermost")]
     for (alias, mm) in &config.channels.mattermost {
         if !active_channel_aliases.contains(&format!("mattermost.{alias}")) {
@@ -5793,6 +6087,20 @@ fn collect_configured_channels(
         });
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-mattermost"))]
+    if !config.channels.mattermost.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "Mattermost channel is configured but this build was compiled without \
+             `channel-mattermost`; skipping Mattermost."
+        );
+    }
+
+>>>>>>> origin/master
     #[cfg(feature = "channel-imessage")]
     for (alias, im) in &config.channels.imessage {
         if !active_channel_aliases.contains(&format!("imessage.{alias}")) {
@@ -5814,6 +6122,20 @@ fn collect_configured_channels(
         });
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-imessage"))]
+    if !config.channels.imessage.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "iMessage channel is configured but this build was compiled without \
+             `channel-imessage`; skipping iMessage."
+        );
+    }
+
+>>>>>>> origin/master
     #[cfg(feature = "channel-matrix")]
     for (alias, mx) in &config.channels.matrix {
         if !active_channel_aliases.contains(&format!("matrix.{alias}")) {
@@ -5903,6 +6225,20 @@ fn collect_configured_channels(
         });
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-signal"))]
+    if !config.channels.signal.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "Signal channel is configured but this build was compiled without \
+             `channel-signal`; skipping Signal."
+        );
+    }
+
+>>>>>>> origin/master
     #[cfg(any(feature = "channel-whatsapp-cloud", feature = "whatsapp-web"))]
     for (alias, wa) in &config.channels.whatsapp {
         if !active_channel_aliases.contains(&format!("whatsapp.{alias}")) {
@@ -5921,9 +6257,15 @@ fn collect_configured_channels(
         }
         // Runtime negotiation: detect backend type from config
         match wa.backend_type() {
+<<<<<<< HEAD
             "cloud" => {
                 // Cloud API mode: requires phone_number_id, access_token, verify_token
                 #[cfg(feature = "channel-whatsapp-cloud")]
+=======
+            #[cfg(feature = "channel-whatsapp-cloud")]
+            "cloud" => {
+                // Cloud API mode: requires phone_number_id, access_token, verify_token
+>>>>>>> origin/master
                 if wa.is_cloud_config() {
                     let peer_resolver: Arc<dyn Fn() -> Vec<String> + Send + Sync> = {
                         let cfg_arc = config_arc.clone();
@@ -5965,6 +6307,18 @@ fn collect_configured_channels(
                     );
                 }
             }
+<<<<<<< HEAD
+=======
+            #[cfg(not(feature = "channel-whatsapp-cloud"))]
+            "cloud" => {
+                ::zeroclaw_log::record!(
+                    WARN,
+                    ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                        .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+                    "WhatsApp Cloud API is configured but this build was compiled without `channel-whatsapp-cloud`; skipping WhatsApp Cloud."
+                );
+            }
+>>>>>>> origin/master
             "web" => {
                 // Web mode: requires session_path
                 #[cfg(feature = "whatsapp-web")]
@@ -6043,6 +6397,20 @@ fn collect_configured_channels(
         });
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-linq"))]
+    if !config.channels.linq.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "Linq channel is configured but this build was compiled without \
+             `channel-linq`; skipping Linq."
+        );
+    }
+
+>>>>>>> origin/master
     #[cfg(feature = "channel-wati")]
     for (alias, wati_cfg) in &config.channels.wati {
         if !active_channel_aliases.contains(&format!("wati.{alias}")) {
@@ -6072,6 +6440,20 @@ fn collect_configured_channels(
         });
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-wati"))]
+    if !config.channels.wati.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "WATI channel is configured but this build was compiled without \
+             `channel-wati`; skipping WATI."
+        );
+    }
+
+>>>>>>> origin/master
     #[cfg(feature = "channel-nextcloud")]
     for (alias, nc) in &config.channels.nextcloud_talk {
         if !active_channel_aliases.contains(&format!("nextcloud_talk.{alias}")) {
@@ -6103,6 +6485,20 @@ fn collect_configured_channels(
         });
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-nextcloud"))]
+    if !config.channels.nextcloud_talk.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "Nextcloud Talk channel is configured but this build was compiled without \
+             `channel-nextcloud`; skipping Nextcloud Talk."
+        );
+    }
+
+>>>>>>> origin/master
     #[cfg(feature = "channel-email")]
     for (alias, email_cfg) in &config.channels.email {
         if !active_channel_aliases.contains(&format!("email.{alias}")) {
@@ -6151,6 +6547,20 @@ fn collect_configured_channels(
         });
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-email"))]
+    if !config.channels.email.is_empty() || !config.channels.gmail_push.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "Email/Gmail Push channel is configured but this build was compiled without \
+             `channel-email`; skipping Email and Gmail Push."
+        );
+    }
+
+>>>>>>> origin/master
     #[cfg(feature = "channel-irc")]
     for (alias, irc) in &config.channels.irc {
         if !active_channel_aliases.contains(&format!("irc.{alias}")) {
@@ -6184,6 +6594,20 @@ fn collect_configured_channels(
         });
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-irc"))]
+    if !config.channels.irc.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "IRC channel is configured but this build was compiled without \
+             `channel-irc`; skipping IRC."
+        );
+    }
+
+>>>>>>> origin/master
     #[cfg(feature = "channel-lark")]
     for (alias, lk) in &config.channels.lark {
         if !active_channel_aliases.contains(&format!("lark.{alias}")) {
@@ -6280,6 +6704,20 @@ fn collect_configured_channels(
         });
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-dingtalk"))]
+    if !config.channels.dingtalk.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "DingTalk channel is configured but this build was compiled without \
+             `channel-dingtalk`; skipping DingTalk."
+        );
+    }
+
+>>>>>>> origin/master
     #[cfg(feature = "channel-qq")]
     for (alias, qq) in &config.channels.qq {
         if !active_channel_aliases.contains(&format!("qq.{alias}")) {
@@ -6309,6 +6747,20 @@ fn collect_configured_channels(
         });
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-qq"))]
+    if !config.channels.qq.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "QQ channel is configured but this build was compiled without \
+             `channel-qq`; skipping QQ."
+        );
+    }
+
+>>>>>>> origin/master
     #[cfg(feature = "channel-twitter")]
     for (alias, tw) in &config.channels.twitter {
         if !active_channel_aliases.contains(&format!("twitter.{alias}")) {
@@ -6333,6 +6785,20 @@ fn collect_configured_channels(
         });
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-twitter"))]
+    if !config.channels.twitter.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "X/Twitter channel is configured but this build was compiled without \
+             `channel-twitter`; skipping X/Twitter."
+        );
+    }
+
+>>>>>>> origin/master
     #[cfg(feature = "channel-mochat")]
     for (alias, mc) in &config.channels.mochat {
         if !active_channel_aliases.contains(&format!("mochat.{alias}")) {
@@ -6359,6 +6825,20 @@ fn collect_configured_channels(
         });
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-mochat"))]
+    if !config.channels.mochat.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "Mochat channel is configured but this build was compiled without \
+             `channel-mochat`; skipping Mochat."
+        );
+    }
+
+>>>>>>> origin/master
     #[cfg(feature = "channel-wecom")]
     for (alias, wc) in &config.channels.wecom {
         if !active_channel_aliases.contains(&format!("wecom.{alias}")) {
@@ -6383,6 +6863,87 @@ fn collect_configured_channels(
         });
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-wecom"))]
+    if !config.channels.wecom.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "WeCom channel is configured but this build was compiled without \
+             `channel-wecom`; skipping WeCom."
+        );
+    }
+
+    #[cfg(feature = "channel-wecom-ws")]
+    for (alias, wc_ws) in &config.channels.wecom_ws {
+        if !active_channel_aliases.contains(&format!("wecom_ws.{alias}"))
+            && !active_channel_aliases.contains(&format!("wecom-ws.{alias}"))
+        {
+            continue;
+        }
+        if !wc_ws.enabled {
+            continue;
+        }
+        let peer_resolver: Arc<dyn Fn() -> Vec<String> + Send + Sync> = {
+            let cfg_arc = config_arc.clone();
+            let alias = alias.clone();
+            let configured_allowed_users = wc_ws.allowed_users.clone();
+            Arc::new(move || {
+                let config = cfg_arc.read();
+                let mut peers = configured_allowed_users.clone();
+                for peer in config.channel_external_peers("wecom-ws", &alias) {
+                    if !peers.contains(&peer) {
+                        peers.push(peer);
+                    }
+                }
+                for peer in config.channel_external_peers("wecom_ws", &alias) {
+                    if !peers.contains(&peer) {
+                        peers.push(peer);
+                    }
+                }
+                peers
+            })
+        };
+        match WeComWsChannel::new_with_alias(
+            wc_ws,
+            alias.clone(),
+            peer_resolver,
+            &config.channel_workspace_dir(&format!("wecom_ws.{alias}")),
+        ) {
+            Ok(channel) => channels.push(ConfiguredChannel {
+                display_name: "WeCom WebSocket",
+                alias: Some(alias.clone()),
+                channel: Arc::new(channel),
+            }),
+            Err(err) => {
+                ::zeroclaw_log::record!(
+                    WARN,
+                    ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                        .with_outcome(::zeroclaw_log::EventOutcome::Unknown)
+                        .with_attrs(::serde_json::json!({"error": format!("{err:#}")})),
+                    format!(
+                        "WeCom WebSocket channel configuration is invalid; skipping WeCom WebSocket {matrix_skip_context}"
+                    ),
+                );
+            }
+        }
+    }
+
+    #[cfg(not(feature = "channel-wecom-ws"))]
+    if !config.channels.wecom_ws.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            format!(
+                "WeCom WebSocket channel is configured but this build was compiled without `channel-wecom-ws`; skipping WeCom WebSocket {matrix_skip_context}."
+            ),
+        );
+    }
+
+>>>>>>> origin/master
     #[cfg(feature = "channel-wechat")]
     for (alias, wechat) in &config.channels.wechat {
         if !active_channel_aliases.contains(&format!("wechat.{alias}")) {
@@ -6450,6 +7011,20 @@ fn collect_configured_channels(
         });
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-clawdtalk"))]
+    if !config.channels.clawdtalk.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "ClawdTalk channel is configured but this build was compiled without \
+             `channel-clawdtalk`; skipping ClawdTalk."
+        );
+    }
+
+>>>>>>> origin/master
     // Notion database poller channel
     #[cfg(feature = "channel-notion")]
     if config.notion.enabled && !config.notion.database_id.trim().is_empty() {
@@ -6481,6 +7056,20 @@ fn collect_configured_channels(
         }
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-notion"))]
+    if config.notion.enabled {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "Notion channel is enabled but this build was compiled without \
+             `channel-notion`; skipping Notion."
+        );
+    }
+
+>>>>>>> origin/master
     #[cfg(feature = "channel-reddit")]
     for (alias, rd) in &config.channels.reddit {
         if !active_channel_aliases.contains(&format!("reddit.{alias}")) {
@@ -6503,6 +7092,20 @@ fn collect_configured_channels(
         });
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-reddit"))]
+    if !config.channels.reddit.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "Reddit channel is configured but this build was compiled without \
+             `channel-reddit`; skipping Reddit."
+        );
+    }
+
+>>>>>>> origin/master
     #[cfg(feature = "channel-bluesky")]
     for (alias, bs) in &config.channels.bluesky {
         if !active_channel_aliases.contains(&format!("bluesky.{alias}")) {
@@ -6522,6 +7125,20 @@ fn collect_configured_channels(
         });
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-bluesky"))]
+    if !config.channels.bluesky.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "Bluesky channel is configured but this build was compiled without \
+             `channel-bluesky`; skipping Bluesky."
+        );
+    }
+
+>>>>>>> origin/master
     #[cfg(feature = "voice-wake")]
     for (alias, vw) in &config.channels.voice_wake {
         if !active_channel_aliases.contains(&format!("voice_wake.{alias}")) {
@@ -6541,6 +7158,20 @@ fn collect_configured_channels(
         });
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "voice-wake"))]
+    if !config.channels.voice_wake.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "VoiceWake channel is configured but this build was compiled without \
+             `voice-wake`; skipping VoiceWake."
+        );
+    }
+
+>>>>>>> origin/master
     #[cfg(feature = "channel-voice-call")]
     for (alias, vc) in &config.channels.voice_call {
         if !active_channel_aliases.contains(&format!("voice_call.{alias}")) {
@@ -6556,6 +7187,20 @@ fn collect_configured_channels(
         });
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-voice-call"))]
+    if !config.channels.voice_call.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "Voice Call channel is configured but this build was compiled without \
+             `channel-voice-call`; skipping Voice Call."
+        );
+    }
+
+>>>>>>> origin/master
     #[cfg(feature = "channel-webhook")]
     for (alias, wh) in &config.channels.webhook {
         if !active_channel_aliases.contains(&format!("webhook.{alias}")) {
@@ -6579,6 +7224,20 @@ fn collect_configured_channels(
         });
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-webhook"))]
+    if !config.channels.webhook.is_empty() {
+        ::zeroclaw_log::record!(
+            WARN,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+            "Webhook channel is configured but this build was compiled without \
+             `channel-webhook`; skipping Webhook."
+        );
+    }
+
+>>>>>>> origin/master
     channels
 }
 
@@ -6625,6 +7284,23 @@ pub async fn doctor_channels(config: Config) -> Result<()> {
         }
     }
 
+<<<<<<< HEAD
+=======
+    #[cfg(not(feature = "channel-nostr"))]
+    {
+        let config = config_arc.read();
+        if !config.channels.nostr.is_empty() {
+            ::zeroclaw_log::record!(
+                WARN,
+                ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                    .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+                "Nostr channel is configured but this build was compiled without \
+                 `channel-nostr`; skipping Nostr health check."
+            );
+        }
+    }
+
+>>>>>>> origin/master
     if channels.is_empty() {
         println!("No real-time channels configured. Run `zeroclaw onboard` first.");
         return Ok(());
@@ -7185,6 +7861,19 @@ pub async fn start_channels(
                     ),
                 });
             }
+<<<<<<< HEAD
+=======
+            #[cfg(not(feature = "channel-nostr"))]
+            if !config.channels.nostr.is_empty() {
+                ::zeroclaw_log::record!(
+                    WARN,
+                    ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                        .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+                    "Nostr channel is configured but this build was compiled without \
+                     `channel-nostr`; skipping Nostr."
+                );
+            }
+>>>>>>> origin/master
             let channels: Vec<Arc<dyn Channel>> = configured_channels
                 .iter()
                 .map(|cc| Arc::clone(&cc.channel))
@@ -7651,6 +8340,13 @@ pub async fn deliver_announcement(
                 TelegramChannel::new(tg.bot_token.clone(), alias, peer_resolver, tg.mention_only);
             zeroclaw_api::channel::Channel::send(&ch, &make_msg(&safe_output)).await?;
         }
+<<<<<<< HEAD
+=======
+        #[cfg(not(feature = "channel-telegram"))]
+        "telegram" => {
+            anyhow::bail!("Telegram channel requires the `channel-telegram` feature");
+        }
+>>>>>>> origin/master
         #[cfg(feature = "channel-discord")]
         "discord" => {
             let dc = config
@@ -7751,6 +8447,59 @@ pub async fn deliver_announcement(
         "wechat" => {
             anyhow::bail!("WeChat channel requires the `channel-wechat` feature");
         }
+<<<<<<< HEAD
+=======
+        #[cfg(feature = "channel-lark")]
+        "lark" | "feishu" => {
+            // [channels.lark.<alias>] is the single source of truth for both
+            // names (AGENTS.md). from_config selects the endpoint via
+            // use_feishu. Error text names the real config table, not the
+            // cron alias the user wrote.
+            let lk = config.channels.lark.get(alias).ok_or_else(|| {
+                ::zeroclaw_log::record!(
+                    ERROR,
+                    ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Fail)
+                        .with_outcome(::zeroclaw_log::EventOutcome::Failure),
+                    &format!(
+                        "[channels.lark.{alias}] not configured (cron channel \"{channel_type}.{alias}\")"
+                    )
+                );
+                anyhow::Error::msg(format!(
+                    "[channels.lark.{alias}] not configured (cron channel \"{channel_type}.{alias}\")"
+                ))
+            })?;
+            // Asymmetric by design: "feishu"+use_feishu=false is a typo
+            // (hard fail). "lark"+use_feishu=true is a soft compat path
+            // (warn but still deliver via fallback construction).
+            if channel_type == "feishu" && !lk.use_feishu {
+                anyhow::bail!(
+                    "[channels.lark.{alias}] has use_feishu=false but cron channel=\"feishu.{alias}\"; \
+                     use channel=\"lark.{alias}\" or set use_feishu=true"
+                );
+            }
+            if channel_type == "lark" && lk.use_feishu {
+                ::zeroclaw_log::record!(
+                    WARN,
+                    ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                        .with_outcome(::zeroclaw_log::EventOutcome::Unknown),
+                    &format!(
+                        "cron channel=\"lark.{alias}\" with [channels.lark.{alias}] use_feishu=true \
+                         falls back to one-shot channel construction; prefer channel=\"feishu.{alias}\" \
+                         to reuse the live Feishu handle from start_channels"
+                    )
+                );
+            }
+            let peers = config.channel_external_peers("lark", alias);
+            let peer_resolver: Arc<dyn Fn() -> Vec<String> + Send + Sync> =
+                Arc::new(move || peers.clone());
+            let ch = LarkChannel::from_config(lk, alias, peer_resolver);
+            zeroclaw_api::channel::Channel::send(&ch, &make_msg(&safe_output)).await?;
+        }
+        #[cfg(not(feature = "channel-lark"))]
+        "lark" | "feishu" => {
+            anyhow::bail!("Lark channel requires the `channel-lark` feature");
+        }
+>>>>>>> origin/master
         #[cfg(feature = "channel-webhook")]
         "webhook" => {
             let wh = config
@@ -7773,6 +8522,17 @@ pub async fn deliver_announcement(
         "webhook" => {
             anyhow::bail!("Webhook channel requires the `channel-webhook` feature");
         }
+<<<<<<< HEAD
+=======
+        "wecom_ws" | "wecom-ws" => {
+            let _ = config
+                .channels
+                .wecom_ws
+                .get(alias)
+                .ok_or_else(not_configured)?;
+            anyhow::bail!("wecom_ws channel is not connected");
+        }
+>>>>>>> origin/master
         other => anyhow::bail!("unsupported delivery channel: {other}"),
     }
     #[allow(unreachable_code)]
@@ -7911,6 +8671,10 @@ mod tests {
             thread_ts: None,
             interruption_scope_id: None,
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         }
     }
 
@@ -9829,6 +10593,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -9936,6 +10704,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -10053,6 +10825,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -10193,6 +10969,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -10302,6 +11082,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -10427,6 +11211,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -10540,6 +11328,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -10638,6 +11430,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -10749,6 +11545,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -10886,6 +11686,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -11004,10 +11808,15 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
         .await;
+<<<<<<< HEAD
 
         assert_eq!(
             startup_model_provider_impl
@@ -11021,6 +11830,8 @@ BTC is currently around $65,000 based on latest tool output."#
                 .load(Ordering::SeqCst),
             1
         );
+=======
+>>>>>>> origin/master
     }
 
     #[tokio::test]
@@ -11113,6 +11924,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -11216,6 +12031,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -11521,6 +12340,10 @@ BTC is currently around $65,000 based on latest tool output."#
             thread_ts: None,
             interruption_scope_id: None,
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         })
         .await
         .unwrap();
@@ -11535,6 +12358,10 @@ BTC is currently around $65,000 based on latest tool output."#
             thread_ts: None,
             interruption_scope_id: None,
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         })
         .await
         .unwrap();
@@ -11644,6 +12471,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             })
             .await
             .unwrap();
@@ -11659,6 +12490,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             })
             .await
             .unwrap();
@@ -11785,6 +12620,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: Some("1741234567.100001".to_string()),
                 interruption_scope_id: Some("1741234567.100001".to_string()),
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             })
             .await
             .unwrap();
@@ -11800,6 +12639,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: Some("1741234567.100001".to_string()),
                 interruption_scope_id: Some("1741234567.100001".to_string()),
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             })
             .await
             .unwrap();
@@ -11923,6 +12766,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             })
             .await
             .unwrap();
@@ -11938,6 +12785,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             })
             .await
             .unwrap();
@@ -12039,6 +12890,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -12137,6 +12992,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -12720,6 +13579,10 @@ BTC is currently around $65,000 based on latest tool output."#
             thread_ts: None,
             interruption_scope_id: None,
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         };
 
         assert_eq!(conversation_memory_key(&msg), "slack_U123_msg_abc123");
@@ -12738,6 +13601,10 @@ BTC is currently around $65,000 based on latest tool output."#
             thread_ts: Some("1741234567.123456".into()),
             interruption_scope_id: None,
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         };
 
         assert_eq!(
@@ -12759,6 +13626,10 @@ BTC is currently around $65,000 based on latest tool output."#
             thread_ts: None,
             interruption_scope_id: None,
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         };
 
         assert_eq!(followup_thread_id(&msg).as_deref(), Some("msg_abc123"));
@@ -12777,6 +13648,10 @@ BTC is currently around $65,000 based on latest tool output."#
             thread_ts: None,
             interruption_scope_id: None,
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         };
 
         assert_eq!(followup_thread_id(&msg), None);
@@ -12795,6 +13670,10 @@ BTC is currently around $65,000 based on latest tool output."#
             thread_ts: None,
             interruption_scope_id: None,
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         };
         let second = zeroclaw_api::channel::ChannelMessage {
             id: "$second:server".into(),
@@ -12822,6 +13701,10 @@ BTC is currently around $65,000 based on latest tool output."#
             thread_ts: Some("$root:server".into()),
             interruption_scope_id: Some("$root:server".into()),
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         };
 
         let key = conversation_history_key(&msg);
@@ -12830,6 +13713,60 @@ BTC is currently around $65,000 based on latest tool output."#
     }
 
     #[test]
+<<<<<<< HEAD
+=======
+    fn wecom_ws_conversation_history_key_uses_reply_target_scope() {
+        let msg = zeroclaw_api::channel::ChannelMessage {
+            id: "msg_wecom_ws".into(),
+            sender: "zeroclaw_user".into(),
+            reply_target: "group--room-1".into(),
+            content: "hello".into(),
+            channel: "wecom_ws".into(),
+            channel_alias: Some("work".into()),
+            timestamp: 1,
+            thread_ts: Some("req-1".into()),
+            interruption_scope_id: None,
+            attachments: vec![],
+            subject: None,
+        };
+
+        assert_eq!(
+            conversation_history_key(&msg),
+            "wecom_ws_work_group--room-1"
+        );
+        assert_eq!(interruption_scope_key(&msg), "wecom_ws_work_group--room-1");
+    }
+
+    #[test]
+    fn parse_runtime_command_allows_model_switch_for_wecom_ws() {
+        assert_eq!(
+            parse_runtime_command("wecom_ws", "/models openrouter"),
+            Some(ChannelRuntimeCommand::SetProvider("openrouter".into()))
+        );
+        assert_eq!(
+            parse_runtime_command("wecom_ws", "/model qwen-max"),
+            Some(ChannelRuntimeCommand::SetModel("qwen-max".into()))
+        );
+    }
+
+    #[test]
+    fn explicit_wecom_group_address_bypasses_reply_intent_precheck() {
+        assert!(is_explicitly_addressed_channel_message(
+            "wecom_ws",
+            "[WeCom group message addressed to this bot via @danya]\n@danya say hi"
+        ));
+        assert!(!is_explicitly_addressed_channel_message(
+            "wecom_ws",
+            "@danya say hi"
+        ));
+        assert!(!is_explicitly_addressed_channel_message(
+            "telegram",
+            "[WeCom group message addressed to this bot via @danya]\n@danya say hi"
+        ));
+    }
+
+    #[test]
+>>>>>>> origin/master
     fn conversation_memory_key_is_unique_per_message() {
         let msg1 = zeroclaw_api::channel::ChannelMessage {
             id: "msg_1".into(),
@@ -12842,6 +13779,10 @@ BTC is currently around $65,000 based on latest tool output."#
             thread_ts: None,
             interruption_scope_id: None,
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         };
         let msg2 = zeroclaw_api::channel::ChannelMessage {
             id: "msg_2".into(),
@@ -12854,6 +13795,10 @@ BTC is currently around $65,000 based on latest tool output."#
             thread_ts: None,
             interruption_scope_id: None,
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         };
 
         assert_ne!(
@@ -12878,6 +13823,10 @@ BTC is currently around $65,000 based on latest tool output."#
             thread_ts: None,
             interruption_scope_id: None,
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         };
         let msg2 = zeroclaw_api::channel::ChannelMessage {
             id: "msg_2".into(),
@@ -12890,6 +13839,10 @@ BTC is currently around $65,000 based on latest tool output."#
             thread_ts: None,
             interruption_scope_id: None,
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         };
 
         mem.store(
@@ -12943,6 +13896,10 @@ BTC is currently around $65,000 based on latest tool output."#
             thread_ts: None,
             interruption_scope_id: None,
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         };
         let history_key = conversation_history_key(&msg);
 
@@ -12982,6 +13939,10 @@ BTC is currently around $65,000 based on latest tool output."#
             thread_ts: None,
             interruption_scope_id: None,
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         };
         let group_b_msg = zeroclaw_api::channel::ChannelMessage {
             id: "msg_2".into(),
@@ -12994,6 +13955,10 @@ BTC is currently around $65,000 based on latest tool output."#
             thread_ts: None,
             interruption_scope_id: None,
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         };
         let group_a_history_key = conversation_history_key(&group_a_msg);
         let group_b_history_key = conversation_history_key(&group_b_msg);
@@ -13065,6 +14030,10 @@ BTC is currently around $65,000 based on latest tool output."#
             thread_ts: None,
             interruption_scope_id: None,
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         };
         let history_key = conversation_history_key(&msg);
         let session_ids = sender_memory_session_ids(&msg, &history_key);
@@ -13210,6 +14179,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -13228,6 +14201,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -13365,6 +14342,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -13400,6 +14381,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -13440,6 +14425,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -13561,6 +14550,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -13686,6 +14679,10 @@ BTC is currently around $65,000 based on latest tool output."#
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -14097,6 +15094,15 @@ This is an example JSON object for profile settings."#;
         calls: Arc<AtomicUsize>,
     }
 
+<<<<<<< HEAD
+=======
+    struct FailOnceChannel {
+        name: String,
+        calls: Arc<AtomicUsize>,
+        err: Mutex<Option<anyhow::Error>>,
+    }
+
+>>>>>>> origin/master
     impl ::zeroclaw_api::attribution::Attributable for AlwaysFailChannel {
         fn role(&self) -> ::zeroclaw_api::attribution::Role {
             ::zeroclaw_api::attribution::Role::Channel(
@@ -14138,6 +15144,21 @@ This is an example JSON object for profile settings."#;
         }
     }
 
+<<<<<<< HEAD
+=======
+    impl ::zeroclaw_api::attribution::Attributable for FailOnceChannel {
+        fn role(&self) -> ::zeroclaw_api::attribution::Role {
+            ::zeroclaw_api::attribution::Role::Channel(
+                ::zeroclaw_api::attribution::ChannelKind::Discord,
+            )
+        }
+
+        fn alias(&self) -> &str {
+            "default"
+        }
+    }
+
+>>>>>>> origin/master
     #[async_trait::async_trait]
     impl Channel for BlockUntilClosedChannel {
         fn name(&self) -> &str {
@@ -14158,6 +15179,31 @@ This is an example JSON object for profile settings."#;
         }
     }
 
+<<<<<<< HEAD
+=======
+    #[async_trait::async_trait]
+    impl Channel for FailOnceChannel {
+        fn name(&self) -> &str {
+            &self.name
+        }
+
+        async fn send(&self, _message: &SendMessage) -> anyhow::Result<()> {
+            Ok(())
+        }
+
+        async fn listen(
+            &self,
+            _tx: tokio::sync::mpsc::Sender<zeroclaw_api::channel::ChannelMessage>,
+        ) -> anyhow::Result<()> {
+            self.calls.fetch_add(1, Ordering::SeqCst);
+            if let Some(err) = self.err.lock().unwrap_or_else(|e| e.into_inner()).take() {
+                return Err(err);
+            }
+            Ok(())
+        }
+    }
+
+>>>>>>> origin/master
     #[tokio::test]
     async fn supervised_listener_marks_error_and_restarts_on_failures() {
         let calls = Arc::new(AtomicUsize::new(0));
@@ -14237,6 +15283,218 @@ This is an example JSON object for profile settings."#;
         drop(rx);
     }
 
+<<<<<<< HEAD
+=======
+    #[tokio::test]
+    async fn supervised_listener_does_not_restart_on_non_retryable_discord_http_error() {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let channel_name = format!("discord-{}", uuid::Uuid::new_v4());
+        let channel: Arc<dyn Channel> = Arc::new(FailOnceChannel {
+            name: channel_name,
+            calls: Arc::clone(&calls),
+            err: Mutex::new(Some(anyhow::Error::msg("401 Unauthorized"))),
+        });
+
+        let component_name = format!("channel:{}", channel.name());
+        let (tx, rx) = tokio::sync::mpsc::channel::<zeroclaw_api::channel::ChannelMessage>(1);
+        let cancel = tokio_util::sync::CancellationToken::new();
+        let handle = spawn_supervised_listener(channel, None, tx, 1, 1, cancel.clone());
+
+        tokio::time::sleep(Duration::from_millis(80)).await;
+        let snapshot = zeroclaw_runtime::health::snapshot_json();
+        let component = &snapshot["components"][&component_name];
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+        assert_eq!(component["status"], "error");
+        assert_eq!(component["restart_count"].as_u64().unwrap_or(0), 0);
+        assert!(
+            component["last_error"]
+                .as_str()
+                .unwrap_or("")
+                .contains("401 Unauthorized")
+        );
+
+        drop(rx);
+        cancel.cancel();
+        let join = tokio::time::timeout(Duration::from_millis(500), handle).await;
+        assert!(join.is_ok(), "listener should stop on cancel");
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+    }
+
+    #[cfg(feature = "channel-discord")]
+    #[tokio::test]
+    async fn supervised_listener_does_not_restart_on_fatal_discord_rate_limit() {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let channel_name = format!("discord-{}", uuid::Uuid::new_v4());
+        let channel: Arc<dyn Channel> = Arc::new(FailOnceChannel {
+            name: channel_name,
+            calls: Arc::clone(&calls),
+            err: Mutex::new(Some(anyhow::Error::new(
+                crate::discord::DiscordListenerFatalError::new(
+                    "discord gateway preflight rate-limited (429 Too Many Requests)",
+                ),
+            ))),
+        });
+
+        let component_name = format!("channel:{}", channel.name());
+        let (tx, rx) = tokio::sync::mpsc::channel::<zeroclaw_api::channel::ChannelMessage>(1);
+        let cancel = tokio_util::sync::CancellationToken::new();
+        let handle = spawn_supervised_listener(channel, None, tx, 1, 1, cancel.clone());
+
+        tokio::time::sleep(Duration::from_millis(80)).await;
+        let snapshot = zeroclaw_runtime::health::snapshot_json();
+        let component = &snapshot["components"][&component_name];
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+        assert_eq!(component["status"], "error");
+        assert_eq!(component["restart_count"].as_u64().unwrap_or(0), 0);
+        assert!(
+            component["last_error"]
+                .as_str()
+                .unwrap_or("")
+                .contains("429 Too Many Requests")
+        );
+
+        drop(rx);
+        cancel.cancel();
+        let join = tokio::time::timeout(Duration::from_millis(500), handle).await;
+        assert!(join.is_ok(), "listener should stop on cancel");
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+    }
+
+    #[cfg(feature = "channel-discord")]
+    #[tokio::test]
+    async fn supervised_listener_does_not_restart_on_fatal_discord_gateway_close_code() {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let channel_name = format!("discord-{}", uuid::Uuid::new_v4());
+        let channel: Arc<dyn Channel> = Arc::new(FailOnceChannel {
+            name: channel_name,
+            calls: Arc::clone(&calls),
+            err: Mutex::new(Some(anyhow::Error::new(
+                crate::discord::DiscordListenerFatalError::new(
+                    "discord gateway closed with fatal code 4014: disallowed intent(s)",
+                ),
+            ))),
+        });
+
+        let component_name = format!("channel:{}", channel.name());
+        let (tx, rx) = tokio::sync::mpsc::channel::<zeroclaw_api::channel::ChannelMessage>(1);
+        let cancel = tokio_util::sync::CancellationToken::new();
+        let handle = spawn_supervised_listener(channel, None, tx, 1, 1, cancel.clone());
+
+        tokio::time::sleep(Duration::from_millis(80)).await;
+        let snapshot = zeroclaw_runtime::health::snapshot_json();
+        let component = &snapshot["components"][&component_name];
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+        assert_eq!(component["status"], "error");
+        assert_eq!(component["restart_count"].as_u64().unwrap_or(0), 0);
+        assert!(
+            component["last_error"]
+                .as_str()
+                .unwrap_or("")
+                .contains("fatal code 4014")
+        );
+
+        drop(rx);
+        cancel.cancel();
+        let join = tokio::time::timeout(Duration::from_millis(500), handle).await;
+        assert!(join.is_ok(), "listener should stop on cancel");
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+    }
+
+    #[tokio::test]
+    async fn fatal_discord_listener_error_does_not_stop_other_listener_health() {
+        let discord_calls = Arc::new(AtomicUsize::new(0));
+        let healthy_calls = Arc::new(AtomicUsize::new(0));
+        let discord_name = format!("discord-{}", uuid::Uuid::new_v4());
+        let healthy_name = format!("test-supervised-sibling-{}", uuid::Uuid::new_v4());
+        let discord_component = format!("channel:{discord_name}");
+        let healthy_component = format!("channel:{healthy_name}");
+
+        let discord_channel: Arc<dyn Channel> = Arc::new(FailOnceChannel {
+            name: discord_name,
+            calls: Arc::clone(&discord_calls),
+            err: Mutex::new(Some(anyhow::Error::new(
+                crate::discord::DiscordListenerFatalError::new(
+                    "discord gateway preflight rate-limited (429 Too Many Requests)",
+                ),
+            ))),
+        });
+        let healthy_channel: Arc<dyn Channel> = Arc::new(BlockUntilClosedChannel {
+            name: healthy_name,
+            calls: Arc::clone(&healthy_calls),
+        });
+
+        let (discord_tx, discord_rx) =
+            tokio::sync::mpsc::channel::<zeroclaw_api::channel::ChannelMessage>(1);
+        let (healthy_tx, healthy_rx) =
+            tokio::sync::mpsc::channel::<zeroclaw_api::channel::ChannelMessage>(1);
+        let cancel = tokio_util::sync::CancellationToken::new();
+        let discord_handle =
+            spawn_supervised_listener(discord_channel, None, discord_tx, 1, 1, cancel.clone());
+        let healthy_handle = spawn_supervised_listener_with_health_interval(
+            healthy_channel,
+            None,
+            healthy_tx,
+            1,
+            1,
+            Duration::from_millis(20),
+            cancel.clone(),
+        );
+
+        tokio::time::sleep(Duration::from_millis(80)).await;
+
+        let first_last_ok = zeroclaw_runtime::health::snapshot_json()["components"]
+            [&healthy_component]["last_ok"]
+            .as_str()
+            .unwrap_or("")
+            .to_string();
+        assert!(
+            !first_last_ok.is_empty(),
+            "healthy sibling should report health"
+        );
+
+        tokio::time::sleep(Duration::from_millis(70)).await;
+
+        let snapshot = zeroclaw_runtime::health::snapshot_json();
+        let discord = &snapshot["components"][&discord_component];
+        let healthy = &snapshot["components"][&healthy_component];
+        let second_last_ok = healthy["last_ok"].as_str().unwrap_or("").to_string();
+        let first = chrono::DateTime::parse_from_rfc3339(&first_last_ok)
+            .expect("healthy sibling last_ok should be valid RFC3339");
+        let second = chrono::DateTime::parse_from_rfc3339(&second_last_ok)
+            .expect("healthy sibling last_ok should be valid RFC3339");
+
+        assert_eq!(discord_calls.load(Ordering::SeqCst), 1);
+        assert_eq!(discord["status"], "error");
+        assert_eq!(discord["restart_count"].as_u64().unwrap_or(0), 0);
+        assert!(
+            discord["last_error"]
+                .as_str()
+                .unwrap_or("")
+                .contains("429 Too Many Requests")
+        );
+        assert_eq!(healthy["status"], "ok");
+        assert!(
+            second > first,
+            "healthy sibling should keep refreshing health"
+        );
+        assert!(healthy_calls.load(Ordering::SeqCst) >= 1);
+
+        drop(discord_rx);
+        drop(healthy_rx);
+        cancel.cancel();
+        let discord_join = tokio::time::timeout(Duration::from_millis(500), discord_handle).await;
+        let healthy_join = tokio::time::timeout(Duration::from_millis(500), healthy_handle).await;
+        assert!(
+            discord_join.is_ok(),
+            "fatal discord listener should stop on cancel"
+        );
+        assert!(
+            healthy_join.is_ok(),
+            "healthy sibling listener should stop on cancel"
+        );
+    }
+
+>>>>>>> origin/master
     #[test]
     fn maybe_restart_daemon_systemd_args_regression() {
         assert_eq!(
@@ -14390,6 +15648,10 @@ This is an example JSON object for profile settings."#;
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -14494,6 +15756,10 @@ This is an example JSON object for profile settings."#;
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -14512,6 +15778,10 @@ This is an example JSON object for profile settings."#;
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -14634,6 +15904,10 @@ This is an example JSON object for profile settings."#;
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -14652,6 +15926,10 @@ This is an example JSON object for profile settings."#;
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -14822,6 +16100,10 @@ This is an example JSON object for profile settings."#;
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -14962,6 +16244,10 @@ This is an example JSON object for profile settings."#;
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -15094,6 +16380,10 @@ This is an example JSON object for profile settings."#;
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -15246,6 +16536,10 @@ This is an example JSON object for profile settings."#;
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             },
             CancellationToken::new(),
         )
@@ -15470,6 +16764,10 @@ This is an example JSON object for profile settings."#;
             thread_ts: None,
             interruption_scope_id: None,
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         };
         assert_eq!(interruption_scope_key(&msg), "matrix_room_alice");
     }
@@ -15487,6 +16785,10 @@ This is an example JSON object for profile settings."#;
             thread_ts: Some("$thread1".into()),
             interruption_scope_id: Some("$thread1".into()),
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         };
         assert_eq!(interruption_scope_key(&msg), "matrix_room_alice_$thread1");
     }
@@ -15505,6 +16807,10 @@ This is an example JSON object for profile settings."#;
             thread_ts: Some("1234567890.000100".into()), // Slack top-level fallback
             interruption_scope_id: None,                 // but NOT a thread reply
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         };
         assert_eq!(interruption_scope_key(&msg), "slack_C123_alice");
     }
@@ -15598,6 +16904,10 @@ This is an example JSON object for profile settings."#;
                 thread_ts: Some("1741234567.100001".to_string()),
                 interruption_scope_id: Some("1741234567.100001".to_string()),
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             })
             .await
             .unwrap();
@@ -15613,6 +16923,10 @@ This is an example JSON object for profile settings."#;
                 thread_ts: Some("1741234567.200002".to_string()),
                 interruption_scope_id: Some("1741234567.200002".to_string()),
                 attachments: vec![],
+<<<<<<< HEAD
+=======
+                subject: None,
+>>>>>>> origin/master
             })
             .await
             .unwrap();
@@ -16075,33 +17389,97 @@ Done."#;
             "mattermost",
             "channel123:root456",
             "user_abc123",
+<<<<<<< HEAD
             None,
         );
         assert!(prompt.contains("sender=user_abc123"));
         assert!(prompt.contains("channel=mattermost"));
         assert!(prompt.contains("reply_target=channel123:root456"));
+=======
+            "msg-xyz789",
+            None,
+        );
+        // Pin the comma-separated tuple in the format string so a refactor
+        // that splits, reorders, or rewords the context block fails loudly
+        // rather than silently.
+        assert!(
+            prompt.contains(
+                "channel=mattermost, reply_target=channel123:root456, \
+                 sender=user_abc123, message_id=msg-xyz789"
+            ),
+            "prompt missing the joint channel-context tuple: {prompt}"
+        );
+>>>>>>> origin/master
     }
 
     #[test]
     fn build_channel_system_prompt_omits_context_when_reply_target_empty() {
+<<<<<<< HEAD
         let prompt =
             build_channel_system_prompt("Base prompt.", "mattermost", "", "user_abc123", None);
+=======
+        let prompt = build_channel_system_prompt(
+            "Base prompt.",
+            "mattermost",
+            "",
+            "user_abc123",
+            "msg-xyz789",
+            None,
+        );
+>>>>>>> origin/master
         assert!(!prompt.contains("sender="));
         assert!(!prompt.contains("Channel context:"));
     }
 
     #[test]
     fn build_channel_system_prompt_sender_distinguishes_users() {
+<<<<<<< HEAD
         let prompt_a =
             build_channel_system_prompt("Base.", "mattermost", "ch:thread", "user_aaa", None);
         let prompt_b =
             build_channel_system_prompt("Base.", "mattermost", "ch:thread", "user_bbb", None);
+=======
+        let prompt_a = build_channel_system_prompt(
+            "Base.",
+            "mattermost",
+            "ch:thread",
+            "user_aaa",
+            "msg-1",
+            None,
+        );
+        let prompt_b = build_channel_system_prompt(
+            "Base.",
+            "mattermost",
+            "ch:thread",
+            "user_bbb",
+            "msg-1",
+            None,
+        );
+>>>>>>> origin/master
         assert!(prompt_a.contains("sender=user_aaa"));
         assert!(prompt_b.contains("sender=user_bbb"));
         assert_ne!(prompt_a, prompt_b);
     }
 
     #[test]
+<<<<<<< HEAD
+=======
+    fn build_channel_system_prompt_for_message_propagates_channel_fields() {
+        // The wrapper unpacks ChannelMessage into build_channel_system_prompt
+        // args. Pin the rendered prompt against every msg.* field the LLM
+        // is expected to see so a future refactor adding more fields can't
+        // silently drop existing ones.
+        let msg = channel_message("discord", None);
+        let prompt = build_channel_system_prompt_for_message("Base.", &msg, None);
+        assert!(
+            prompt.contains("channel=discord, reply_target=r1, sender=u1, message_id=m1"),
+            "wrapper did not propagate channel/reply_target/sender/message_id \
+             from ChannelMessage: {prompt}"
+        );
+    }
+
+    #[test]
+>>>>>>> origin/master
     fn build_channel_system_prompt_webhook_cron_hint_carries_thread_id() {
         // On the webhook channel `reply_target` is the inbound thread/conversation
         // id, not a recipient. Using it as `delivery.to` would strip the thread
@@ -16112,6 +17490,10 @@ Done."#;
             "webhook",
             "agent-chat:agent-1:thread-7",
             "user:abc",
+<<<<<<< HEAD
+=======
+            "msg-1",
+>>>>>>> origin/master
             None,
         );
         assert!(
@@ -16130,7 +17512,12 @@ Done."#;
 
     #[test]
     fn build_channel_system_prompt_non_webhook_cron_hint_keeps_to_as_reply_target() {
+<<<<<<< HEAD
         let prompt = build_channel_system_prompt("Base.", "slack", "C12345", "U67890", None);
+=======
+        let prompt =
+            build_channel_system_prompt("Base.", "slack", "C12345", "U67890", "msg-1", None);
+>>>>>>> origin/master
         assert!(
             prompt.contains("\"to\":\"C12345\""),
             "non-webhook cron hint should keep reply_target as `to`: {prompt}"
@@ -16140,4 +17527,133 @@ Done."#;
             "non-webhook cron hint should not emit a thread_id field: {prompt}"
         );
     }
+<<<<<<< HEAD
+=======
+
+    #[tokio::test]
+    #[cfg(feature = "channel-lark")]
+    async fn deliver_announcement_routes_lark_to_lark_arm() {
+        // Both names must enter the merged lark|feishu arm. Falling through
+        // to `unsupported delivery channel` would mean the schema enum and
+        // the match arm have drifted apart.
+        let config = zeroclaw_config::schema::Config::default();
+
+        for channel in ["lark.default", "feishu.default"] {
+            let err = deliver_announcement(&config, channel, "oc_test_chat", None, "hi")
+                .await
+                .err()
+                .unwrap_or_else(|| {
+                    panic!("expected {channel} to bail because channel is not configured")
+                });
+            let msg = format!("{err:#}");
+            assert!(
+                !msg.contains("unsupported delivery channel"),
+                "{channel} must route to lark|feishu arm, not fall through; got: {msg}"
+            );
+            assert!(
+                msg.contains("[channels.lark.default] not configured"),
+                "{channel} must report the real config table [channels.lark.default]; got: {msg}"
+            );
+        }
+    }
+
+    #[tokio::test]
+    #[cfg(feature = "channel-lark")]
+    async fn deliver_announcement_rejects_feishu_value_when_use_feishu_false() {
+        // Reject (not warn): otherwise the message silently lands on the
+        // Lark endpoint despite the user explicitly naming Feishu.
+        let mut config = zeroclaw_config::schema::Config::default();
+        config.channels.lark.insert(
+            "work".to_string(),
+            zeroclaw_config::schema::LarkConfig {
+                enabled: true,
+                use_feishu: false,
+                app_id: "cli_test".to_string(),
+                app_secret: "secret".to_string(),
+                ..Default::default()
+            },
+        );
+
+        let err = deliver_announcement(&config, "feishu.work", "oc_test_chat", None, "hi")
+            .await
+            .expect_err("expected bail when channel=feishu but use_feishu=false");
+        let msg = format!("{err:#}");
+        assert!(
+            msg.contains("use_feishu=false"),
+            "bail must explain the use_feishu mismatch; got: {msg}"
+        );
+        assert!(
+            msg.contains("[channels.lark.work]"),
+            "bail must point at the real config table; got: {msg}"
+        );
+    }
+
+    fn email_msg(id: &str, subject: Option<&str>) -> ChannelMessage {
+        ChannelMessage {
+            id: id.into(),
+            sender: "user@example.com".into(),
+            reply_target: "user@example.com".into(),
+            content: "Hello".into(),
+            channel: "email".into(),
+            channel_alias: None,
+            timestamp: 0,
+            thread_ts: None,
+            interruption_scope_id: None,
+            attachments: vec![],
+            subject: subject.map(Into::into),
+        }
+    }
+
+    #[test]
+    fn build_email_reply_sets_in_reply_to_and_re_subject() {
+        let msg = email_msg("<abc123@mail.example>", Some("Weekly report"));
+        let sm = build_email_reply(&msg, "Here is the answer");
+        assert_eq!(sm.in_reply_to.as_deref(), Some("<abc123@mail.example>"));
+        assert_eq!(sm.subject.as_deref(), Some("Re: Weekly report"));
+    }
+
+    #[test]
+    fn build_email_reply_does_not_double_re_prefix() {
+        let msg = email_msg("<abc123@mail.example>", Some("Re: Weekly report"));
+        let sm = build_email_reply(&msg, "Here is the answer");
+        assert_eq!(sm.subject.as_deref(), Some("Re: Weekly report"));
+    }
+
+    #[test]
+    fn build_email_reply_no_subject_still_sets_in_reply_to() {
+        let msg = email_msg("<abc123@mail.example>", None);
+        let sm = build_email_reply(&msg, "Here is the answer");
+        assert_eq!(sm.in_reply_to.as_deref(), Some("<abc123@mail.example>"));
+        assert!(sm.subject.is_none());
+    }
+}
+
+#[cfg(test)]
+mod omitted_feature_tests {
+    /// When `channel-telegram` is not compiled, a configured Telegram entry must
+    /// produce no channel in `collect_configured_channels`. This pins the behaviour
+    /// that selective builds never silently include a channel whose feature was
+    /// omitted, and ensures the `#[cfg(not(feature = "channel-telegram"))]` warn
+    /// path compiles correctly.
+    #[cfg(not(feature = "channel-telegram"))]
+    #[test]
+    fn collect_configured_channels_omits_telegram_when_compiled_out() {
+        use super::*;
+        let mut config = Config::default();
+        config.channels.telegram.insert(
+            "default".to_string(),
+            zeroclaw_config::schema::TelegramConfig {
+                enabled: true,
+                ..Default::default()
+            },
+        );
+        let config_arc = Arc::new(RwLock::new(config));
+        let channels = collect_configured_channels(&config_arc, "test", &[]);
+        assert!(
+            channels.iter().all(|c| c.display_name != "Telegram"),
+            "Telegram must be absent from collect_configured_channels when \
+             channel-telegram feature is not compiled in"
+        );
+    }
+>>>>>>> origin/master
 }

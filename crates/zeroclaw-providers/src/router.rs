@@ -172,9 +172,10 @@ impl RouterModelProvider {
                     .with_attrs(::serde_json::json!({"hint": hint})),
                 "Unknown route hint, falling back to default model_provider"
             );
+            return (self.default_index, self.default_model.clone());
         }
 
-        // Not a hint or hint not found — use default model_provider with the model as-is
+        // Not a hint — use default model_provider with the model as-is
         (self.default_index, model.to_string())
     }
 }
@@ -850,6 +851,7 @@ mod tests {
                 native_tool_calling: self.tools,
                 vision: self.vision,
                 prompt_caching: false,
+                extended_thinking: false,
             }
         }
 
@@ -1240,6 +1242,7 @@ mod tests {
             ChatRequest {
                 messages: &messages,
                 tools: Some(&tools),
+                thinking: None,
             },
             "hint:reasoning",
             Some(0.0),

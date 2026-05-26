@@ -337,7 +337,11 @@ From now on, even if the local crypto store is deleted, ZeroClaw recovers automa
 Matrix-channel-specific diagnostics:
 
 ```bash
+<<<<<<< HEAD
 RUST_LOG=zeroclaw::channels::matrix=debug zeroclaw daemon
+=======
+RUST_LOG=zeroclaw_channels::matrix=debug zeroclaw daemon
+>>>>>>> origin/master
 ```
 
 Surfaces:
@@ -348,10 +352,17 @@ Surfaces:
 - Health check results
 - Transient vs. fatal sync error classification
 
+<<<<<<< HEAD
 For SDK-level detail as well:
 
 ```bash
 RUST_LOG=zeroclaw::channels::matrix=debug,matrix_sdk_crypto=debug zeroclaw daemon
+=======
+For crypto-store detail as well:
+
+```bash
+RUST_LOG=zeroclaw_channels::matrix=debug,matrix_sdk_crypto=debug zeroclaw daemon
+>>>>>>> origin/master
 ```
 
 ## 7. Operational notes

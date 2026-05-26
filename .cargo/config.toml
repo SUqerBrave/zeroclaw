@@ -17,7 +17,11 @@ rustflags = ["-C", "link-arg=-static"]
 linker = "aarch64-linux-gnu-gcc"
 
 [target.aarch64-unknown-linux-musl]
+<<<<<<< HEAD
 rustflags = ["-C", "link-arg=-static", "-C", "target-cpu=cortex-a76", "-C", "link-arg=-Wl,-z,stack-size=8388608"]
+=======
+rustflags = ["-C", "link-arg=-static", "-C", "link-arg=-Wl,-z,stack-size=8388608"]
+>>>>>>> origin/master
 
 # Windows targets
 [target.x86_64-pc-windows-msvc]

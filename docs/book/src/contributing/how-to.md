@@ -12,7 +12,12 @@ For anything larger than a typo fix:
 
 1. **Check the issue tracker.** Someone may already be working on it or have filed a related discussion.
 2. **Read `AGENTS.md`.** The repo's root `AGENTS.md` is the canonical source of convention — risk tiers, PR discipline, anti-patterns, and review standards live there.
+<<<<<<< HEAD
 3. **Pick a branch.** PRs target `master`. Fork the repo and branch from there; there's no develop/integration branch to go through.
+=======
+3. **Use the [Architecture and contribution map](./architecture-map.md)** for anything that touches architecture, config, security, workflow, governance, CI, release behavior, or AI-assisted contribution policy.
+4. **Pick a branch.** PRs target `master`. Fork the repo and branch from there; there's no develop/integration branch to go through.
+>>>>>>> origin/master
 
 ## The flow
 
@@ -24,7 +29,12 @@ The key checkpoints:
 
 - **PR template** — `.github/pull_request_template.md`. Fill it out. The summary, validation evidence, and compatibility sections are non-negotiable.
 - **CI** — runs on every PR. `ci.yml` is the composite gate; all legs must pass.
+<<<<<<< HEAD
 - **Labels** — scope (`scope:providers`, `scope:channels`, etc.) and risk (`risk:low` / `risk:medium` / `risk:high`) are auto-applied by path-labeler. Double-check they match your change. If they look wrong and you cannot edit labels, flag the mismatch in a comment; maintainers or reviewers with label permissions can correct obvious mismatches directly.
+=======
+- **Labels** — maintainers use labels to route review depth. You do not need to know every label family before opening a PR. If labels look obviously wrong and you cannot edit them, flag the mismatch in a comment; maintainers or reviewers with label permissions can correct obvious mismatches directly.
+- **Review routing** — make the scope, linked issues, validation, and risk/rollback context clear enough that reviewers can choose the right review path quickly.
+>>>>>>> origin/master
 - **Review** — maintainers review. Findings use the PR review taxonomy: 🔴 blocking, 🟡 warning, 🔵 suggestion, 🟢 praise, and ✅ resolved. Address blockers; warnings should get a response; suggestions are optional.
 
 ## Code style
@@ -53,7 +63,25 @@ For the full five-level taxonomy (unit / component / integration / system / live
 - Prose changes go in `docs/book/src/**/*.md` (this mdBook)
 - Rustdoc (`///`) changes update the API reference automatically on deploy
 - Reference pages (`docs/book/src/reference/cli.md`, `config.md`) are generated — don't hand-edit. Run `cargo mdbook refs` and commit the output
+<<<<<<< HEAD
 - Localisation — if you change user-facing strings, run `cargo mdbook sync` to refresh the `.po` files
+=======
+- Localisation — English markdown is the source of truth. Routine English docs PRs may omit broad generated `.po` churn; use the standard PR-body note in [Building the docs locally](../developing/building-docs.md).
+- Translation-cache PRs, release translation passes, and new locales should run `cargo mdbook sync`, commit the resulting `.po` files, and validate them with `cargo mdbook check`
+
+## Publishing blog or website metadata
+
+When you publish a blog post or otherwise update the public blog metadata, update the hand-maintained feed timestamps in the same PR:
+
+- `web/public/blog/rss.xml` — set `<lastBuildDate>` to the latest post publish time in RFC 2822 / GMT format
+- `web/public/blog/atom.xml` — set `<updated>` to the latest post publish time in ISO 8601 UTC format
+- `web/public/sitemap.xml` — set the `/blog` entry's `<lastmod>` to the latest publish date
+
+Keep feed discovery environment-local:
+
+- `web/index.html` should keep `/blog/rss.xml`, `/blog/atom.xml`, and `/sitemap.xml` as root-relative links
+- `web/public/sitemap.xml` should list the human-facing `/blog` page, not the XML feed files
+>>>>>>> origin/master
 
 ## Commit messages
 
@@ -77,6 +105,7 @@ Title mirrors the squash commit:
 feat(scope): short description
 ```
 
+<<<<<<< HEAD
 Body uses the PR template. **The validation-evidence section is required** — paste the output of `cargo fmt --check`, `cargo clippy`, `cargo test`, plus whatever manual verification you did. "It works on my machine" is not evidence.
 
 Risk labels:
@@ -84,6 +113,15 @@ Risk labels:
 - `risk:low` — rollback is a revert; no user action needed
 - `risk:medium` — users may need to update config / env / CLI usage; rollback plan required
 - `risk:high` — security-critical, schema changes, breaking behaviour. Rollback plan, feature flag, and observable failure symptoms required
+=======
+Body uses the PR template. **The validation-evidence section is required** — paste the checks that match the change. For docs-only PRs, use `scripts/ci/docs_quality_gate.sh` and `scripts/ci/docs_links_gate.sh` or explain why link checking had no added links to inspect. For Rust/code PRs, include `cargo fmt --check`, `cargo clippy`, `cargo test`, plus whatever manual verification you did. "It works on my machine" is not evidence.
+
+Risk labels:
+
+- `risk: low` — rollback is a revert; no user action needed
+- `risk: medium` — users may need to update config / env / CLI usage; rollback plan required
+- `risk: high` — security-critical, schema changes, breaking behaviour. Rollback plan, feature flag, and observable failure symptoms required
+>>>>>>> origin/master
 
 ## After the PR
 
@@ -108,5 +146,9 @@ Don't be a jerk. Disagree on ideas; not people. Accept that maintainers will clo
 ## See also
 
 - [RFC process](./rfcs.md) — for anything bigger than a patch
+<<<<<<< HEAD
+=======
+- [Architecture and contribution map](./architecture-map.md) — which architecture, foundation, and workflow docs to read first
+>>>>>>> origin/master
 - [Communication](./communication.md) — how to reach the team
 - [Maintainers → Overview](../maintainers/index.md) — what maintainers do day-to-day

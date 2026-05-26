@@ -496,6 +496,7 @@ fn check_config_semantics(config: &Config, items: &mut Vec<DiagItem>) {
 
     // ModelProvider validity (first configured model model_provider)
     let primary_model_provider_doc = config.first_model_provider();
+<<<<<<< HEAD
     let primary_model_provider_alias = config.first_model_provider_alias();
     if let Some(model_provider_alias) = &primary_model_provider_alias {
         // Validate by actually attempting to create the provider with config context
@@ -503,11 +504,23 @@ fn check_config_semantics(config: &Config, items: &mut Vec<DiagItem>) {
             items.push(DiagItem::error(
                 cat,
                 format!("model_provider \"{model_provider_alias}\" is invalid: {}", err.to_string().lines().next().unwrap_or("invalid")),
+=======
+    let primary_model_provider = config.first_model_provider_type();
+    if let Some(model_provider) = primary_model_provider {
+        if let Some(reason) = provider_validation_error(model_provider) {
+            items.push(DiagItem::error(
+                cat,
+                format!("model_provider \"{model_provider}\" is invalid: {reason}"),
+>>>>>>> origin/master
             ));
         } else {
             items.push(DiagItem::ok(
                 cat,
+<<<<<<< HEAD
                 format!("model_provider \"{model_provider_alias}\" is valid"),
+=======
+                format!("model_provider \"{model_provider}\" is valid"),
+>>>>>>> origin/master
             ));
         }
     } else {
@@ -515,11 +528,15 @@ fn check_config_semantics(config: &Config, items: &mut Vec<DiagItem>) {
     }
 
     // API key presence
+<<<<<<< HEAD
     let primary_model_provider_type = primary_model_provider_alias
         .as_ref()
         .and_then(|a| a.split_once('.'))
         .map(|(t, _)| t);
     if primary_model_provider_type != Some("ollama") {
+=======
+    if primary_model_provider != Some("ollama") {
+>>>>>>> origin/master
         if primary_model_provider_doc
             .and_then(|e| e.api_key.as_deref())
             .is_some()
@@ -651,7 +668,11 @@ fn check_config_semantics(config: &Config, items: &mut Vec<DiagItem>) {
 
     // Channel: at least one configured
     let cc = &config.channels;
+<<<<<<< HEAD
     let has_channel = cc.channels().iter().any(|(_, ok)| *ok);
+=======
+    let has_channel = cc.channels().iter().any(|info| info.configured);
+>>>>>>> origin/master
 
     if has_channel {
         items.push(DiagItem::ok(cat, "at least one channel configured"));
@@ -667,6 +688,7 @@ fn check_config_semantics(config: &Config, items: &mut Vec<DiagItem>) {
     agent_names.sort();
     for name in agent_names {
         let agent = config.agents.get(name).unwrap();
+<<<<<<< HEAD
         let provider_alias = agent.model_provider.as_str();
         if provider_alias.is_empty() {
             continue;
@@ -678,6 +700,20 @@ fn check_config_semantics(config: &Config, items: &mut Vec<DiagItem>) {
                 format!(
                     "agent \"{name}\" uses invalid model_provider \"{provider_alias}\": {}",
                     err.to_string().lines().next().unwrap_or("invalid"),
+=======
+        let provider_type = agent
+            .model_provider
+            .split_once('.')
+            .map_or(agent.model_provider.as_str(), |(t, _)| t);
+        if provider_type.is_empty() {
+            continue;
+        }
+        if let Some(reason) = provider_validation_error(provider_type) {
+            items.push(DiagItem::warn(
+                cat,
+                format!(
+                    "agent \"{name}\" uses invalid model_provider \"{provider_type}\": {reason}",
+>>>>>>> origin/master
                 ),
             ));
         }

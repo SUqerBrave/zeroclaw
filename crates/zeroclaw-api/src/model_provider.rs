@@ -5,6 +5,21 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Write;
 use std::sync::Arc;
 
+<<<<<<< HEAD
+=======
+pub const MAX_BUDGET_TOKENS: u32 = 128_000;
+/// Anthropic's documented minimum for extended-thinking `budget_tokens`.
+/// Requests below this are rejected with 400 by the provider; clamping at
+/// resolution time gives a clearer error site than the first API call.
+pub const MIN_BUDGET_TOKENS: u32 = 1_024;
+
+/// Parameters for native extended thinking support.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct NativeThinkingParams {
+    pub budget_tokens: u32,
+}
+
+>>>>>>> origin/master
 /// A single message in a conversation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatMessage {
@@ -98,6 +113,13 @@ impl ChatResponse {
 pub struct ChatRequest<'a> {
     pub messages: &'a [ChatMessage],
     pub tools: Option<&'a [ToolSpec]>,
+<<<<<<< HEAD
+=======
+    /// Native extended thinking parameters. When `Some`, providers that
+    /// support extended thinking should send a dedicated thinking budget
+    /// in the API request and force `temperature = 1.0`.
+    pub thinking: Option<NativeThinkingParams>,
+>>>>>>> origin/master
 }
 
 /// A tool result to feed back to the LLM.
@@ -280,6 +302,10 @@ pub struct ProviderCapabilityError {
 ///
 /// Describes what features a model_provider supports, enabling intelligent
 /// adaptation of tool calling modes and request formatting.
+<<<<<<< HEAD
+=======
+#[allow(clippy::struct_excessive_bools)]
+>>>>>>> origin/master
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct ProviderCapabilities {
     /// Whether the model_provider supports native tool calling via API primitives.
@@ -288,6 +314,11 @@ pub struct ProviderCapabilities {
     pub vision: bool,
     /// Whether the model_provider supports prompt caching.
     pub prompt_caching: bool,
+<<<<<<< HEAD
+=======
+    /// Whether the provider supports native extended thinking.
+    pub extended_thinking: bool,
+>>>>>>> origin/master
 }
 
 /// ModelProvider-specific tool payload formats.

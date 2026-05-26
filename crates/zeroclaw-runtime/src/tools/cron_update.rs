@@ -164,7 +164,11 @@ impl Tool for CronUpdateTool {
                                 },
                                 "channel": {
                                     "type": "string",
+<<<<<<< HEAD
                                     "enum": ["telegram", "discord", "slack", "mattermost", "matrix", "qq", "webhook"],
+=======
+                                    "enum": ["telegram", "discord", "slack", "mattermost", "matrix", "qq", "webhook", "lark", "feishu"],
+>>>>>>> origin/master
                                     "description": "Channel type to deliver output to"
                                 },
                                 "to": {

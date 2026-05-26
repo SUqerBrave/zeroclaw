@@ -996,6 +996,13 @@ async fn consume_provider_streaming_response(
         ChatRequest {
             messages,
             tools: request_tools,
+<<<<<<< HEAD
+=======
+            thinking: zeroclaw_api::NATIVE_THINKING_OVERRIDE
+                .try_with(Clone::clone)
+                .ok()
+                .flatten(),
+>>>>>>> origin/master
         },
         model,
         temperature,
@@ -1640,6 +1647,13 @@ pub async fn run_tool_call_loop(
                                 ChatRequest {
                                     messages: &prepared_messages.messages,
                                     tools: request_tools,
+<<<<<<< HEAD
+=======
+                                    thinking: zeroclaw_api::NATIVE_THINKING_OVERRIDE
+                                        .try_with(Clone::clone)
+                                        .ok()
+                                        .flatten(),
+>>>>>>> origin/master
                                 },
                                 active_model,
                                 temperature,
@@ -1669,6 +1683,13 @@ pub async fn run_tool_call_loop(
                     ChatRequest {
                         messages: &prepared_messages.messages,
                         tools: request_tools,
+<<<<<<< HEAD
+=======
+                        thinking: zeroclaw_api::NATIVE_THINKING_OVERRIDE
+                            .try_with(Clone::clone)
+                            .ok()
+                            .flatten(),
+>>>>>>> origin/master
                     },
                     active_model,
                     temperature,
@@ -2699,6 +2720,13 @@ pub async fn run_tool_call_loop(
     let summary_request = zeroclaw_providers::ChatRequest {
         messages: history,
         tools: None, // No tools — force a text response
+<<<<<<< HEAD
+=======
+        thinking: zeroclaw_api::NATIVE_THINKING_OVERRIDE
+            .try_with(Clone::clone)
+            .ok()
+            .flatten(),
+>>>>>>> origin/master
     };
     match model_provider
         .chat(summary_request, model, temperature)
@@ -2850,6 +2878,10 @@ pub async fn run(
         .agent(agent_alias)
         .with_context(|| format!("agents.{agent_alias} is not configured"))?
         .clone();
+<<<<<<< HEAD
+=======
+    crate::agent::thinking::validate_thinking_config(&agent.thinking);
+>>>>>>> origin/master
     let risk_profile = config
         .risk_profile_for_agent(agent_alias)
         .with_context(|| {
@@ -3445,7 +3477,14 @@ pub async fn run(
                 None,
                 &agent.thinking,
             );
+<<<<<<< HEAD
             let thinking_params = crate::agent::thinking::apply_thinking_level(thinking_level);
+=======
+            let thinking_params = crate::agent::thinking::apply_thinking_level_with_config(
+                thinking_level,
+                &agent.thinking,
+            );
+>>>>>>> origin/master
             let effective_temperature: Option<f64> = temperature.map(|t| {
                 crate::agent::thinking::clamp_temperature(
                     t + thinking_params.temperature_adjustment,
@@ -3533,6 +3572,7 @@ pub async fn run(
             #[allow(unused_assignments)]
             let mut response = String::new();
             loop {
+<<<<<<< HEAD
                 match TOOL_LOOP_COST_TRACKING_CONTEXT
                     .scope(
                         cost_tracking_context.clone(),
@@ -3565,6 +3605,43 @@ pub async fn run(
                             None, // channel: CLI mode — uses prompt_cli
                             None, // receipt_generator
                             None, // collected_receipts
+=======
+                match zeroclaw_api::NATIVE_THINKING_OVERRIDE
+                    .scope(
+                        thinking_params.native_thinking,
+                        TOOL_LOOP_COST_TRACKING_CONTEXT.scope(
+                            cost_tracking_context.clone(),
+                            run_tool_call_loop(
+                                model_provider.as_ref(),
+                                &mut history,
+                                &tools_registry,
+                                observer.as_ref(),
+                                &provider_name,
+                                &model_name,
+                                effective_temperature,
+                                false,
+                                approval_manager.as_ref(),
+                                channel_name,
+                                None,
+                                &config.multimodal,
+                                agent.max_tool_iterations,
+                                None,
+                                None,
+                                None,
+                                &excluded_tools,
+                                &agent.tool_call_dedup_exempt,
+                                activated_handle.as_ref(),
+                                Some(model_switch_callback.clone()),
+                                &config.pacing,
+                                agent.strict_tool_parsing,
+                                agent.max_tool_result_chars,
+                                agent.max_context_tokens,
+                                None, // shared_budget
+                                None, // channel: CLI mode — uses prompt_cli
+                                None, // receipt_generator
+                                None, // collected_receipts
+                            ),
+>>>>>>> origin/master
                         ),
                     )
                     .await
@@ -3782,7 +3859,14 @@ pub async fn run(
                     None,
                     &agent.thinking,
                 );
+<<<<<<< HEAD
                 let thinking_params = crate::agent::thinking::apply_thinking_level(thinking_level);
+=======
+                let thinking_params = crate::agent::thinking::apply_thinking_level_with_config(
+                    thinking_level,
+                    &agent.thinking,
+                );
+>>>>>>> origin/master
                 let turn_temperature: Option<f64> = temperature.map(|t| {
                     crate::agent::thinking::clamp_temperature(
                         t + thinking_params.temperature_adjustment,
@@ -3918,6 +4002,7 @@ pub async fn run(
                 });
 
                 let response = loop {
+<<<<<<< HEAD
                     match TOOL_LOOP_COST_TRACKING_CONTEXT
                         .scope(
                             cost_tracking_context.clone(),
@@ -3950,6 +4035,43 @@ pub async fn run(
                                 None, // channel: interactive CLI — uses prompt_cli
                                 None, // receipt_generator
                                 None, // collected_receipts
+=======
+                    match zeroclaw_api::NATIVE_THINKING_OVERRIDE
+                        .scope(
+                            thinking_params.native_thinking,
+                            TOOL_LOOP_COST_TRACKING_CONTEXT.scope(
+                                cost_tracking_context.clone(),
+                                run_tool_call_loop(
+                                    model_provider.as_ref(),
+                                    &mut history,
+                                    &tools_registry,
+                                    observer.as_ref(),
+                                    &provider_name,
+                                    &model_name,
+                                    turn_temperature,
+                                    true,
+                                    approval_manager.as_ref(),
+                                    channel_name,
+                                    None,
+                                    &config.multimodal,
+                                    agent.max_tool_iterations,
+                                    Some(cancel_token.clone()),
+                                    Some(delta_tx.clone()),
+                                    None,
+                                    &excluded_tools,
+                                    &agent.tool_call_dedup_exempt,
+                                    activated_handle.as_ref(),
+                                    Some(model_switch_callback.clone()),
+                                    &config.pacing,
+                                    agent.strict_tool_parsing,
+                                    agent.max_tool_result_chars,
+                                    agent.max_context_tokens,
+                                    None, // shared_budget
+                                    None, // channel: interactive CLI — uses prompt_cli
+                                    None, // receipt_generator
+                                    None, // collected_receipts
+                                ),
+>>>>>>> origin/master
                             ),
                         )
                         .await
@@ -4162,6 +4284,10 @@ pub async fn process_message(
         .agent(agent_alias)
         .with_context(|| format!("agents.{agent_alias} is not configured"))?
         .clone();
+<<<<<<< HEAD
+=======
+    crate::agent::thinking::validate_thinking_config(&agent.thinking);
+>>>>>>> origin/master
     let risk_profile = config
         .risk_profile_for_agent(agent_alias)
         .with_context(|| {
@@ -4560,7 +4686,14 @@ pub async fn process_message(
             None,
             &agent.thinking,
         );
+<<<<<<< HEAD
         let thinking_params = crate::agent::thinking::apply_thinking_level(thinking_level);
+=======
+        let thinking_params = crate::agent::thinking::apply_thinking_level_with_config(
+            thinking_level,
+            &agent.thinking,
+        );
+>>>>>>> origin/master
         let effective_temperature: Option<f64> = config
             .first_model_provider()
             .and_then(|e| e.temperature)
@@ -4625,6 +4758,7 @@ pub async fn process_message(
             }
         }
 
+<<<<<<< HEAD
         agent_turn(
             model_provider.as_ref(),
             &mut history,
@@ -4647,6 +4781,34 @@ pub async fn process_message(
             None, // channel: process_message path has no channel ref
         )
         .await
+=======
+        zeroclaw_api::NATIVE_THINKING_OVERRIDE
+            .scope(
+                thinking_params.native_thinking,
+                agent_turn(
+                    model_provider.as_ref(),
+                    &mut history,
+                    &tools_registry,
+                    observer.as_ref(),
+                    provider_name,
+                    &model_name,
+                    effective_temperature,
+                    true,
+                    "daemon",
+                    None,
+                    &config.multimodal,
+                    agent.max_tool_iterations,
+                    Some(&approval_manager),
+                    &excluded_tools,
+                    &agent.tool_call_dedup_exempt,
+                    activated_handle_pm.as_ref(),
+                    None,
+                    agent.strict_tool_parsing,
+                    None, // channel: process_message path has no channel ref
+                ),
+            )
+            .await
+>>>>>>> origin/master
     };
     __zc_body
         .instrument(__zc_scope_span)
@@ -5269,6 +5431,10 @@ mod tests {
                 native_tool_calling: false,
                 vision: true,
                 prompt_caching: false,
+<<<<<<< HEAD
+=======
+                extended_thinking: false,
+>>>>>>> origin/master
             }
         }
 
@@ -5582,6 +5748,10 @@ mod tests {
                 native_tool_calling: true,
                 vision: false,
                 prompt_caching: false,
+<<<<<<< HEAD
+=======
+                extended_thinking: false,
+>>>>>>> origin/master
             }
         }
 

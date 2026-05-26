@@ -50,6 +50,11 @@
 - [Mattermost](./channels/mattermost.md)
 - [LINE](./channels/line.md)
 - [Nextcloud Talk](./channels/nextcloud-talk.md)
+<<<<<<< HEAD
+=======
+- [Signal](./channels/signal.md)
+- [WhatsApp](./channels/whatsapp.md)
+>>>>>>> origin/master
 - [Other chat platforms](./channels/chat-others.md)
 - [Social (Bluesky, Nostr, Twitter, Reddit)](./channels/social.md)
 - [Email](./channels/email.md)
@@ -63,6 +68,10 @@
 - [MCP (Model Context Protocol)](./tools/mcp.md)
 - [Browser automation](./tools/browser.md)
 - [Skills](./tools/skills.md)
+<<<<<<< HEAD
+=======
+- [Python skills](./tools/python-skills.md)
+>>>>>>> origin/master
 
 # Security
 
@@ -119,6 +128,10 @@
 # Contributing
 
 - [How to contribute](./contributing/how-to.md)
+<<<<<<< HEAD
+=======
+- [Architecture and contribution map](./contributing/architecture-map.md)
+>>>>>>> origin/master
 - [RFC process](./contributing/rfcs.md)
 - [Communication](./contributing/communication.md)
 - [Privacy & PII discipline](./contributing/privacy.md)

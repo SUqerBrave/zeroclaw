@@ -44,6 +44,12 @@ them from the beginning gives you the full arc: from the shape of the architectu
 how we record and coordinate and ship and collaborate, to what it means to write the
 code well at the sentence level.
 
+<<<<<<< HEAD
+=======
+If you are trying to decide which foundation applies to a specific change, start with
+the [Architecture and contribution map](../contributing/architecture-map.md).
+
+>>>>>>> origin/master
 | # | Document | What It Answers | Discussion Thread |
 |---|----------|-----------------|-------------------|
 | 1 | [Intentional Architecture — Microkernel Transition](./fnd-001-intentional-architecture.md) | What are we building, and what shape should it take? | [#5574](https://github.com/zeroclaw-labs/zeroclaw/issues/5574) |
@@ -102,4 +108,8 @@ That is the investment this series is making in you. Welcome to the team.
 *The ZeroClaw Maturity Framework is a living body of work. New documents are added when
 the team has learned something worth preserving. Each begins as a public RFC discussion
 and earns its place here through the same process as the six above: open conversation,
+<<<<<<< HEAD
 honest disagreement, and the team's collective decision to carry it forward.*
+=======
+honest disagreement, and the team's collective decision to carry it forward.*
+>>>>>>> origin/master

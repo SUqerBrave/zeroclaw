@@ -260,6 +260,10 @@ impl WatiChannel {
             thread_ts: None,
             interruption_scope_id: None,
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         });
 
         messages
@@ -441,6 +445,10 @@ impl WatiChannel {
             thread_ts: None,
             interruption_scope_id: None,
             attachments: vec![],
+<<<<<<< HEAD
+=======
+            subject: None,
+>>>>>>> origin/master
         });
 
         messages

@@ -10,6 +10,7 @@ The general-purpose email channel. Polls IMAP for new messages, sends via SMTP. 
 [channels.email]
 enabled = true
 
+<<<<<<< HEAD
 [channels.email.imap]
 host = "imap.example.com"
 port = 993
@@ -27,6 +28,29 @@ password = "..."
 [channels.email.filter]
 allowed_senders = ["boss@example.com", "alerts@example.com"]
 subject_prefix = "[agent]"       # only respond to subjects starting with this
+=======
+# IMAP (inbound)
+imap_host = "imap.example.com"
+imap_port = 993                  # default: 993
+imap_folder = "INBOX"            # default: INBOX
+poll_interval_secs = 60          # fallback when IDLE not supported
+
+# SMTP (outbound)
+smtp_host = "smtp.example.com"
+smtp_port = 587                  # default: 465
+smtp_tls = true                  # default: true
+
+# Shared credentials (used by both IMAP and SMTP when no smtp_* override is set)
+username = "you@example.com"
+password = "..."                 # or app-password for Gmail/iCloud
+
+# Optional: use separate credentials for SMTP only (e.g. a relay service)
+# smtp_username = "relay-user@sendgrid.net"
+# smtp_password = "..."
+
+from_address = "you@example.com"
+allowed_senders = ["boss@example.com", "alerts@example.com"]
+>>>>>>> origin/master
 ```
 
 ### Gmail gotchas
@@ -40,9 +64,15 @@ subject_prefix = "[agent]"       # only respond to subjects starting with this
 OAuth 2.0 is recommended over password auth:
 
 ```toml
+<<<<<<< HEAD
 [channels.email.imap]
 host = "outlook.office365.com"
 port = 993
+=======
+[channels.email]
+imap_host = "outlook.office365.com"
+imap_port = 993
+>>>>>>> origin/master
 username = "you@example.com"
 oauth_token = "..."              # managed via `zeroclaw channel auth email`
 ```
@@ -78,11 +108,31 @@ Outbound sends still go via SMTP — configure an `smtp` block in this channel t
 
 Both email channels thread replies using `In-Reply-To` and `References` headers so conversations stay grouped in whatever client the sender uses.
 
+<<<<<<< HEAD
+=======
+## Outbound body format
+
+Agent replies are sent as `multipart/alternative` with both a plain-text and an HTML part by default. The HTML part is the Markdown-rendered body; the plain-text part is the raw body text. Mail clients that prefer plain text will select the plain-text alternative automatically.
+
+To send plain text only (no HTML part, for clients or setups that prefer it), set:
+
+```toml
+[channels.email.default]
+html_body = false
+```
+
+When attachments are present the body alternatives are wrapped in an outer `multipart/mixed`.
+
+>>>>>>> origin/master
 ## Attachment handling
 
 Inbound attachments are stored under `<workspace>/attachments/<conversation>/`. The agent gets file paths in its context and can read them via the `file_read` tool.
 
+<<<<<<< HEAD
 Outbound attachments are not supported yet — the agent replies with links to files in the workspace, and the user downloads via whatever tunnel the workspace is exposed through.
+=======
+Outbound attachments are resolved from the workspace path provided by the agent and sent as MIME parts. Filenames are taken from the `Content-Disposition` header first, falling back to the `Content-Type` `name` parameter.
+>>>>>>> origin/master
 
 ## Rate and volume limits
 
