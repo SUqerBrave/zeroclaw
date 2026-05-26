@@ -1446,19 +1446,6 @@ impl SecurityPolicy {
             return false;
         }
 
-<<<<<<< HEAD
-        // Full autonomy bypasses the per-command allowlist entirely.
-        // The operator has explicitly opted into unrestricted shell
-        // execution — only subshell/expansion safety guards remain.
-        if self.autonomy == AutonomyLevel::Full {
-            return !command.contains('`')
-                && !contains_unquoted_shell_variable_expansion(command)
-                && !command.contains("<(")
-                && !command.contains(">(");
-        }
-
-=======
->>>>>>> origin/master
         // When the operator has explicitly opted out of all command-level
         // restrictions (wildcard + no high-risk blocking), skip the
         // subshell/expansion guard entirely. This allows backticks,

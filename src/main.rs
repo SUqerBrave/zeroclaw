@@ -40,11 +40,7 @@ use clap::{CommandFactory, FromArgMatches, Parser, Subcommand, ValueEnum};
 use dialoguer::{Password, Select};
 use serde::{Deserialize, Serialize};
 use std::io::Write;
-<<<<<<< HEAD
-use std::path::PathBuf;
-=======
 use std::path::{Path, PathBuf};
->>>>>>> origin/master
 use zeroclaw_config::api_error::{ConfigApiCode, ConfigApiError};
 
 /// Decorate the value at `path` in `config.toml` with a leading `# {comment}`
@@ -889,8 +885,6 @@ fn resolve_onboard_target(
     (target, deprecation)
 }
 
-<<<<<<< HEAD
-=======
 #[cfg(feature = "agent-runtime")]
 fn runtime_dir_env_is_explicit(name: &str, value: &str) -> bool {
     match name {
@@ -947,7 +941,6 @@ fn apply_homebrew_onboard_config_dir() {
     );
 }
 
->>>>>>> origin/master
 #[cfg(feature = "plugins-wasm")]
 #[derive(Subcommand, Debug)]
 enum PluginCommands {
@@ -1424,11 +1417,8 @@ async fn main() -> Result<()> {
             eprintln!("warning: {old} is deprecated; use `zeroclaw onboard {new}` instead");
         }
 
-<<<<<<< HEAD
-=======
         apply_homebrew_onboard_config_dir();
 
->>>>>>> origin/master
         // --reinit backs up the config dir BEFORE load_or_init re-materializes it.
         if *reinit {
             let (zeroclaw_dir, _) =
@@ -1731,38 +1721,6 @@ async fn main() -> Result<()> {
             max_sessions,
             session_timeout,
         } => {
-<<<<<<< HEAD
-            let mut acp_config = channels::acp_server::AcpServerConfig {
-                max_sessions: config.acp.max_sessions,
-                session_timeout_secs: config.acp.session_timeout_secs,
-            };
-            if let Some(max) = max_sessions {
-                acp_config.max_sessions = max;
-            }
-            if let Some(timeout) = session_timeout {
-                acp_config.session_timeout_secs = timeout;
-            }
-            let store = zeroclaw_infra::acp_session_store::AcpSessionStore::new(&config.data_dir)
-                .map(std::sync::Arc::new)
-                .inspect_err(|e| {
-                    ::zeroclaw_log::record!(
-                        WARN,
-                        ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                            .with_outcome(::zeroclaw_log::EventOutcome::Unknown)
-                            .with_attrs(::serde_json::json!({"error": e.to_string()})),
-                        "Failed to open ACP session store"
-                    );
-                })
-                .ok();
-            let server = if let Some(store) = store {
-                std::sync::Arc::new(channels::acp_server::AcpServer::new_with_store(
-                    config, acp_config, store,
-                ))
-            } else {
-                std::sync::Arc::new(channels::acp_server::AcpServer::new(config, acp_config))
-            };
-            server.run().await
-=======
             #[cfg(feature = "channel-acp-server")]
             {
                 let mut acp_config = channels::acp_server::AcpServerConfig {
@@ -1805,7 +1763,6 @@ async fn main() -> Result<()> {
                 let _ = (max_sessions, session_timeout);
                 anyhow::bail!("ACP server requires the `channel-acp-server` feature")
             }
->>>>>>> origin/master
         }
 
         Commands::Gateway { gateway_command } => {
@@ -2085,10 +2042,7 @@ async fn main() -> Result<()> {
                             .await
                         })
                     })),
-<<<<<<< HEAD
-=======
                     #[cfg(feature = "channel-mqtt")]
->>>>>>> origin/master
                     mqtt_start: Some(Box::new({
                         use std::sync::{Arc, Mutex};
                         use zeroclaw_config::schema::SopConfig;
@@ -2117,11 +2071,8 @@ async fn main() -> Result<()> {
                             })
                         }
                     })),
-<<<<<<< HEAD
-=======
                     #[cfg(not(feature = "channel-mqtt"))]
                     mqtt_start: None,
->>>>>>> origin/master
                 };
                 let exit = Box::pin(daemon::run(
                     current_config.clone(),
@@ -2300,19 +2251,11 @@ async fn main() -> Result<()> {
             println!();
             println!("Channels:");
             println!("  CLI:      ✅ always");
-<<<<<<< HEAD
-            for (channel, configured) in config.channels.channels() {
-                println!(
-                    "  {:9} {}",
-                    channel.name(),
-                    if configured {
-=======
             for entry in zeroclaw_channels::listing::compiled_channels(&config.channels) {
                 println!(
                     "  {:9} {}",
                     entry.name,
                     if entry.configured {
->>>>>>> origin/master
                         "✅ configured"
                     } else {
                         "❌ not configured"
@@ -2618,33 +2561,6 @@ async fn main() -> Result<()> {
 
         Commands::Config { config_command } => match config_command {
             ConfigCommands::Schema { path } => {
-<<<<<<< HEAD
-                let schema = schemars::schema_for!(config::Config);
-                let value = match path.as_deref() {
-                    None => {
-                        serde_json::to_value(&schema).context("failed to serialize JSON Schema")?
-                    }
-                    Some(prop_path) => {
-                        let full = serde_json::to_value(&schema)
-                            .context("failed to serialize JSON Schema")?;
-                        // Embed the requested path so consumers see the same hint
-                        // shape that OPTIONS /api/config/prop returns. Per-path
-                        // subtree extraction is a follow-up that walks the schema
-                        // by JSON Pointer; for now we attach the hint and return
-                        // the whole-config schema, mirroring the HTTP behavior.
-                        let mut out = full;
-                        if let serde_json::Value::Object(ref mut map) = out {
-                            map.insert(
-                                "x-zeroclaw-requested-path".into(),
-                                serde_json::Value::String(prop_path.into()),
-                            );
-                        }
-                        out
-                    }
-                };
-                println!("{}", serde_json::to_string_pretty(&value)?);
-                Ok(())
-=======
                 #[cfg(feature = "schema-export")]
                 {
                     let schema = schemars::schema_for!(config::Config);
@@ -2677,7 +2593,6 @@ async fn main() -> Result<()> {
                     let _ = path;
                     anyhow::bail!("zeroclaw was built without the 'schema-export' feature")
                 }
->>>>>>> origin/master
             }
             ConfigCommands::List { filter, secrets } => {
                 let entries = config.prop_fields();
@@ -4347,8 +4262,6 @@ mod tests {
 
     #[test]
     #[cfg(feature = "agent-runtime")]
-<<<<<<< HEAD
-=======
     fn homebrew_onboard_config_dir_detects_cellar_paths() {
         assert_eq!(
             resolve_homebrew_onboard_config_dir(
@@ -4453,7 +4366,6 @@ mod tests {
 
     #[test]
     #[cfg(feature = "agent-runtime")]
->>>>>>> origin/master
     fn cli_parses_estop_default_engage() {
         let cli = Cli::try_parse_from(["zeroclaw", "estop"]).expect("estop command should parse");
 

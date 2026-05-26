@@ -2,13 +2,8 @@
 //! but are needed by the config schema. Moved here to break circular dependencies.
 
 use crate::traits::{ChannelConfig, HasPropKind, PropKind};
-<<<<<<< HEAD
-#[cfg(feature = "schema-export")]
-use serde::{Deserialize, Serialize};
-=======
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
->>>>>>> origin/master
 use std::fmt;
 use zeroclaw_macros::Configurable;
 
@@ -44,10 +39,6 @@ impl ThinkingLevel {
             _ => None,
         }
     }
-<<<<<<< HEAD
-}
-
-=======
 
     pub fn as_str(&self) -> &'static str {
         match self {
@@ -73,7 +64,6 @@ pub use zeroclaw_api::model_provider::{
     MAX_BUDGET_TOKENS, MIN_BUDGET_TOKENS, NativeThinkingParams,
 };
 
->>>>>>> origin/master
 /// Configuration for thinking/reasoning level control.
 #[derive(Debug, Clone, Serialize, Deserialize, Configurable)]
 #[cfg_attr(feature = "schema-export", derive(schemars::JsonSchema))]
@@ -81,8 +71,6 @@ pub use zeroclaw_api::model_provider::{
 pub struct ThinkingConfig {
     #[serde(default)]
     pub default_level: ThinkingLevel,
-<<<<<<< HEAD
-=======
     /// Opt-in flag for provider-native extended thinking. When `true`, the
     /// provider sends a dedicated `thinking` parameter with `budget_tokens`
     /// instead of relying solely on prompt-based reasoning. Defaults to
@@ -92,15 +80,12 @@ pub struct ThinkingConfig {
     pub native_thinking: bool,
     #[serde(default)]
     pub budget_tokens: HashMap<String, u32>,
->>>>>>> origin/master
 }
 
 impl Default for ThinkingConfig {
     fn default() -> Self {
         Self {
             default_level: ThinkingLevel::Medium,
-<<<<<<< HEAD
-=======
             native_thinking: false,
             budget_tokens: HashMap::new(),
         }
@@ -137,7 +122,6 @@ impl ThinkingConfig {
                      valid levels are: off, minimal, low, medium, high, max"
                 );
             }
->>>>>>> origin/master
         }
     }
 }
@@ -470,11 +454,7 @@ fn default_true() -> bool {
     true
 }
 fn default_subject() -> String {
-<<<<<<< HEAD
-    "ZeroClaw Message".into()
-=======
     "Re: Message".into()
->>>>>>> origin/master
 }
 fn default_max_attachment_bytes() -> usize {
     25 * 1024 * 1024
@@ -500,14 +480,11 @@ pub struct EmailConfig {
     pub smtp_port: u16,
     #[serde(default = "default_true")]
     pub smtp_tls: bool,
-<<<<<<< HEAD
-=======
     #[serde(default)]
     pub smtp_username: Option<String>,
     #[secret]
     #[serde(default)]
     pub smtp_password: Option<String>,
->>>>>>> origin/master
     pub username: String,
     #[secret]
     pub password: String,
@@ -527,13 +504,10 @@ pub struct EmailConfig {
     /// are not exposed to the model when responding via this channel.
     #[serde(default)]
     pub excluded_tools: Vec<String>,
-<<<<<<< HEAD
-=======
     /// When `true` (default), outbound emails are rendered as HTML via Markdown conversion.
     /// Set to `false` to send plain-text emails instead.
     #[serde(default = "default_true")]
     pub html_body: bool,
->>>>>>> origin/master
 }
 
 impl ChannelConfig for EmailConfig {
@@ -555,11 +529,8 @@ impl Default for EmailConfig {
             smtp_host: String::new(),
             smtp_port: default_smtp_port(),
             smtp_tls: true,
-<<<<<<< HEAD
-=======
             smtp_username: None,
             smtp_password: None,
->>>>>>> origin/master
             username: String::new(),
             password: String::new(),
             from_address: String::new(),
@@ -568,10 +539,7 @@ impl Default for EmailConfig {
             default_subject: default_subject(),
             max_attachment_bytes: default_max_attachment_bytes(),
             excluded_tools: Vec::new(),
-<<<<<<< HEAD
-=======
             html_body: true,
->>>>>>> origin/master
         }
     }
 }
@@ -731,8 +699,6 @@ pub struct VoiceCallConfig {
     pub excluded_tools: Vec<String>,
 }
 
-<<<<<<< HEAD
-=======
 impl crate::traits::ChannelConfig for VoiceCallConfig {
     fn name() -> &'static str {
         "Voice Call"
@@ -742,7 +708,6 @@ impl crate::traits::ChannelConfig for VoiceCallConfig {
     }
 }
 
->>>>>>> origin/master
 impl Default for VoiceCallConfig {
     fn default() -> Self {
         Self {

@@ -220,15 +220,12 @@ const LARK_DEFAULT_TOKEN_TTL: Duration = Duration::from_secs(7200);
 /// Feishu/Lark API business code for expired/invalid tenant access token.
 const LARK_INVALID_ACCESS_TOKEN_CODE: i64 = 99_991_663;
 
-<<<<<<< HEAD
-=======
 /// Feishu/Lark API business code returned when a card PATCH (or any draft
 /// message edit) is rate-limited. Treated as a soft-failure: we log a warning
 /// but never propagate to the caller, since the user-visible decision is
 /// already delivered out-of-band via the approval oneshot.
 const LARK_DRAFT_RATE_LIMIT_CODE: i64 = 230_020;
 
->>>>>>> origin/master
 /// Max byte size for a single interactive card's markdown content.
 /// Lark card payloads have a ~30 KB limit; leave margin for JSON envelope.
 const LARK_CARD_MARKDOWN_MAX_BYTES: usize = 28_000;
@@ -270,8 +267,6 @@ fn build_card_content(markdown: &str) -> String {
     .to_string()
 }
 
-<<<<<<< HEAD
-=======
 /// Build an approval-request interactive card (Card JSON 2.0).
 ///
 /// Card 2.0 is required so PATCH-time updates from
@@ -449,7 +444,6 @@ fn sanitize_card_action_payload(event_payload: &serde_json::Value) -> serde_json
     sanitized
 }
 
->>>>>>> origin/master
 /// Build the full message body for sending an interactive card message.
 fn build_interactive_card_body(recipient: &str, markdown: &str) -> serde_json::Value {
     serde_json::json!({
@@ -564,8 +558,6 @@ fn ensure_lark_send_success(
     Ok(())
 }
 
-<<<<<<< HEAD
-=======
 /// State carried between sending an approval card and the user's click.
 ///
 /// Used to (a) wake the awaiting future via `sender` and (b) re-render
@@ -580,7 +572,6 @@ struct PendingApproval {
     arguments_summary: String,
 }
 
->>>>>>> origin/master
 /// Lark/Feishu channel.
 ///
 /// Supports two receive modes (configured via `receive_mode` in config):
@@ -614,8 +605,6 @@ pub struct LarkChannel {
     proxy_url: Option<String>,
     transcription: Option<zeroclaw_config::schema::TranscriptionConfig>,
     transcription_manager: Option<Arc<super::transcription::TranscriptionManager>>,
-<<<<<<< HEAD
-=======
     /// In-flight approval requests keyed by `approval_id` (UUID v4).
     /// Populated by `request_approval`, drained by `handle_card_action_event`.
     pending_approvals: Arc<tokio::sync::Mutex<std::collections::HashMap<String, PendingApproval>>>,
@@ -623,7 +612,6 @@ pub struct LarkChannel {
     /// Currently hard-coded to 120; lift to `LarkConfig` when a use case
     /// for per-channel overrides arises.
     approval_timeout_secs: u64,
->>>>>>> origin/master
     #[cfg(test)]
     api_base_override: Option<String>,
 }
@@ -682,11 +670,8 @@ impl LarkChannel {
             proxy_url: None,
             transcription: None,
             transcription_manager: None,
-<<<<<<< HEAD
-=======
             pending_approvals: Arc::new(tokio::sync::Mutex::new(std::collections::HashMap::new())),
             approval_timeout_secs: 120,
->>>>>>> origin/master
             #[cfg(test)]
             api_base_override: None,
         }
@@ -791,8 +776,6 @@ impl LarkChannel {
         format!("{}/im/v1/messages?receive_id_type=chat_id", self.api_base())
     }
 
-<<<<<<< HEAD
-=======
     /// PATCH endpoint for updating the content of a previously-sent message
     /// (used to flip an approval card from its interactive state to its
     /// resolved/banner state after the user clicks a button).
@@ -800,7 +783,6 @@ impl LarkChannel {
         format!("{}/im/v1/messages/{message_id}", self.api_base())
     }
 
->>>>>>> origin/master
     fn message_reaction_url(&self, message_id: &str) -> String {
         format!("{}/im/v1/messages/{message_id}/reactions", self.api_base())
     }
@@ -1134,9 +1116,6 @@ impl LarkChannel {
                         Ok(e) => e,
                         Err(e) => { ::zeroclaw_log::record!(ERROR, ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Fail).with_outcome(::zeroclaw_log::EventOutcome::Failure).with_attrs(::serde_json::json!({"error": format!("{}", e)})), "event JSON"); continue; }
                     };
-<<<<<<< HEAD
-                    if event.header.event_type != "im.message.receive_v1" { continue; }
-=======
                     match event.header.event_type.as_str() {
                         "im.message.receive_v1" => {}
                         "card.action.trigger" => {
@@ -1156,7 +1135,6 @@ impl LarkChannel {
                         }
                         _ => continue,
                     }
->>>>>>> origin/master
 
                     let event_payload = event.event;
 
@@ -1302,10 +1280,7 @@ impl LarkChannel {
                         thread_ts: None,
                         interruption_scope_id: None,
                     attachments: vec![],
-<<<<<<< HEAD
-=======
                         subject: None,
->>>>>>> origin/master
                     };
 
                     ::zeroclaw_log::record!(DEBUG, ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note), &format!("WS: message in {}", lark_msg.chat_id));
@@ -1966,10 +1941,7 @@ impl LarkChannel {
             thread_ts: None,
             interruption_scope_id: None,
             attachments: vec![],
-<<<<<<< HEAD
-=======
             subject: None,
->>>>>>> origin/master
         }]
     }
 
@@ -2234,10 +2206,7 @@ impl LarkChannel {
             thread_ts: None,
             interruption_scope_id: None,
             attachments: vec![],
-<<<<<<< HEAD
-=======
             subject: None,
->>>>>>> origin/master
         });
 
         messages
@@ -2302,8 +2271,6 @@ impl Channel for LarkChannel {
     async fn health_check(&self) -> bool {
         self.get_tenant_access_token().await.is_ok()
     }
-<<<<<<< HEAD
-=======
 
     async fn request_approval(
         &self,
@@ -2687,7 +2654,6 @@ impl LarkChannel {
 
         Ok(())
     }
->>>>>>> origin/master
 }
 
 impl LarkChannel {
@@ -2730,8 +2696,6 @@ impl LarkChannel {
                 return (StatusCode::OK, Json(resp)).into_response();
             }
 
-<<<<<<< HEAD
-=======
             // Card button click events are not message events — route them
             // through the approval-card resolver and short-circuit before the
             // generic message parser sees them.
@@ -2757,7 +2721,6 @@ impl LarkChannel {
                 return (StatusCode::OK, "ok").into_response();
             }
 
->>>>>>> origin/master
             // Parse event messages
             let messages = state.channel.parse_event_payload_async(&payload).await;
             if !messages.is_empty()
@@ -4722,8 +4685,6 @@ mod tests {
         assert_eq!(bytes.len(), 64);
         assert_eq!(filename, "voice.m4a");
     }
-<<<<<<< HEAD
-=======
 
     // ─────────────────────────────────────────────────────────────────────
     // Card 2.0 approval card tests
@@ -5167,5 +5128,4 @@ mod tests {
         )
         .await;
     }
->>>>>>> origin/master
 }

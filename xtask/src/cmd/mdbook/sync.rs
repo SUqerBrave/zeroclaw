@@ -17,10 +17,7 @@ pub fn run(
     require_tool("msginit", "apt install gettext / brew install gettext")?;
     require_tool("msgfmt", "apt install gettext / brew install gettext")?;
     require_tool("msgattrib", "apt install gettext / brew install gettext")?;
-<<<<<<< HEAD
-=======
     require_tool("msgcat", "apt install gettext / brew install gettext")?;
->>>>>>> origin/master
 
     let book = book_dir(&root);
     let po_dir = po_dir(&root);
@@ -50,10 +47,7 @@ pub fn run(
              cargo install mdbook-i18n-helpers --locked"
         );
     }
-<<<<<<< HEAD
-=======
     normalize_gettext_catalog(&pot)?;
->>>>>>> origin/master
 
     // Step 2+3: per-locale merge + AI fill
     let targets: Vec<String> = match locale {
@@ -93,10 +87,7 @@ pub fn run(
                     .arg(&po_file),
             )?;
         }
-<<<<<<< HEAD
-=======
         normalize_gettext_catalog(&po_file)?;
->>>>>>> origin/master
 
         if force {
             if let Some(p) = model_provider {
@@ -174,8 +165,6 @@ fn fill(
     run_cmd(&mut cmd)
 }
 
-<<<<<<< HEAD
-=======
 fn normalize_gettext_catalog(path: &Path) -> anyhow::Result<()> {
     run_cmd(
         Command::new("msgcat")
@@ -190,7 +179,6 @@ fn normalize_gettext_catalog(path: &Path) -> anyhow::Result<()> {
     )
 }
 
->>>>>>> origin/master
 pub fn count_delta(po_file: &Path) -> anyhow::Result<u32> {
     let out = Command::new("msgfmt")
         .args(["--statistics", "-o", "/dev/null"])

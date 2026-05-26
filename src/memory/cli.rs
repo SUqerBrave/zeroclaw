@@ -6,11 +6,8 @@ use super::{
 use crate::config::Config;
 use anyhow::{Result, bail};
 use console::style;
-<<<<<<< HEAD
-=======
 #[cfg(feature = "agent-runtime")]
 use zeroclaw_runtime::i18n;
->>>>>>> origin/master
 
 /// Handle `zeroclaw memory <subcommand>` CLI commands.
 pub async fn handle_command(command: crate::MemoryCommands, config: &Config) -> Result<()> {
@@ -214,8 +211,6 @@ async fn handle_stats(config: &Config) -> Result<()> {
     Ok(())
 }
 
-<<<<<<< HEAD
-=======
 fn unsupported_clear_backend_message(backend: &str) -> String {
     #[cfg(feature = "agent-runtime")]
     {
@@ -233,15 +228,12 @@ fn unsupported_clear_backend_message(backend: &str) -> String {
     }
 }
 
->>>>>>> origin/master
 async fn handle_clear(
     config: &Config,
     key: Option<String>,
     category: Option<String>,
     yes: bool,
 ) -> Result<()> {
-<<<<<<< HEAD
-=======
     let backend = backend_kind_from_dotted(&config.memory.backend);
     if matches!(
         classify_memory_backend(&backend),
@@ -249,7 +241,6 @@ async fn handle_clear(
     ) {
         bail!(unsupported_clear_backend_message(&backend));
     }
->>>>>>> origin/master
     let mem = create_cli_memory(config)?;
 
     // Single-key deletion (exact or prefix match).
@@ -364,10 +355,7 @@ fn truncate_content(s: &str, max_len: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-<<<<<<< HEAD
-=======
     use tempfile::TempDir;
->>>>>>> origin/master
 
     #[test]
     fn parse_category_known_variants() {
@@ -407,8 +395,6 @@ mod tests {
     fn truncate_content_empty_string() {
         assert_eq!(truncate_content("", 10), "");
     }
-<<<<<<< HEAD
-=======
 
     #[tokio::test]
     async fn clear_rejects_append_only_markdown_backend() {
@@ -478,5 +464,4 @@ mod tests {
         assert!(msg.contains("append-only backend 'qdrant'"));
         assert!(!msg.contains("or qdrant"));
     }
->>>>>>> origin/master
 }

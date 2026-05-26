@@ -1,43 +1,4 @@
-# Build artifacts
 /target
-<<<<<<< HEAD
-dist/
-build/
-bin/
-
-# IDE and OS files
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
-*.swp
-*.swo
-
-# Environment and secrets
-.env
-.env.local
-.env.*.local
-*.pem
-*.key
-*.p12
-*.pfx
-secrets.yaml
-credentials.json
-.netrc
-
-# Local worktrees and data
-.worktrees/
-.zeroclaw/*
-
-# Provider-specific configuration templates (may contain example tokens)
-docs/*-SETUP.md
-docs/*_config_template.toml
-configure-r68s-*.sh
-skills/
-!skills/email-tool/
-bin/
-
-=======
 /target-*/
 /docs/book/book/
 /docs/book/po/messages.pot
@@ -91,43 +52,11 @@ credentials.json
 .worktrees/
 .zeroclaw/*
 
->>>>>>> origin/master
 # Claude Code project settings (machine-specific directory config)
 .claude/settings.json
 
 # Skill eval workspaces (test outputs, transcripts, grading)
 .claude/skills/*-workspace/
-<<<<<<< HEAD
-.claude/skills/eval-results/
-
-# Rust/Cargo specific
-Cargo.lock
-debug/
-
-# Python specific
-__pycache__/
-*.py[cod]
-*$py.class
-venv/
-.venv/
-env/
-.env/
-
-# Node/Web specific
-node_modules/
-.npm
-package-lock.json
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Documentation site builds
-docs/book/book/
-
-# R68S specific (local build markers)
-.r68s-build-complete
-.r68s-flash-lock
-=======
 
 # Claude Code agent worktrees (temporary isolated workspaces)
 .claude/worktrees/
@@ -166,4 +95,3 @@ web/src/lib/api-generated.ts
 # Generated OpenAPI spec (transient handoff for openapi-typescript)
 target/openapi.json
 /v[0-9]*.toml
->>>>>>> origin/master

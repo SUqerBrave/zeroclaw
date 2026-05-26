@@ -359,8 +359,6 @@ impl WhatsAppWebChannel {
         candidates
     }
 
-<<<<<<< HEAD
-=======
     /// Compute the reply target, converting LID→phone for DMs when necessary.
     ///
     /// LID JIDs (e.g. `76188559093817@lid`) are internal WhatsApp routing
@@ -386,7 +384,6 @@ impl WhatsAppWebChannel {
         }
     }
 
->>>>>>> origin/master
     /// Normalize phone number to E.164 format
     #[cfg(feature = "whatsapp-web")]
     fn normalize_phone(&self, phone: &str) -> String {
@@ -1126,14 +1123,6 @@ impl Channel for WhatsAppWebChannel {
                                     .cloned();
 
                                 let is_group = info.source.is_group;
-<<<<<<< HEAD
-
-                                // Phone-based reply target for self-chat.
-                                // LID JIDs (e.g. 76188559093817@lid) are internal
-                                // identifiers that cannot receive messages; replies
-                                // must go to the phone JID (digits@s.whatsapp.net).
-                                let mut reply_target = chat.clone();
-=======
                                 let reply_target = Self::compute_reply_target(
                                     &chat,
                                     info.source.chat.is_lid(),
@@ -1143,7 +1132,6 @@ impl Channel for WhatsAppWebChannel {
                                 if reply_target != chat {
                                     ::zeroclaw_log::record!(DEBUG, ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note).with_attrs(::serde_json::json!({"from": chat, "to": reply_target})), "LID→phone reply target");
                                 }
->>>>>>> origin/master
 
                                 // ── Personal-mode chat-type policy filtering ──
                                 if wa_mode == zeroclaw_config::schema::WhatsAppWebMode::Personal {
@@ -1163,23 +1151,6 @@ impl Channel for WhatsAppWebChannel {
                                             return;
                                         }
                                         // self_chat_mode=true: always process, skip further policy checks.
-<<<<<<< HEAD
-                                        //
-                                        // When the chat JID is LID-based, replies
-                                        // won't be delivered. Convert to a phone
-                                        // JID so the reply shows up in the self-chat.
-                                        if info.source.chat.is_lid() {
-                                            let phone_digits = normalized
-                                                .as_ref()
-                                                .map(|n| n.chars().filter(|c| c.is_ascii_digit()).collect::<String>())
-                                                .filter(|d| !d.is_empty());
-                                            if let Some(digits) = phone_digits {
-                                                reply_target = format!("{digits}@s.whatsapp.net");
-                                                ::zeroclaw_log::record!(DEBUG, ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note).with_attrs(::serde_json::json!({"reply_target": reply_target})), "self-chat LID→phone reply target");
-                                            }
-                                        }
-=======
->>>>>>> origin/master
                                     } else if info.source.is_from_me
                                         && !fromme_outside_self_chat_is_operator_trigger(
                                             is_group,
@@ -1347,10 +1318,7 @@ impl Channel for WhatsAppWebChannel {
                                         thread_ts: None,
                                         interruption_scope_id: None,
                     attachments: vec![],
-<<<<<<< HEAD
-=======
                                         subject: None,
->>>>>>> origin/master
                                     })
                                     .await
                                 {
@@ -1894,8 +1862,6 @@ mod tests {
         assert!(candidates.contains(&"+15551234567".to_string()));
     }
 
-<<<<<<< HEAD
-=======
     #[test]
     #[cfg(feature = "whatsapp-web")]
     fn compute_reply_target_converts_lid_dm_to_phone() {
@@ -1967,7 +1933,6 @@ mod tests {
         );
     }
 
->>>>>>> origin/master
     // ── lid_rejection_diagnostic: scoped LID warning ────
     //
     // The diagnostic fires only inside the `Allowlist::normalized.is_none()`

@@ -1,13 +1,7 @@
 # FND-003: Team Organization, Project Governance, and Contribution Pipeline
-<<<<<<< HEAD
-### Starting v0.7.0 · Type: Governance · Rev. 2
-
-> **Canonical reference** · Ratified by the team · Rev. 2
-=======
 ### Starting v0.7.0 · Type: Governance · Rev. 4
 
 > **Canonical reference** · Ratified by the team · Rev. 4
->>>>>>> origin/master
 > Discussion thread and full revision history: [#5577](https://github.com/zeroclaw-labs/zeroclaw/issues/5577)
 
 
@@ -26,11 +20,8 @@
 |---|---|---|
 | 1 | 2026-04-09 | Initial draft |
 | 2 | 2026-04-09 | Added §6.4 Architectural Compliance: Human Review, AI Support; added Discussion Question on AI automation of architecture reviews |
-<<<<<<< HEAD
-=======
 | 3 | 2026-05-24 | Added #6808 operational-label-policy pointers; current label behavior lives in maintainer docs |
 | 4 | 2026-05-24 | Added #6808 community-pickup and issue-risk/PR-risk operational pointers |
->>>>>>> origin/master
 
 ---
 
@@ -189,11 +180,7 @@ GitHub allows up to six pinned issues per repository. Use them for high-signal, 
 1. The current active RFC under discussion
 2. The most wanted community feature (highest-voted Discussion)
 3. The next release milestone tracking issue
-<<<<<<< HEAD
-4. The good-first-issue index (an issue that links to all current `good-first-issue` items)
-=======
 4. The good first issue index (an issue that links to all current `good first issue` items)
->>>>>>> origin/master
 
 Pinned issues are a promise to the community: these are the things that matter most right now. Update them when priorities shift.
 
@@ -706,11 +693,7 @@ body:
 ```yaml
 name: Good First Issue (Core Team only)
 description: Tag an issue as a good entry point for new contributors
-<<<<<<< HEAD
-labels: ["good-first-issue", "status:needs-triage"]
-=======
 labels: ["good first issue"]
->>>>>>> origin/master
 body:
   - type: markdown
     attributes:
@@ -885,12 +868,6 @@ Use `#f1f5f9` (light gray) for all component labels to distinguish them visually
 
 ### `status:` — Where is this in the process?
 
-<<<<<<< HEAD
-| Label | Color | Use |
-|---|---|---|
-| `status:needs-triage` | `#f8fafc` White | Newly opened, not yet reviewed |
-| `status:blocked` | `#dc2626` Red | Waiting on something external |
-=======
 This table records governance intent and historical taxonomy shape. For current live label semantics and automation behavior, use the maintainer label guide as the operational reference; maintainer docs carry later label-policy corrections from #6808.
 
 | Label | Color | Use |
@@ -901,18 +878,14 @@ This table records governance intent and historical taxonomy shape. For current 
 | `status:in-progress` | `#0075ca` Blue | Open PR is actively targeting the issue; verify live PR state during stale passes |
 | `status:stale` | `#e4e669` Yellow | No original-author activity for the stale threshold window |
 | `status:no-stale` | `#0e8a16` Green | Explicit stale exemption with a recorded reason, for accepted or otherwise long-lived work not already protected by another exclusion |
->>>>>>> origin/master
 | `status:help-wanted` | `#059669` Green | Looking for a contributor |
 | `status:good-first-issue` | `#059669` Green | Suitable for new contributors |
 | `status:discussion` | `#a78bfa` Purple | Needs team discussion before work begins |
 | `status:wont-fix` | `#9ca3af` Gray | Explicitly decided not to pursue |
 | `status:duplicate` | `#9ca3af` Gray | Duplicate of another issue |
 
-<<<<<<< HEAD
-=======
 The live community-pickup labels are the unprefixed `good first issue` and `help wanted`; the `status:*` pickup rows above are historical taxonomy. Current operational risk labels also distinguish issue risk (likely fix blast radius from the report) from PR risk (the actual diff under review). See the [maintainer label guide](../maintainers/labels.md) for the live policy.
 
->>>>>>> origin/master
 ### `rfc:` — RFC-specific status
 
 `rfc:accepted` · `rfc:rejected` · `rfc:revision-requested`
@@ -975,15 +948,9 @@ Configure these in the Project's built-in automation settings:
 
 ### 11.2 GitHub Actions Workflows
 
-<<<<<<< HEAD
-**Auto-label by changed files (`.github/workflows/label-by-path.yml`):**
-
-Automatically add component and risk labels to PRs based on which files were changed. A PR touching `src/security/` gets `component:security` and `risk:high`. A PR touching `docs/` gets `type:docs` and `risk:low`. This eliminates the requirement for PR authors to remember to label their own PRs and gives reviewers immediate context.
-=======
 **Auto-label by changed files:**
 
 The active path labeler applies scope labels to PRs based on changed files. Risk and size labels are currently maintainer-applied; the maintainer label guide is the live source for label names, automation status, and risk semantics.
->>>>>>> origin/master
 
 **Auto-request CODEOWNERS review (built into CODEOWNERS — no Action needed):**
 
@@ -991,11 +958,7 @@ GitHub enforces CODEOWNERS automatically when the file exists and branch protect
 
 **Stale issue management (`.github/workflows/stale.yml`):**
 
-<<<<<<< HEAD
-Issues with no activity for 45 days are labeled `status:stale` and a comment is posted asking if the issue is still relevant. Issues with no activity for 15 days after the stale label is applied are closed. This prevents the backlog from accumulating hundreds of issues that are months old and no longer relevant. Exclude `status:blocked`, `priority:critical`, and `type:rfc` from the stale process.
-=======
 Issues with no activity for 45 days are labeled `status:stale` and a comment is posted asking if the issue is still relevant. Issues with no activity for 15 days after the stale label is applied are closed. This prevents the backlog from accumulating hundreds of issues that are months old and no longer relevant. Exclude `priority:p0`, `type:rfc`, `status:no-stale`, issues with open linked PRs, and issues with `status:blocked` while a recorded blocker remains unresolved. The maintainer label guide and issue-triage protocol carry the current operational details.
->>>>>>> origin/master
 
 **PR size labeling (`.github/workflows/pr-size.yml`):**
 
@@ -1060,21 +1023,12 @@ Establish the full workflow and populate the backlog from the accepted RFCs.
 As the plugin system becomes usable, external contributors will start arriving. The contribution infrastructure must be ready.
 
 - [ ] Implement the PR size labeling workflow
-<<<<<<< HEAD
-- [ ] Create the first batch of `good-first-issue` items (minimum 5) for the plugin SDK work
-- [ ] Add the `Good First Issue Index` as a pinned issue with links to current good-first-issues
-- [ ] Establish the idea promotion threshold and promote the first Discussion idea to an issue
-- [ ] Document the Core Team expansion process — criteria for inviting new Core Team members
-
-**Success signal:** At least one external contributor (not on the current team) submits a PR via a good-first-issue. The Discussions Ideas category has active community participation.
-=======
 - [ ] Create the first batch of `good first issue` items (minimum 5) for the plugin SDK work
 - [ ] Add the `Good First Issue Index` as a pinned issue with links to current good first issues
 - [ ] Establish the idea promotion threshold and promote the first Discussion idea to an issue
 - [ ] Document the Core Team expansion process — criteria for inviting new Core Team members
 
 **Success signal:** At least one external contributor (not on the current team) submits a PR via a good first issue. The Discussions Ideas category has active community participation.
->>>>>>> origin/master
 
 ---
 
@@ -1122,11 +1076,7 @@ By v1.0.0, the governance model should be self-sustaining — the team should no
 - **CODEOWNERS syntax reference** — https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners — The full syntax for CODEOWNERS files.
 - **"Producing Open Source Software"** — Karl Fogel — The definitive book on running an open source project. Free online at https://producingoss.com. Chapters on governance, contributor management, and communication are directly applicable.
 - **"An Introduction to Open Source Governance Models"** — The Apache Software Foundation's governance documentation is a good model for how a mature open source project formalizes authority and decision-making: https://www.apache.org/foundation/governance/
-<<<<<<< HEAD
-- **Vale prose linter** — https://vale.sh — Referenced in the documentation RFC; integrates with the `good-first-issue` documentation improvement workflow.
-=======
 - **Vale prose linter** — [Vale](https://vale.sh) — Referenced in the documentation RFC; integrates with the `good first issue` documentation improvement workflow.
->>>>>>> origin/master
 
 ---
 

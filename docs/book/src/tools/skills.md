@@ -2,17 +2,10 @@
 
 Skills are reusable instructions and optional tool definitions that ZeroClaw can load into an agent session. Use them for repeatable workflows such as code review checklists, deployment runbooks, support playbooks, or domain-specific tool wrappers.
 
-<<<<<<< HEAD
-Skills live in the workspace under `skills/<name>/`. With the default setup this is:
-
-```text
-~/.zeroclaw/data/skills/<name>/
-=======
 Skills live in the workspace under `skills/<name>/`. With the default workspace this is:
 
 ```text
 ~/.zeroclaw/workspace/skills/<name>/
->>>>>>> origin/master
 ```
 
 For hand-authored local skills, use `SKILL.md` or `SKILL.toml`. Use `SKILL.md` for instructions plus simple metadata. Use `SKILL.toml` when the skill needs structured prompts or tool definitions. ZeroClaw also understands `manifest.toml` for registry-style skill packages, but `SKILL.md` and `SKILL.toml` are the recommended local authoring formats.
@@ -22,13 +15,8 @@ For hand-authored local skills, use `SKILL.md` or `SKILL.toml`. Use `SKILL.md` f
 A minimal instruction-only skill can be just a Markdown file:
 
 ```bash
-<<<<<<< HEAD
-mkdir -p ~/.zeroclaw/data/skills/release-check
-$EDITOR ~/.zeroclaw/data/skills/release-check/SKILL.md
-=======
 mkdir -p ~/.zeroclaw/workspace/skills/release-check
 $EDITOR ~/.zeroclaw/workspace/skills/release-check/SKILL.md
->>>>>>> origin/master
 ```
 
 ```markdown
@@ -148,11 +136,8 @@ allow_scripts = true
 
 Keep this disabled unless you trust the skill source and have reviewed what the scripts do.
 
-<<<<<<< HEAD
-=======
 For Python-specific execution patterns, interpreter policy, and native versus Docker trade-offs, see [Running Python skills](./python-skills.md).
 
->>>>>>> origin/master
 ## Loading community skills
 
 Community open-skills loading is opt-in:

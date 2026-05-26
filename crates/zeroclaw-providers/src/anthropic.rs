@@ -71,8 +71,6 @@ struct NativeChatRequest<'a> {
     tool_choice: Option<serde_json::Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     stream: Option<bool>,
-<<<<<<< HEAD
-=======
     #[serde(skip_serializing_if = "Option::is_none")]
     thinking: Option<NativeThinkingConfig>,
 }
@@ -82,7 +80,6 @@ struct NativeThinkingConfig {
     #[serde(rename = "type")]
     kind: &'static str,
     budget_tokens: u32,
->>>>>>> origin/master
 }
 
 /// Claude opus-4-7 rejects `temperature` with a 400 on the native Anthropic API,
@@ -94,8 +91,6 @@ fn anthropic_model_omits_temperature(model: &str) -> bool {
     model.contains("claude-opus-4-7")
 }
 
-<<<<<<< HEAD
-=======
 /// Whether a model accepts the fixed-budget native-thinking request shape
 /// (`{"thinking": {"type": "enabled", "budget_tokens": N}}`). Opus 4.7 supports
 /// only adaptive thinking and rejects fixed budgets with a 400; until adaptive
@@ -106,7 +101,6 @@ fn anthropic_model_supports_native_thinking(model: &str) -> bool {
     !model.contains("claude-opus-4-7")
 }
 
->>>>>>> origin/master
 #[derive(Debug, Serialize)]
 struct NativeMessage {
     role: String,
@@ -147,8 +141,6 @@ enum NativeContentOut {
         #[serde(skip_serializing_if = "Option::is_none")]
         cache_control: Option<CacheControl>,
     },
-<<<<<<< HEAD
-=======
     /// Thinking block for round-tripping extended thinking in conversation
     /// history. Required when thinking is enabled and assistant messages
     /// contain tool_use blocks.
@@ -158,7 +150,6 @@ enum NativeContentOut {
         #[serde(skip_serializing_if = "Option::is_none")]
         signature: Option<String>,
     },
->>>>>>> origin/master
 }
 
 #[derive(Debug, Serialize)]
@@ -225,14 +216,11 @@ struct NativeContentIn {
     #[serde(default)]
     text: Option<String>,
     #[serde(default)]
-<<<<<<< HEAD
-=======
     thinking: Option<String>,
     /// Signature for integrity verification of thinking blocks.
     #[serde(default)]
     signature: Option<String>,
     #[serde(default)]
->>>>>>> origin/master
     id: Option<String>,
     #[serde(default)]
     name: Option<String>,
@@ -347,13 +335,9 @@ impl AnthropicModelProvider {
                 | NativeContentOut::ToolResult { cache_control, .. } => {
                     *cache_control = Some(CacheControl::ephemeral());
                 }
-<<<<<<< HEAD
-                NativeContentOut::ToolUse { .. } | NativeContentOut::Image { .. } => {}
-=======
                 NativeContentOut::ToolUse { .. }
                 | NativeContentOut::Image { .. }
                 | NativeContentOut::Thinking { .. } => {}
->>>>>>> origin/master
             }
         }
     }
@@ -388,8 +372,6 @@ impl AnthropicModelProvider {
             .and_then(|v| serde_json::from_value::<Vec<ProviderToolCall>>(v.clone()).ok())?;
 
         let mut blocks = Vec::new();
-<<<<<<< HEAD
-=======
 
         // When extended thinking is enabled, assistant messages must start
         // with thinking blocks (including signatures) before any tool_use
@@ -420,7 +402,6 @@ impl AnthropicModelProvider {
             }
         }
 
->>>>>>> origin/master
         if let Some(text) = value
             .get("content")
             .and_then(serde_json::Value::as_str)
@@ -621,10 +602,7 @@ impl AnthropicModelProvider {
 
     fn parse_native_response(response: NativeChatResponse) -> ProviderChatResponse {
         let mut text_parts = Vec::new();
-<<<<<<< HEAD
-=======
         let mut thinking_parts = Vec::new();
->>>>>>> origin/master
         let mut tool_calls = Vec::new();
 
         let usage = response.usage.map(|u| TokenUsage {
@@ -642,8 +620,6 @@ impl AnthropicModelProvider {
                         text_parts.push(text);
                     }
                 }
-<<<<<<< HEAD
-=======
                 "thinking" => {
                     // Store thinking text byte-for-byte: the signature is
                     // computed over the exact bytes the model returned, so
@@ -660,7 +636,6 @@ impl AnthropicModelProvider {
                         thinking_parts.push(json_block.to_string());
                     }
                 }
->>>>>>> origin/master
                 "tool_use" => {
                     let name = block.name.unwrap_or_default();
                     if name.is_empty() {
@@ -680,15 +655,12 @@ impl AnthropicModelProvider {
             }
         }
 
-<<<<<<< HEAD
-=======
         let reasoning_content = if thinking_parts.is_empty() {
             None
         } else {
             Some(thinking_parts.join("\n"))
         };
 
->>>>>>> origin/master
         ProviderChatResponse {
             text: if text_parts.is_empty() {
                 None
@@ -697,9 +669,6 @@ impl AnthropicModelProvider {
             },
             tool_calls,
             usage,
-<<<<<<< HEAD
-            reasoning_content: None,
-=======
             reasoning_content,
         }
     }
@@ -748,7 +717,6 @@ impl AnthropicModelProvider {
                 (temperature, None, self.max_tokens)
             }
             None => (temperature, None, self.max_tokens),
->>>>>>> origin/master
         }
     }
 
@@ -906,12 +874,9 @@ impl AnthropicModelProvider {
                                     tool_input_json.push_str(json);
                                 }
                             }
-<<<<<<< HEAD
-=======
                             // TODO: handle "thinking_delta" events for streaming
                             // extended thinking content. Currently thinking blocks
                             // are only captured in non-streaming parse_native_response().
->>>>>>> origin/master
                             _ => {}
                         }
                     }
@@ -1060,10 +1025,7 @@ impl ModelProvider for AnthropicModelProvider {
             tools: None,
             tool_choice: None,
             stream: None,
-<<<<<<< HEAD
-=======
             thinking: None,
->>>>>>> origin/master
         };
 
         let mut request = self
@@ -1139,17 +1101,6 @@ impl ModelProvider for AnthropicModelProvider {
         } else {
             system_prompt
         };
-<<<<<<< HEAD
-        ::zeroclaw_log::record!(
-            DEBUG,
-            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                .with_attrs(::serde_json::json!({"max_tokens": self.max_tokens, "model": model})),
-            "streaming API request"
-        );
-        let native_request = NativeChatRequest {
-            model: model.to_string(),
-            max_tokens: self.max_tokens,
-=======
 
         let (effective_temperature, thinking_config, effective_max_tokens) =
             self.resolve_thinking(request.thinking, temperature, model);
@@ -1164,25 +1115,17 @@ impl ModelProvider for AnthropicModelProvider {
         let native_request = NativeChatRequest {
             model: model.to_string(),
             max_tokens: effective_max_tokens,
->>>>>>> origin/master
             system: system_prompt,
             messages,
             temperature: if anthropic_model_omits_temperature(model) {
                 None
             } else {
-<<<<<<< HEAD
-                temperature
-=======
                 effective_temperature
->>>>>>> origin/master
             },
             tools: native_tools,
             tool_choice,
             stream: None,
-<<<<<<< HEAD
-=======
             thinking: thinking_config,
->>>>>>> origin/master
         };
 
         let req = self
@@ -1206,10 +1149,7 @@ impl ModelProvider for AnthropicModelProvider {
             native_tool_calling: true,
             vision: true,
             prompt_caching: true,
-<<<<<<< HEAD
-=======
             extended_thinking: true,
->>>>>>> origin/master
         }
     }
 
@@ -1270,10 +1210,7 @@ impl ModelProvider for AnthropicModelProvider {
             } else {
                 Some(&tool_specs)
             },
-<<<<<<< HEAD
-=======
             thinking: None,
->>>>>>> origin/master
         };
         self.chat(request, model, temperature).await
     }
@@ -1351,12 +1288,6 @@ impl ModelProvider for AnthropicModelProvider {
             system_prompt
         };
 
-<<<<<<< HEAD
-        ::zeroclaw_log::record!(
-            DEBUG,
-            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                .with_attrs(::serde_json::json!({"max_tokens": self.max_tokens, "model": model})),
-=======
         let (effective_temperature, thinking_config, effective_max_tokens) =
             self.resolve_thinking(request.thinking, temperature, model);
 
@@ -1474,34 +1405,22 @@ impl ModelProvider for AnthropicModelProvider {
             ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note).with_attrs(
                 ::serde_json::json!({"max_tokens": effective_max_tokens, "model": model})
             ),
->>>>>>> origin/master
             "stream_chat request"
         );
         let native_request = NativeChatRequest {
             model: model.to_string(),
-<<<<<<< HEAD
-            max_tokens: self.max_tokens,
-=======
             max_tokens: effective_max_tokens,
->>>>>>> origin/master
             system: system_prompt,
             messages,
             temperature: if anthropic_model_omits_temperature(model) {
                 None
             } else {
-<<<<<<< HEAD
-                temperature
-=======
                 effective_temperature
->>>>>>> origin/master
             },
             tools: native_tools,
             tool_choice,
             stream: Some(true),
-<<<<<<< HEAD
-=======
             thinking: thinking_config,
->>>>>>> origin/master
         };
 
         let body = Self::build_streaming_request(&native_request);
@@ -1533,13 +1452,9 @@ impl ModelProvider for AnthropicModelProvider {
             let response = match req.send().await {
                 Ok(r) => r,
                 Err(e) => {
-<<<<<<< HEAD
-                    let _ = tx.send(Err(StreamError::Http(e.to_string()))).await;
-=======
                     let _ = tx
                         .send(Err(StreamError::Http(super::format_error_chain(&e))))
                         .await;
->>>>>>> origin/master
                     return;
                 }
             };
@@ -1956,8 +1871,6 @@ data: {\"type\":\"message_stop\"}\n\n";
     }
 
     #[test]
-<<<<<<< HEAD
-=======
     fn anthropic_model_supports_native_thinking_excludes_opus_4_7() {
         // Opus 4.7 only supports adaptive thinking; fixed-budget returns 400.
         assert!(!anthropic_model_supports_native_thinking("claude-opus-4-7"));
@@ -2010,7 +1923,6 @@ data: {\"type\":\"message_stop\"}\n\n";
     }
 
     #[test]
->>>>>>> origin/master
     fn native_chat_request_serializes_without_temperature_when_none() {
         let req = NativeChatRequest {
             model: "claude-opus-4-7".to_string(),
@@ -2021,10 +1933,7 @@ data: {\"type\":\"message_stop\"}\n\n";
             tools: None,
             tool_choice: None,
             stream: None,
-<<<<<<< HEAD
-=======
             thinking: None,
->>>>>>> origin/master
         };
         let json = serde_json::to_string(&req).unwrap();
         assert!(json.contains("max_tokens"));
@@ -2045,10 +1954,7 @@ data: {\"type\":\"message_stop\"}\n\n";
             tools: None,
             tool_choice: None,
             stream: None,
-<<<<<<< HEAD
-=======
             thinking: None,
->>>>>>> origin/master
         };
         let json = serde_json::to_string(&req).unwrap();
         assert!(
@@ -2416,10 +2322,7 @@ data: {\"type\":\"message_stop\"}\n\n";
             tools: None,
             tool_choice: None,
             stream: None,
-<<<<<<< HEAD
-=======
             thinking: None,
->>>>>>> origin/master
         };
 
         let json = serde_json::to_string(&req).unwrap();
@@ -2447,10 +2350,7 @@ data: {\"type\":\"message_stop\"}\n\n";
             tools: None,
             tool_choice: None,
             stream: None,
-<<<<<<< HEAD
-=======
             thinking: None,
->>>>>>> origin/master
         };
 
         let json = serde_json::to_string(&req).unwrap();
@@ -2656,8 +2556,6 @@ data: {\"type\":\"message_stop\"}\n\n";
     }
 
     #[test]
-<<<<<<< HEAD
-=======
     fn native_response_preserves_thinking_text_byte_for_byte() {
         // Signatures on extended-thinking blocks are computed over the exact
         // bytes the model returned. Any mutation — including trim() — breaks
@@ -2700,7 +2598,6 @@ data: {\"type\":\"message_stop\"}\n\n";
     }
 
     #[test]
->>>>>>> origin/master
     fn capabilities_returns_vision_and_native_tools() {
         let model_provider = AnthropicModelProvider::new("test", Some("test-key"));
         let caps = model_provider.capabilities();

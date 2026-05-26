@@ -47,20 +47,6 @@ use_long_polling = true            # default — no webhook needed
 - Long polling is the default; no public URL required. Switch to webhook mode by setting `webhook_url` (then expose the gateway).
 - Streaming draft edits are supported but capped by Telegram's rate limit. Tune `draft_update_interval_ms` if you see "Too Many Requests".
 
-<<<<<<< HEAD
-## Signal
-
-```toml
-[channels.signal]
-enabled = true
-phone_number = "+14155550123"
-signal_cli_rest_url = "http://localhost:8080"   # signal-cli-rest-api service
-```
-
-Signal integration requires running the [signal-cli-rest-api](https://github.com/bbernhard/signal-cli-rest-api) container locally — Signal has no official bot API, so we tunnel through `signal-cli`.
-
-=======
->>>>>>> origin/master
 ## iMessage (macOS only)
 
 ```toml
@@ -72,19 +58,6 @@ api_key = "..."
 
 **macOS-only** and requires either Linq as a third-party relay, or direct AppleScript automation (experimental, requires Full Disk Access and Accessibility grants).
 
-<<<<<<< HEAD
-## WeCom (企业微信)
-
-```toml
-[channels.wecom]
-enabled = true
-corp_id = "..."
-corp_secret = "..."
-agent_id = 1000001
-```
-
-Chinese enterprise WeChat. Custom app required in the corp admin panel.
-=======
 ## WeCom Bot Webhook (企业微信群机器人)
 
 ```toml
@@ -142,7 +115,6 @@ allowed_users = ["*"]
 ```
 
 WeChat personal iLink Bot is a different channel from WeCom. It uses QR-code login against the iLink Bot API for personal WeChat conversations and should not be used for WeCom enterprise bot traffic.
->>>>>>> origin/master
 
 ## DingTalk
 
@@ -221,10 +193,7 @@ Channels with more intricate setup (OAuth flows, end-to-end encryption, multi-de
 - [Mattermost](./mattermost.md)
 - [LINE](./line.md)
 - [Nextcloud Talk](./nextcloud-talk.md)
-<<<<<<< HEAD
-=======
 - [Signal](./signal.md)
 - [WhatsApp](./whatsapp.md)
->>>>>>> origin/master
 
 If you run into configuration friction on any channel above, file an issue with the repro and we'll consider promoting it to a dedicated guide.

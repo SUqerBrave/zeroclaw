@@ -144,11 +144,7 @@ pub fn start(config: &Config, init_system: InitSystem) -> Result<()> {
         // The plist may reference this path for WorkingDirectory and log files.
         let exe = std::env::current_exe().ok();
         if let Some(ref exe_path) = exe
-<<<<<<< HEAD
-            && let Some(var_dir) = detect_homebrew_var_dir(exe_path)
-=======
             && let Some(var_dir) = homebrew_var_dir_from_exe(exe_path)
->>>>>>> origin/master
         {
             let _ = fs::create_dir_all(&var_dir);
         }
@@ -359,11 +355,7 @@ fn logs_macos(config: &Config, lines: usize, follow: bool) -> Result<()> {
     // Try the launchd log files first (StandardOutPath / StandardErrorPath from the plist).
     // These are the most reliable source since they capture all daemon output.
     let exe = std::env::current_exe().ok();
-<<<<<<< HEAD
-    let homebrew_var_dir = exe.as_ref().and_then(|e| detect_homebrew_var_dir(e));
-=======
     let homebrew_var_dir = exe.as_ref().and_then(|e| homebrew_var_dir_from_exe(e));
->>>>>>> origin/master
     let logs_dir = if let Some(ref var_dir) = homebrew_var_dir {
         var_dir.join("logs")
     } else {
@@ -599,42 +591,6 @@ fn uninstall_linux(config: &Config, init_system: InitSystem) -> Result<()> {
 /// corresponding `var/zeroclaw` directory.
 ///
 /// Homebrew installs binaries into `<prefix>/Cellar/<formula>/<version>/bin/`
-<<<<<<< HEAD
-/// and symlinks them to `<prefix>/bin/`. The canonical `var` directory is
-/// `<prefix>/var`.  We check for both layouts.
-fn detect_homebrew_var_dir(exe: &Path) -> Option<PathBuf> {
-    let path_str = exe.to_string_lossy();
-
-    // Symlinked binary: <prefix>/bin/zeroclaw
-    // Cellar binary:    <prefix>/Cellar/zeroclaw/<version>/bin/zeroclaw
-    let prefix = if path_str.contains("/Cellar/") {
-        // Walk up from .../Cellar/zeroclaw/<ver>/bin/zeroclaw to the prefix
-        let mut ancestor = exe.to_path_buf();
-        while let Some(parent) = ancestor.parent() {
-            ancestor = parent.to_path_buf();
-            if ancestor.file_name().is_some_and(|n| n == "Cellar") {
-                // prefix is one level above Cellar
-                return ancestor.parent().map(|p| p.join("var").join("zeroclaw"));
-            }
-        }
-        return None;
-    } else if let Some(bin_parent) = exe.parent() {
-        // <prefix>/bin/zeroclaw → check if <prefix>/Cellar exists (Homebrew marker)
-        if let Some(prefix) = bin_parent.parent() {
-            if prefix.join("Cellar").is_dir() {
-                Some(prefix.to_path_buf())
-            } else {
-                None
-            }
-        } else {
-            None
-        }
-    } else {
-        None
-    };
-
-    prefix.map(|p| p.join("var").join("zeroclaw"))
-=======
 /// and symlinks them through `<prefix>/bin/` and `<prefix>/opt/<formula>/`.
 /// The canonical `var` directory is `<prefix>/var`.
 pub fn homebrew_var_dir_from_exe(exe: &Path) -> Option<PathBuf> {
@@ -706,7 +662,6 @@ mod homebrew_tests {
         let var_dir = homebrew_var_dir_from_exe(&prefix.join("opt/zeroclaw/bin/zeroclaw"));
         assert_eq!(var_dir, Some(expected_prefix.join("var/zeroclaw")));
     }
->>>>>>> origin/master
 }
 
 fn install_macos(config: &Config) -> Result<()> {
@@ -719,11 +674,7 @@ fn install_macos(config: &Config) -> Result<()> {
 
     // When installed via Homebrew, use the Homebrew var directory for runtime
     // data so that `brew services start zeroclaw` works out of the box.
-<<<<<<< HEAD
-    let homebrew_var_dir = detect_homebrew_var_dir(&exe);
-=======
     let homebrew_var_dir = homebrew_var_dir_from_exe(&exe);
->>>>>>> origin/master
     if let Some(ref var_dir) = homebrew_var_dir {
         fs::create_dir_all(var_dir).with_context(|| {
             format!(
@@ -1840,30 +1791,6 @@ mod tests {
         );
     }
 
-<<<<<<< HEAD
-    #[test]
-    fn detect_homebrew_var_dir_from_cellar_path() {
-        let exe = PathBuf::from("/opt/homebrew/Cellar/zeroclaw/1.2.3/bin/zeroclaw");
-        let var_dir = detect_homebrew_var_dir(&exe);
-        assert_eq!(var_dir, Some(PathBuf::from("/opt/homebrew/var/zeroclaw")));
-    }
-
-    #[test]
-    fn detect_homebrew_var_dir_intel_cellar_path() {
-        let exe = PathBuf::from("/usr/local/Cellar/zeroclaw/1.0.0/bin/zeroclaw");
-        let var_dir = detect_homebrew_var_dir(&exe);
-        assert_eq!(var_dir, Some(PathBuf::from("/usr/local/var/zeroclaw")));
-    }
-
-    #[test]
-    fn detect_homebrew_var_dir_non_homebrew_path() {
-        let exe = PathBuf::from("/home/user/.cargo/bin/zeroclaw");
-        let var_dir = detect_homebrew_var_dir(&exe);
-        assert_eq!(var_dir, None);
-    }
-
-=======
->>>>>>> origin/master
     #[cfg(unix)]
     #[test]
     fn openrc_writability_probe_falls_back_to_su() {

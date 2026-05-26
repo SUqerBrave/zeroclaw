@@ -718,8 +718,6 @@ impl FamilyProviderFactory for OpenAIModelProviderConfig {
     }
 }
 
-<<<<<<< HEAD
-=======
 fn normalize_ollama_compat_base_url(api_url: Option<&str>) -> String {
     let raw = api_url
         .map(str::trim)
@@ -763,7 +761,6 @@ fn build_ollama_compat_provider(
     p
 }
 
->>>>>>> origin/master
 impl FamilyProviderFactory for OllamaModelProviderConfig {
     fn create_provider(
         &self,
@@ -772,31 +769,10 @@ impl FamilyProviderFactory for OllamaModelProviderConfig {
         api_url: Option<&str>,
         opts: &ModelProviderRuntimeOptions,
     ) -> Result<Box<dyn ModelProvider>> {
-<<<<<<< HEAD
-        let base_url = api_url.unwrap_or("http://localhost:11434/v1");
-        let ollama_key = key
-            .map(str::trim)
-            .filter(|value| !value.is_empty())
-            .unwrap_or("ollama");
-        let mut p = OpenAiCompatibleModelProvider::new_with_vision(
-            alias,
-            "Ollama",
-            base_url,
-            Some(ollama_key),
-            AuthStyle::Bearer,
-            true,
-        )
-        .with_local_model_tool_sanitize();
-        if opts.merge_system_into_user {
-            p = p.with_merge_system_into_user();
-        }
-        Ok(apply_compat_options(p, opts))
-=======
         Ok(apply_compat_options(
             build_ollama_compat_provider(alias, key, api_url, opts),
             opts,
         ))
->>>>>>> origin/master
     }
 }
 
@@ -1197,8 +1173,6 @@ impl FamilyProviderFactory for CustomModelProviderConfig {
         Ok(apply_compat_options(p, opts))
     }
 }
-<<<<<<< HEAD
-=======
 
 #[cfg(test)]
 mod tests {
@@ -1254,4 +1228,3 @@ mod tests {
         assert_eq!(provider.credential.as_deref(), Some("ollama-key"));
     }
 }
->>>>>>> origin/master

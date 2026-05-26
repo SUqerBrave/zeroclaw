@@ -24,12 +24,9 @@ If a required label is missing, create it before applying:
 
 ```bash
 gh label create "status:stale"       --color "E4E669" --repo zeroclaw-labs/zeroclaw
-<<<<<<< HEAD
-=======
 gh label create "status:accepted"    --color "0E8A16" --repo zeroclaw-labs/zeroclaw
 gh label create "status:blocked"     --color "B60205" --repo zeroclaw-labs/zeroclaw
 gh label create "status:no-stale"    --color "0E8A16" --repo zeroclaw-labs/zeroclaw
->>>>>>> origin/master
 gh label create "status:wont-do"     --color "B60205" --repo zeroclaw-labs/zeroclaw
 gh label create "status:in-progress" --color "0075CA" --repo zeroclaw-labs/zeroclaw
 gh label create "duplicate"          --color "CFD3D7" --repo zeroclaw-labs/zeroclaw
@@ -133,16 +130,6 @@ Process two groups:
    - Security issue (vulnerability — redirect immediately, see §2a)
    - Spam or noise — flag to user, do not close autonomously
 
-<<<<<<< HEAD
-2. **Apply labels** — apply the appropriate primary label (`bug`, `feature`, `r:support`) plus any module/channel/provider labels derivable from the title or body (e.g., `channel:telegram`, `provider:ollama`). Apply risk tier if determinable.
-
-3. **Link open PRs** — search for open PRs that reference this issue number or describe the same fix. If found, apply `status:in-progress` and comment linking the PR so the reporter knows work is in progress.
-
-4. **Evaluate for community labels** — after classifying and labeling, ask:
-   - Is this a bug or feature that is well-scoped, clearly documented, and accessible to a new contributor? → apply `good first issue`
-   - Is this something maintainers actively want external help on but haven't prioritized internally? → apply `help wanted`
-   Do not apply these speculatively — only when the issue genuinely fits.
-=======
 2. **Apply labels** — apply the appropriate primary label (`bug`, `feature`, `r:support`) plus any module/channel/provider labels derivable from the title or body (e.g., `channel:telegram`, `provider:ollama`). Apply issue risk tier if determinable. Issue risk is the likely fix blast radius from the report, not a prediction that the eventual PR will carry the same risk label.
 
 3. **Link open PRs** — search for open PRs that reference this issue number or describe the same fix. If found, apply `status:in-progress` and comment linking the PR so the reporter knows work is in progress. Do not add `status:no-stale` only because a PR exists; the stale pass excludes issues with open linked PRs.
@@ -152,7 +139,6 @@ Process two groups:
    - Is this actionable, unblocked, and something maintainers actively want external help on and can review? → apply `help wanted`
    Do not apply these speculatively — only when the issue genuinely fits.
    Do not apply `help wanted` to issues that are merely valid, accepted, or unowned. Skip pickup labels when the issue is blocked, missing acceptance criteria, or waiting on a policy decision. For likely high-risk work, apply `help wanted` only when a maintainer explicitly asks for outside help on that exact scope.
->>>>>>> origin/master
 
 5. **Assess repro quality (bug reports only)** — check for:
    - Concrete steps to reproduce
@@ -275,15 +261,9 @@ Flag (do not close) issues that meet the stale entry condition per §4. Present 
 
 ## §4 Stale Mode
 
-<<<<<<< HEAD
-**Purpose:** Enforce the RFC #5577 stale policy. Operate mechanically — policy thresholds are defined in the RFC and are not judgment calls.
-
-### Policy (from RFC #5577 §11)
-=======
 **Purpose:** Enforce the RFC #5577 stale policy. Operate mechanically — policy thresholds are defined in the RFC and are not judgment calls. Current maintainer operating rules add the exclusion checks below so the stale pass reflects live repository label policy.
 
 ### Policy thresholds (from RFC #5577 §11)
->>>>>>> origin/master
 
 - Issues with **no activity for 45 days** → apply `status:stale` + comment asking if still relevant
 - Issues with **no activity for 15 days after `status:stale` was applied** (60 days total) → close with welcoming re-open invite
@@ -292,31 +272,6 @@ Activity is defined as: a follow-up comment or update from the **original author
 
 ### Exclusions — never apply stale to issues with any of
 
-<<<<<<< HEAD
-- `status:blocked`
-- `priority:critical`
-- `type:rfc`
-- `no-stale`
-- 10 or more 👍 reactions on the opening post (community has signaled relevance regardless of author silence)
-
-### Stale enforcement steps
-
-1. Fetch all open issues with `createdAt`, `author`, `comments`, and `reactions` fields.
-
-2. For each issue, compute **author-last-active**: the date of the most recent comment where `comment.author.login == issue.author.login`. If the author has never commented after opening, use `createdAt`. Maintainer comments, label changes, and PR links do not count.
-
-3. For issues at 45–59 days since author-last-active (not already labeled `status:stale`):
-   - Apply `status:stale`
-   - Comment: acknowledge the issue is still valid, ask if it is still relevant or if the reporter has a workaround; mention that it will be closed in 15 days without a response but can always be reopened
-
-4. For issues already carrying `status:stale`, compute when the label was applied (check the label-application comment date or use `gh api` to check issue timeline events). Close only if **15+ days have passed since `status:stale` was applied** — not since author-last-active. The 15-day window is the reporter's guaranteed response time; do not shorten it.
-   - Close with a comment: thank the reporter, explain the backlog hygiene reason, and include the phrase **"you can reopen this issue by commenting here, or open a new issue with updated context — either works"**
-   - Reference a related open issue or feature if one exists
-
-5. **Reopened issues:** if an issue carrying `status:stale` has a comment from the original author posted *after* the stale label was applied, remove the `status:stale` label and skip it — the author has re-engaged. Similarly, if an issue was recently reopened (closed then reopened), remove `status:stale` and reset the clock from the reopen date.
-
-6. Report the full list of actions to the user before executing. Confirm before proceeding.
-=======
 - `status:blocked` with a recorded unresolved blocker
 - `priority:p0`
 - `type:rfc`
@@ -360,7 +315,6 @@ Activity is defined as: a follow-up comment or update from the **original author
 7. **Reopened issues:** if an issue carrying `status:stale` has a comment from the original author posted *after* the stale label was applied, remove the `status:stale` label and skip it — the author has re-engaged. Similarly, if an issue was recently reopened (closed then reopened), remove `status:stale` and reset the clock from the reopen date.
 
 8. Report the full list of actions to the user before executing. Confirm before proceeding.
->>>>>>> origin/master
 
 ### Tone requirement for stale closures
 
@@ -437,11 +391,7 @@ Stale closures are especially sensitive — a reporter may have been waiting pat
 
 ## §7 Label Taxonomy
 
-<<<<<<< HEAD
-Derived from RFC #5577. Apply these consistently:
-=======
 Derived from RFC #5577 and current maintainer label policy. Apply these consistently:
->>>>>>> origin/master
 
 ### Type
 
@@ -454,24 +404,11 @@ Derived from RFC #5577 and current maintainer label policy. Apply these consiste
 
 ### Priority (apply when determinable)
 
-<<<<<<< HEAD
-- `priority:critical` — security issue or complete workflow blocker
-=======
 - `priority:p0` — security issue or complete workflow blocker
->>>>>>> origin/master
 - `priority:high` — significant degraded experience
 - `priority:medium` — notable but has workaround
 - `priority:low` — minor issue or edge case
 
-<<<<<<< HEAD
-### Status
-
-- `status:stale` — original author has not engaged for 45+ days; pending closure
-- `status:blocked` — waiting on external blocker; exempt from stale
-- `status:in-progress` — linked open PR exists
-- `status:wont-do` — architectural won't-fix; permanent decision, not a deferral
-- `no-stale` — explicitly exempt from stale automation; maintainer-applied
-=======
 ### Risk (apply when determinable)
 
 - `risk: low` — likely docs, tests, or isolated low-blast-radius fix
@@ -488,7 +425,6 @@ For issues, risk labels estimate likely fix blast radius from the report. Reasse
 - `status:in-progress` — linked open PR exists; verify live PR state before stale decisions
 - `status:wont-do` — architectural won't-fix; permanent decision, not a deferral
 - `status:no-stale` — explicitly exempt from stale automation for accepted or otherwise long-lived work that is not already protected by another exclusion; maintainer-applied with a recorded reason
->>>>>>> origin/master
 
 ### Module labels (apply when issue is scoped to a specific subsystem)
 
@@ -501,13 +437,8 @@ For issues, risk labels estimate likely fix blast radius from the report. Reasse
 
 ### Community
 
-<<<<<<< HEAD
-- `good first issue` — well-scoped, documented, beginner-accessible
-- `help wanted` — maintainers welcome external contribution
-=======
 - `good first issue` — XS/S, self-contained, documented, linked, and mentored beginner-accessible work
 - `help wanted` — actionable, unblocked external contribution wanted; not a generic valid/unowned marker
->>>>>>> origin/master
 
 ---
 
@@ -520,11 +451,7 @@ Before closing any issue, verify:
 - [ ] Comment is welcoming and specific to this issue
 - [ ] Comment tells the reporter explicitly how to reopen ("you can reopen this by commenting here")
 - [ ] Comment does not contain personal identifiers or real names
-<<<<<<< HEAD
-- [ ] Issue is not in the exclusion list: `type:rfc`, open linked PR, `no-stale`, `priority:critical`, `status:blocked`
-=======
 - [ ] Issue is not in the exclusion list: `type:rfc`, open linked PR, `status:no-stale`, `priority:p0`, or `status:blocked` with a recorded unresolved blocker
->>>>>>> origin/master
 - [ ] Label has been applied matching the closure reason (e.g., `r:support`, `status:stale`)
 - [ ] Security issues have been redirected, not closed publicly
 

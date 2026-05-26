@@ -3587,17 +3587,6 @@ dependencies = [
 
 [[package]]
 name = "getrandom"
-version = "0.1.16"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8fc3cb4d91f53b50155bdcfd23f6a4c39ae1969c2ae85982b135750cccaf5fce"
-dependencies = [
- "cfg-if",
- "libc",
- "wasi 0.9.0+wasi-snapshot-preview1",
-]
-
-[[package]]
-name = "getrandom"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ff2abc00be7fca6ebc474524697ae276ad847ad0a6b3faa4bcb027e9a4614ad0"
@@ -7482,10 +7471,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7c3a14896dfa883796f1cb410461aef38810ea05f2b2c33c5aded3649095fdad"
 dependencies = [
  "bitflags 2.11.1",
-<<<<<<< HEAD
-=======
  "getopts",
->>>>>>> origin/master
  "memchr",
  "pulldown-cmark-escape",
  "unicase",
@@ -13110,10 +13096,7 @@ dependencies = [
  "axum",
  "base64 0.22.1",
  "bytes",
-<<<<<<< HEAD
-=======
  "cbc 0.1.2",
->>>>>>> origin/master
  "chrono",
  "cpal",
  "directories",
@@ -13133,10 +13116,7 @@ dependencies = [
  "parking_lot",
  "portable-atomic",
  "prost",
-<<<<<<< HEAD
-=======
  "pulldown-cmark",
->>>>>>> origin/master
  "qrcode",
  "rand 0.10.1",
  "regex",
@@ -13667,10 +13647,6 @@ dependencies = [
  "regex",
  "reqwest 0.12.28",
  "ring",
-<<<<<<< HEAD
- "rumqttc",
-=======
->>>>>>> origin/master
  "rusqlite",
  "rustls",
  "rustls-pemfile",

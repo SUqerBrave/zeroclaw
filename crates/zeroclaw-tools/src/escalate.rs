@@ -426,10 +426,7 @@ mod tests {
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: vec![],
-<<<<<<< HEAD
-=======
                 subject: None,
->>>>>>> origin/master
             };
             let _ = tx.send(msg).await;
             Ok(())

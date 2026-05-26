@@ -254,9 +254,6 @@ impl OllamaModelProvider {
         reqwest::Url::parse(&self.base_url)
             .ok()
             .and_then(|url| url.host_str().map(|host| host.to_string()))
-<<<<<<< HEAD
-            .is_some_and(|host| matches!(host.as_str(), "localhost" | "127.0.0.1" | "::1"))
-=======
             .is_some_and(|host| {
                 matches!(host.as_str(), "localhost" | "127.0.0.1" | "::1" | "0.0.0.0")
             })
@@ -272,7 +269,6 @@ impl OllamaModelProvider {
                 })
             })
             .unwrap_or(false)
->>>>>>> origin/master
     }
 
     fn http_client(&self) -> Client {
@@ -285,11 +281,6 @@ impl OllamaModelProvider {
 
     fn resolve_request_details(&self, model: &str) -> anyhow::Result<(String, bool)> {
         let requests_cloud = model.ends_with(":cloud");
-<<<<<<< HEAD
-        let normalized_model = model.strip_suffix(":cloud").unwrap_or(model).to_string();
-
-        if requests_cloud && self.is_local_endpoint() {
-=======
         let official_cloud_endpoint = self.is_official_cloud_endpoint();
         let local_endpoint = self.is_local_endpoint();
         let normalized_model = if requests_cloud && official_cloud_endpoint {
@@ -299,31 +290,20 @@ impl OllamaModelProvider {
         };
 
         if requests_cloud && local_endpoint {
->>>>>>> origin/master
             anyhow::bail!(
                 "Model '{}' requested cloud routing, but Ollama endpoint is local. Configure api_url with a remote Ollama endpoint.",
                 model
             );
         }
 
-<<<<<<< HEAD
-        if requests_cloud && self.api_key.is_none() {
-            anyhow::bail!(
-                "Model '{}' requested cloud routing, but no API key is configured. Set OLLAMA_API_KEY or config api_key.",
-=======
         if requests_cloud && official_cloud_endpoint && self.api_key.is_none() {
             anyhow::bail!(
                 "Model '{}' requested cloud routing, but no API key is configured. Set api_key on [providers.models.ollama.<alias>] or via the schema-mirror grammar.",
->>>>>>> origin/master
                 model
             );
         }
 
-<<<<<<< HEAD
-        let should_auth = self.api_key.is_some() && !self.is_local_endpoint();
-=======
         let should_auth = self.api_key.is_some() && !local_endpoint;
->>>>>>> origin/master
 
         Ok((normalized_model, should_auth))
     }
@@ -825,10 +805,7 @@ impl ModelProvider for OllamaModelProvider {
             native_tool_calling: false,
             vision: true,
             prompt_caching: false,
-<<<<<<< HEAD
-=======
             extended_thinking: false,
->>>>>>> origin/master
         }
     }
 
@@ -1186,8 +1163,6 @@ mod tests {
     }
 
     #[test]
-<<<<<<< HEAD
-=======
     fn cloud_suffix_with_unspecified_local_endpoint_errors() {
         let p = OllamaModelProvider::new("test", Some("http://0.0.0.0:11434"), Some("ollama-key"));
         let error = p
@@ -1201,7 +1176,6 @@ mod tests {
     }
 
     #[test]
->>>>>>> origin/master
     fn cloud_suffix_without_api_key_errors() {
         let p = OllamaModelProvider::new("test", Some("https://ollama.com"), None);
         let error = p
@@ -1210,17 +1184,11 @@ mod tests {
         assert!(
             error
                 .to_string()
-<<<<<<< HEAD
-                .contains("requested cloud routing, but no API key is configured")
-=======
                 .contains("Set api_key on [providers.models.ollama.<alias>]")
->>>>>>> origin/master
         );
     }
 
     #[test]
-<<<<<<< HEAD
-=======
     fn cloud_suffix_preserved_for_private_remote_without_api_key() {
         let p = OllamaModelProvider::new("test", Some("http://192.168.1.100:11434"), None);
         let (model, should_auth) = p.resolve_request_details("qwen3:cloud").unwrap();
@@ -1241,7 +1209,6 @@ mod tests {
     }
 
     #[test]
->>>>>>> origin/master
     fn remote_endpoint_auth_enabled_when_key_present() {
         let p = OllamaModelProvider::new("test", Some("https://ollama.com"), Some("ollama-key"));
         let (_model, should_auth) = p.resolve_request_details("qwen3").unwrap();

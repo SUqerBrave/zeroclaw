@@ -2,6 +2,52 @@
 
 本文档记录了在 Rockchip R68S (OpenWrt/LEDE) 硬件上部署 ZeroClaw 过程中遇到的核心挑战、技术难点及其解决方案。
 
+## 0. 快速构建与部署 (Quick Build & Deploy)
+
+### 一键构建部署
+
+在开发机上使用 `make deploy` 即可完成交叉编译 + 推送部署：
+
+```bash
+make deploy
+```
+
+这条命令调用 `build_for_r68s.sh` 完成以下步骤：
+1. 构建 Web Dashboard（`cd web && npm ci && npm run build`）
+2. 交叉编译 `aarch64-unknown-linux-musl` 静态二进制（含 `embedded-web`，将 Web UI 嵌入二进制）
+3. 通过 `sshpass` 推送到 R68S `/usr/bin/zeroclaw`
+
+### 仅构建
+
+如果只需要编译二进制（不推送），直接运行脚本：
+
+```bash
+./build_for_r68s.sh
+```
+
+编译特性：`agent-runtime,hardware,sandbox-landlock,channel-wechat,embedded-web`
+
+产物路径：`target/aarch64-unknown-linux-musl/release/zeroclaw`
+
+### 仅部署（不重新编译）
+
+```bash
+sshpass -p "password" ssh -o StrictHostKeyChecking=no root@10.13.0.1 "/etc/init.d/zeroclaw stop"
+sshpass -p "password" scp -O -o StrictHostKeyChecking=no target/aarch64-unknown-linux-musl/release/zeroclaw root@10.13.0.1:/usr/bin/zeroclaw
+sshpass -p "password" ssh -o StrictHostKeyChecking=no root@10.13.0.1 "chmod +x /usr/bin/zeroclaw && /etc/init.d/zeroclaw start"
+```
+
+> **注意**：覆盖部署前必须先停服，否则会报 `Text file busy`。
+
+### 使用 embedded-web 的优势
+
+`embedded-web` 特性将 Web Dashboard 静态资源直接嵌入二进制，无需：
+- 在 R68S 上单独部署 `web/dist/` 目录
+- 配置 `gateway.web_dist_dir`
+- 处理软链接（`_app`）等路径问题
+
+如果出于调试目的需要从文件系统加载 Web UI（不重新编译即可更新前端），则关闭 `embedded-web`，参考第 12 节的手动部署方式。
+
 ## 1. Git 凭据与协议冲突
 ### 难点
 使用 `gh` (GitHub CLI) 管理凭据时，默认可能配置为 SSH 协议。但在嵌入式或某些特定环境下，SSH Key 验证（Permission denied publickey）经常因 Agent 未启动或密钥未关联而失败。
@@ -185,11 +231,14 @@ start_service() {
 }
 ```
 
-## 12. Web Dashboard 资源部署与权限
+## 12. Web Dashboard 文件系统部署（不使用 embedded-web 时）
+
+> **推荐使用 `embedded-web` 特性**（见第 0 节），Web UI 直接嵌入二进制，无需本节的手动步骤。以下仅适用于调试场景需要热更新前端文件的情况。
+
 ### 难点
-即使后端服务启动，若未部署前端静态资源或路径配置错误，访问 Web 端口会提示 `Web dashboard not available`。此外，如果静态目录所有者不是 `zeroclaw` 用户，服务将无权读取。
+如果不使用 `embedded-web`，需要手动部署前端静态资源。路径配置错误或权限问题会导致 `Web dashboard not available`。
 ### 解决方案
-1.  **编译并上传**：在开发机执行 `cargo run -- web build` 产生 `web/dist`。
+1.  **编译并上传**：在开发机执行 `cd web && npm run build` 产生 `web/dist`，上传到 R68S。
 2.  **配置路径**：在 `config.toml` 的 `[gateway]` 块中添加 `web_dist_dir = "/usr/share/zeroclaw/web/dist"`。
 3.  **权限修复**：
     ```bash
@@ -197,7 +246,7 @@ start_service() {
     chmod -R 755 /usr/share/zeroclaw/web
     ```
 
-## 13. 解决 Web UI 资源加载白屏 (404)
+## 13. 解决 Web UI 资源加载白屏 (404)（已过时，仅 embedded-web 禁用时需要）
 ### 难点
 编译出的 `index.html` 默认资源路径可能包含 `/_app/assets/` 这种前缀。如果 R68S 上的文件系统结构不匹配（例如直接在 `dist/assets`），会导致浏览器请求 404，界面显示空白。
 ### 解决方案
@@ -219,16 +268,21 @@ Web UI 首次配对时需要 **6 位数字配对码**，而非 `config.toml` 中
     ```
 *   **逻辑**：6 位码是临时的，配对成功后浏览器会自动与服务器交换长效 Token并持久化。
 
-## 15. 编译时缺少 WeChat 特性支持
-### 难点
-在配置文件中启用了 `[channels.wechat]`，但启动时日志提示：`WeChat channel is configured but this build was compiled without channel-wechat; skipping WeChat.`。
-### 解决方案
-*   **显式开启特性**：ZeroClaw 的微信支持默认关闭以减小体积。在为 R68S 编译时必须手动指定：
-    ```bash
-    ./build_for_r68s.sh --features channel-wechat
-    # 或者
-    cargo build --release --target aarch64-unknown-linux-musl --features "agent-runtime,channel-wechat"
-    ```
+## 15. 编译特性说明
+
+R68S 默认编译特性（见 `build_for_r68s.sh`）：
+
+```
+agent-runtime,hardware,sandbox-landlock,channel-wechat,embedded-web
+```
+
+- `agent-runtime` — 完整 Agent 运行时（通道、工具、子系统）
+- `hardware` — 硬件优化
+- `sandbox-landlock` — Landlock 沙箱安全隔离
+- `channel-wechat` — 微信通道支持
+- `embedded-web` — Web Dashboard 嵌入二进制
+
+如需增减特性，直接编辑 `build_for_r68s.sh` 中的 `--features` 行。
 
 ## 16. 部署时提示 "Text file busy"
 ### 难点
@@ -281,12 +335,7 @@ Web UI 首次配对时需要 **6 位数字配对码**，而非 `config.toml` 中
     ---
     # 技能说明文档...
     ```
-3.  **注册技能包**：在 `agents.<alias>` 配置中添加 `skill_bundles` 指向父目录：
-    ```toml
-    [agents.default]
-    skill_bundles = ["/var/lib/zeroclaw/skills"]
-    ```
-4.  **自动批准**：若不想每次调用都手动确认，将 `技能名__工具名` 加入 `auto_approve`。
+3.  **自动批准**：若不想每次调用都手动确认，将 `技能名__工具名` 加入 `auto_approve`。
 
 ## 20. 安全传递工具凭据 (环境变量注入)
 ### 难点
@@ -356,7 +405,7 @@ Web UI 首次配对时需要 **6 位数字配对码**，而非 `config.toml` 中
 
 ## 23. 微信 (WeChat) 通道工具权限失效
 ### 难点
-QQ 通道调用工具正常，但在微信通道下 Agent 提示“无权限”或“无法找到工具”，且日志中出现大量 `skip` 或 `Command not allowed`。
+QQ 通道调用工具正常，但在微信通道下 Agent 提示"无权限"或"无法找到工具"，且日志中出现大量 `skip` 或 `Command not allowed`。
 ### 原因分析
 1.  **路由缺失 (Agent Association)**：在 `config.toml` 的 `[peer_groups]` 配置中，微信分组（如 `wechat_default`）的 `agents` 数组为空。这导致微信消息无法路由到具有工具权限的 Agent。
 2.  **别名不匹配**：`allowed_commands` 中只允许了 `/usr/bin/tool`，但 AI 在微信对话中倾向于使用 `tool` 简写，触发路径拦截。
@@ -375,3 +424,88 @@ QQ 通道调用工具正常，但在微信通道下 Agent 提示“无权限”�
     ```
 *   **第三步：重启验证**
     执行 `/etc/init.d/zeroclaw restart` 并再次尝试。
+
+## 24. 多模型路由配置 (GLM + DeepSeek 三级搭配)
+
+### 需求
+在 R68S 上使用智谱 GLM-4.7 Flash 作为快速模型、DeepSeek V4 Flash 作为默认模型、DeepSeek V4 Pro (thinking) 作为推理模型，实现三级路由。
+
+### 易错点
+1. **路由格式错误**：`[model_routes]` 是映射格式（旧版），当前 schema 要求 `[[model_routes]]` 数组格式，每条路由需 `hint`、`model_provider`、`model` 三个字段。写成 `[model_routes]` 会导致 `invalid type: map, expected a sequence` 报错。
+2. **Provider 键名格式**：provider 的 TOML 键是 `[providers.models.<type>.<alias>]`（如 `[providers.models.glm.flash]`），不是 `[model_providers.xxx]`。路由中的 `model_provider` 字段必须使用 `<type>.<alias>` 点分隔格式（如 `"glm.flash"`）。
+3. **缺少 model_provider**：`[agents.default]` 必须设置 `model_provider` 字段指向一个已配置的 provider，否则报 `required_field_empty` 验证错误。
+
+### 解决方案
+
+#### 配置文件结构
+
+```toml
+# ── Providers ──
+
+[providers.models.glm.flash]
+api_key = "PLACEHOLDER_ZHIPU_API_KEY"
+model = "glm-4.7-flash"
+endpoint = "cn"
+
+[providers.models.deepseek.flash]
+api_key = "PLACEHOLDER_DEEPSEEK_API_KEY"
+model = "deepseek-v4-flash"
+
+[providers.models.deepseek.pro]
+api_key = "PLACEHOLDER_DEEPSEEK_API_KEY"
+model = "deepseek-v4-pro"
+
+# ── 路由 (必须是 [[...]] 数组格式) ──
+
+[[model_routes]]
+hint = "fast"
+model_provider = "glm.flash"
+model = "glm-4.7-flash"
+
+[[model_routes]]
+hint = "default"
+model_provider = "deepseek.flash"
+model = "deepseek-v4-flash"
+
+[[model_routes]]
+hint = "reasoning"
+model_provider = "deepseek.pro"
+model = "deepseek-v4-pro"
+
+# ── Agent 绑定默认 provider ──
+
+[agents.default]
+model_provider = "deepseek.flash"
+# ... 其余配置
+```
+
+#### 加密写入 API Key
+
+避免明文存储，使用 `zeroclaw config set` 加密写入：
+
+```bash
+zeroclaw --config-dir /var/lib/zeroclaw/.zeroclaw config set providers.models.glm.flash.api_key "你的智谱API Key"
+zeroclaw --config-dir /var/lib/zeroclaw/.zeroclaw config set providers.models.deepseek.flash.api_key "你的DeepSeek API Key"
+zeroclaw --config-dir /var/lib/zeroclaw/.zeroclaw config set providers.models.deepseek.pro.api_key "你的DeepSeek API Key"
+/etc/init.d/zeroclaw restart
+```
+
+#### 模型规格参考
+
+| 路由槽 | Provider | 模型 | 上下文 | 最大输出 | 备注 |
+|--------|----------|------|--------|---------|------|
+| fast | glm.flash | glm-4.7-flash | 200K | 128K | 免费，支持 tool call |
+| default | deepseek.flash | deepseek-v4-flash | 1M | 384K | 低价，通用对话 |
+| reasoning | deepseek.pro | deepseek-v4-pro | 1M | 384K | 开 thinking，深度推理 |
+
+#### 验证路由生效
+
+```bash
+zeroclaw --config-dir /var/lib/zeroclaw/.zeroclaw config list | grep -A1 "model-routes\|model-provider"
+```
+
+预期输出：
+```
+model-routes    = [{"hint":"fast","model_provider":"glm.flash",...},{"hint":"default","model_provider":"deepseek.flash",...},{"hint":"reasoning","model_provider":"deepseek.pro",...}]
+agents.default.model-provider = deepseek.flash
+```

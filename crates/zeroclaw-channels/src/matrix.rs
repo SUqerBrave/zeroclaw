@@ -312,17 +312,11 @@ mod streaming {
         time::{Duration, Instant},
     };
 
-<<<<<<< HEAD
-=======
     use anyhow::{Result, bail};
->>>>>>> origin/master
     use matrix_sdk::ruma::{OwnedEventId, OwnedRoomId};
 
     use super::markers;
 
-<<<<<<< HEAD
-    pub(super) type DraftKey = OwnedRoomId;
-=======
     const MULTI_MESSAGE_SYNTHETIC_PREFIX: &str = "multi_message_synthetic:";
 
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -348,7 +342,6 @@ mod streaming {
             uuid::Uuid::new_v4().simple()
         )
     }
->>>>>>> origin/master
 
     #[derive(Debug, Clone)]
     pub(super) struct PartialDraft {
@@ -382,8 +375,6 @@ mod streaming {
         pub multi: HashMap<DraftKey, MultiDraft>,
     }
 
-<<<<<<< HEAD
-=======
     pub(super) fn partial_for_update<'a>(
         state: &'a mut State,
         key: &DraftKey,
@@ -406,7 +397,6 @@ mod streaming {
         state.multi.remove(key)
     }
 
->>>>>>> origin/master
     pub(super) fn partial_should_edit(
         existing: &PartialDraft,
         new_text: &str,
@@ -1806,10 +1796,7 @@ mod inbound {
             thread_ts: outbound_anchor.clone(),
             interruption_scope_id: outbound_anchor,
             attachments,
-<<<<<<< HEAD
-=======
             subject: None,
->>>>>>> origin/master
         };
 
         if let Err(e) = ctx.tx.send(msg).await {
@@ -3302,25 +3289,15 @@ impl MatrixChannel {
     }
 
     /// Edit-in-place draft update. Rate-limited per the configured interval.
-<<<<<<< HEAD
-    async fn partial_update(&self, recipient: &str, text: &str) -> Result<()> {
-        let client = self.ensure_client().await?;
-        let key = streaming_key(recipient)?;
-=======
     async fn partial_update(&self, recipient: &str, message_id: &str, text: &str) -> Result<()> {
         let client = self.ensure_client().await?;
         let key = streaming_key(recipient, message_id)?;
->>>>>>> origin/master
         let Some(visible_text) = streaming::partial_visible_text(text) else {
             return Ok(());
         };
         let event_id = {
             let mut state = self.streaming_state.write().await;
-<<<<<<< HEAD
-            let Some(draft) = state.partial.get_mut(&key) else {
-=======
             let Some(draft) = streaming::partial_for_update(&mut state, &key) else {
->>>>>>> origin/master
                 return Ok(());
             };
             let now = Instant::now();
@@ -3340,24 +3317,14 @@ impl MatrixChannel {
     /// `\n\n` boundary until the unsent buffer no longer contains a break,
     /// then returns to wait for more accumulated text. Each paragraph posts
     /// as an independent room message threaded under the captured anchor.
-<<<<<<< HEAD
-    async fn multi_update(&self, recipient: &str, text: &str) -> Result<()> {
-        let client = self.ensure_client().await?;
-        let key = streaming_key(recipient)?;
-=======
     async fn multi_update(&self, recipient: &str, message_id: &str, text: &str) -> Result<()> {
         let client = self.ensure_client().await?;
         let key = streaming_key(recipient, message_id)?;
->>>>>>> origin/master
         let delay = Duration::from_millis(self.config.multi_message_delay_ms);
         loop {
             let (paragraph, thread_anchor) = {
                 let mut state = self.streaming_state.write().await;
-<<<<<<< HEAD
-                let Some(multi) = state.multi.get_mut(&key) else {
-=======
                 let Some(multi) = streaming::multi_for_update(&mut state, &key) else {
->>>>>>> origin/master
                     return Ok(());
                 };
                 // Detect a buffer reset (e.g. DraftEvent::Clear) and re-anchor
@@ -3502,11 +3469,7 @@ impl Channel for MatrixChannel {
 
     async fn send_draft(&self, message: &SendMessage) -> Result<Option<String>> {
         let client = self.ensure_client().await?;
-<<<<<<< HEAD
-        let key = streaming_key(&message.recipient)?;
-=======
         let room_id = streaming_room(&message.recipient)?;
->>>>>>> origin/master
         match self.config.stream_mode {
             StreamMode::Off => Ok(None),
             StreamMode::Partial => {
@@ -3515,10 +3478,7 @@ impl Channel for MatrixChannel {
                 let event_id = outbound::send(&self.outbox(client), message).await?;
                 let thread_anchor =
                     outbound::thread_anchor_from_message(&self.outbox(client), message);
-<<<<<<< HEAD
-=======
                 let key = streaming::draft_key(room_id, event_id.as_ref())?;
->>>>>>> origin/master
                 let mut state = self.streaming_state.write().await;
                 state.partial.insert(
                     key,
@@ -3540,11 +3500,8 @@ impl Channel for MatrixChannel {
                     .as_deref()
                     .filter(|s| !s.is_empty())
                     .and_then(|s| s.parse::<OwnedEventId>().ok());
-<<<<<<< HEAD
-=======
                 let draft_id = streaming::new_multi_message_draft_id();
                 let key = streaming::draft_key(room_id, &draft_id)?;
->>>>>>> origin/master
                 let mut state = self.streaming_state.write().await;
                 state.multi.insert(
                     key,
@@ -3553,28 +3510,16 @@ impl Channel for MatrixChannel {
                         sent_so_far: 0,
                     },
                 );
-<<<<<<< HEAD
-                Ok(Some("multi_message_synthetic".to_string()))
-=======
                 Ok(Some(draft_id))
->>>>>>> origin/master
             }
         }
     }
 
-<<<<<<< HEAD
-    async fn update_draft(&self, recipient: &str, _message_id: &str, text: &str) -> Result<()> {
-        match self.config.stream_mode {
-            StreamMode::Off => Ok(()),
-            StreamMode::Partial => self.partial_update(recipient, text).await,
-            StreamMode::MultiMessage => self.multi_update(recipient, text).await,
-=======
     async fn update_draft(&self, recipient: &str, message_id: &str, text: &str) -> Result<()> {
         match self.config.stream_mode {
             StreamMode::Off => Ok(()),
             StreamMode::Partial => self.partial_update(recipient, message_id, text).await,
             StreamMode::MultiMessage => self.multi_update(recipient, message_id, text).await,
->>>>>>> origin/master
         }
     }
 
@@ -3592,15 +3537,6 @@ impl Channel for MatrixChannel {
         Ok(())
     }
 
-<<<<<<< HEAD
-    async fn finalize_draft(&self, recipient: &str, _message_id: &str, text: &str) -> Result<()> {
-        let client = self.ensure_client().await?;
-        let key = streaming_key(recipient)?;
-        match self.config.stream_mode {
-            StreamMode::Off => Ok(()),
-            StreamMode::Partial => {
-                let draft = self.streaming_state.write().await.partial.remove(&key);
-=======
     async fn finalize_draft(&self, recipient: &str, message_id: &str, text: &str) -> Result<()> {
         let client = self.ensure_client().await?;
         let key = streaming_key(recipient, message_id)?;
@@ -3611,7 +3547,6 @@ impl Channel for MatrixChannel {
                     let mut state = self.streaming_state.write().await;
                     streaming::take_partial(&mut state, &key)
                 };
->>>>>>> origin/master
                 if let Some(draft) = draft {
                     let room =
                         outbound::resolve_joined_room(client, &self.alias_cache, recipient).await?;
@@ -3720,14 +3655,10 @@ impl Channel for MatrixChannel {
             StreamMode::MultiMessage => {
                 // Drain the trailing paragraph (or whatever's left after the
                 // last \n\n boundary) as one final message.
-<<<<<<< HEAD
-                let multi = self.streaming_state.write().await.multi.remove(&key);
-=======
                 let multi = {
                     let mut state = self.streaming_state.write().await;
                     streaming::take_multi(&mut state, &key)
                 };
->>>>>>> origin/master
                 let Some(state) = multi else {
                     return Ok(());
                 };
@@ -3746,15 +3677,6 @@ impl Channel for MatrixChannel {
         }
     }
 
-<<<<<<< HEAD
-    async fn cancel_draft(&self, recipient: &str, _message_id: &str) -> Result<()> {
-        let client = self.ensure_client().await?;
-        let key = streaming_key(recipient)?;
-        match self.config.stream_mode {
-            StreamMode::Off => Ok(()),
-            StreamMode::Partial => {
-                if let Some(d) = self.streaming_state.write().await.partial.remove(&key) {
-=======
     async fn cancel_draft(&self, recipient: &str, message_id: &str) -> Result<()> {
         let client = self.ensure_client().await?;
         let key = streaming_key(recipient, message_id)?;
@@ -3766,7 +3688,6 @@ impl Channel for MatrixChannel {
                     streaming::take_partial(&mut state, &key)
                 };
                 if let Some(d) = draft {
->>>>>>> origin/master
                     let _ = outbound::redact(
                         client,
                         recipient,
@@ -3781,12 +3702,8 @@ impl Channel for MatrixChannel {
                 // Already-sent paragraphs are independent room messages and
                 // are not redacted on cancel — partial output is preferable
                 // to silent disappearance. Just drop our state.
-<<<<<<< HEAD
-                self.streaming_state.write().await.multi.remove(&key);
-=======
                 let mut state = self.streaming_state.write().await;
                 streaming::take_multi(&mut state, &key);
->>>>>>> origin/master
                 Ok(())
             }
         }
@@ -3860,23 +3777,16 @@ impl Channel for MatrixChannel {
     }
 }
 
-<<<<<<< HEAD
-fn streaming_key(recipient: &str) -> Result<streaming::DraftKey> {
-=======
 fn streaming_room(recipient: &str) -> Result<OwnedRoomId> {
->>>>>>> origin/master
     recipient
         .parse::<OwnedRoomId>()
         .with_context(|| format!("parse recipient room id {recipient}"))
 }
 
-<<<<<<< HEAD
-=======
 fn streaming_key(recipient: &str, message_id: &str) -> Result<streaming::DraftKey> {
     streaming::draft_key(streaming_room(recipient)?, message_id)
 }
 
->>>>>>> origin/master
 // ─── tests ─────────────────────────────────────────────────────────────────
 #[cfg(test)]
 mod tests {
@@ -4192,20 +4102,12 @@ mod tests {
     }
 
     mod streaming {
-<<<<<<< HEAD
-        use super::super::streaming::{
-            PartialDraft, PartialFinalizeAction, decide_partial_finalize_action,
-            partial_should_edit, partial_visible_text,
-        };
-        use matrix_sdk::ruma::owned_event_id;
-=======
         use super::super::streaming;
         use super::super::streaming::{
             MultiDraft, PartialDraft, PartialFinalizeAction, State, decide_partial_finalize_action,
             partial_should_edit, partial_visible_text,
         };
         use matrix_sdk::ruma::{OwnedEventId, owned_event_id, owned_room_id};
->>>>>>> origin/master
         use std::time::{Duration, Instant};
 
         fn draft(text: &str, last_edit: Instant) -> PartialDraft {
@@ -4217,8 +4119,6 @@ mod tests {
             }
         }
 
-<<<<<<< HEAD
-=======
         fn partial_draft(event_id: OwnedEventId, text: &str) -> PartialDraft {
             PartialDraft {
                 event_id,
@@ -4228,7 +4128,6 @@ mod tests {
             }
         }
 
->>>>>>> origin/master
         #[test]
         fn skip_when_text_unchanged() {
             let now = Instant::now();
@@ -4309,8 +4208,6 @@ mod tests {
                 PartialFinalizeAction::EmptyError
             );
         }
-<<<<<<< HEAD
-=======
 
         #[test]
         fn draft_keys_include_message_id_for_same_room_concurrency() {
@@ -4593,7 +4490,6 @@ mod tests {
                 assert!(state.partial.is_empty());
             }
         }
->>>>>>> origin/master
     }
 
     mod session {

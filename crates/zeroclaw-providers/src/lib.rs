@@ -857,8 +857,6 @@ pub fn sanitize_api_error(input: &str) -> String {
     format!("{}...", &scrubbed[..end])
 }
 
-<<<<<<< HEAD
-=======
 /// Format an error including its full source chain and sanitize the result.
 pub fn format_error_chain(error: &(dyn std::error::Error + 'static)) -> String {
     let mut formatted = String::new();
@@ -871,7 +869,6 @@ pub fn format_error_chain(error: &(dyn std::error::Error + 'static)) -> String {
     sanitize_api_error(&formatted)
 }
 
->>>>>>> origin/master
 /// Build a sanitized model_provider error from a failed HTTP response.
 pub async fn api_error(model_provider: &str, response: reqwest::Response) -> anyhow::Error {
     let status = response.status();
@@ -1404,9 +1401,6 @@ pub fn create_routed_model_provider_with_options(
                     (!trimmed_key.is_empty()).then_some(trimmed_key)
                 })
             });
-<<<<<<< HEAD
-        let key = routed_credential.or(api_key);
-=======
         let key = routed_credential
             .or_else(|| {
                 name.split_once('.')
@@ -1423,7 +1417,6 @@ pub fn create_routed_model_provider_with_options(
                     })
             })
             .or(api_key);
->>>>>>> origin/master
         let url = if name == primary_name { api_url } else { None };
         let entry_options = if name == primary_name {
             options.clone()
@@ -2271,10 +2264,7 @@ mod tests {
         assert!(create_model_provider("lmstudio", Some("key")).is_ok());
         assert!(create_model_provider("lmstudio", None).is_ok());
     }
-<<<<<<< HEAD
-=======
 
->>>>>>> origin/master
     #[test]
     fn factory_llamacpp() {
         assert!(create_model_provider("llamacpp", Some("key")).is_ok());
@@ -2616,8 +2606,6 @@ mod tests {
         assert!(model_provider.is_ok());
     }
 
-<<<<<<< HEAD
-=======
     #[tokio::test]
     async fn ollama_private_remote_cloud_request_omits_auth_and_preserves_model() {
         use axum::{
@@ -2737,7 +2725,6 @@ mod tests {
         server.abort();
     }
 
->>>>>>> origin/master
     #[test]
     fn factory_all_canonical_model_providers_create_successfully() {
         // Canonical family names only — legacy synonyms are collapsed by
@@ -2837,8 +2824,6 @@ mod tests {
     // ── API error sanitization ───────────────────────────────
 
     #[test]
-<<<<<<< HEAD
-=======
     fn format_error_chain_includes_sources_and_sanitizes_output() {
         #[derive(Debug)]
         struct ChainError {
@@ -2878,7 +2863,6 @@ mod tests {
     }
 
     #[test]
->>>>>>> origin/master
     fn sanitize_scrubs_sk_prefix() {
         let input = "request failed: sk-1234567890abcdef";
         let out = sanitize_api_error(input);
@@ -3182,8 +3166,6 @@ mod tests {
         assert_eq!(tuning.num_ctx, ollama::OLLAMA_DEFAULT_NUM_CTX);
         assert_eq!(tuning.num_predict, ollama::OLLAMA_DEFAULT_NUM_PREDICT);
     }
-<<<<<<< HEAD
-=======
 
     fn config_with_openai_alias() -> zeroclaw_config::schema::Config {
         use zeroclaw_config::schema::{
@@ -3329,5 +3311,4 @@ mod tests {
             result.err().unwrap()
         );
     }
->>>>>>> origin/master
 }

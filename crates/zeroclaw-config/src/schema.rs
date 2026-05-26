@@ -10,10 +10,6 @@ use crate::traits::{ChannelConfig, HasPropKind, PropKind};
 use crate::validation_bail;
 use anyhow::{Context, Result};
 use directories::UserDirs;
-<<<<<<< HEAD
-#[cfg(feature = "schema-export")]
-=======
->>>>>>> origin/master
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -9792,26 +9788,6 @@ pub struct CustomTunnelConfig {
 
 // ── Channels ─────────────────────────────────────────────────────
 
-<<<<<<< HEAD
-struct ConfigWrapper<T: ChannelConfig>(std::marker::PhantomData<T>);
-
-impl<T: ChannelConfig> ConfigWrapper<T> {
-    fn new(_: Option<&T>) -> Self {
-        Self(std::marker::PhantomData)
-    }
-}
-
-impl<T: ChannelConfig> crate::traits::ConfigHandle for ConfigWrapper<T> {
-    fn name(&self) -> &'static str {
-        T::name()
-    }
-    fn desc(&self) -> &'static str {
-        T::desc()
-    }
-}
-
-=======
->>>>>>> origin/master
 /// Top-level channel configurations (`[channels]` section).
 ///
 /// each channel type is a keyed table of named instances (aliases).
@@ -9901,13 +9877,10 @@ pub struct ChannelsConfig {
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     #[nested]
     pub wecom: HashMap<String, WeComConfig>,
-<<<<<<< HEAD
-=======
     /// WeCom AI Bot WebSocket channel instances (`[channels.wecom_ws.<alias>]`).
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     #[nested]
     pub wecom_ws: HashMap<String, WeComWsConfig>,
->>>>>>> origin/master
     /// WeChat personal iLink Bot channel instances (`[channels.wechat.<alias>]`).
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     #[nested]
@@ -9924,10 +9897,6 @@ pub struct ChannelsConfig {
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     #[nested]
     pub mochat: HashMap<String, MochatConfig>,
-<<<<<<< HEAD
-    #[cfg(feature = "channel-nostr")]
-=======
->>>>>>> origin/master
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     #[nested]
     pub nostr: HashMap<String, NostrConfig>,
@@ -9948,10 +9917,6 @@ pub struct ChannelsConfig {
     #[nested]
     pub voice_call: HashMap<String, crate::scattered_types::VoiceCallConfig>,
     /// Voice wake word detection channel instances (`[channels.voice_wake.<alias>]`).
-<<<<<<< HEAD
-    #[cfg(feature = "voice-wake")]
-=======
->>>>>>> origin/master
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     #[nested]
     pub voice_wake: HashMap<String, VoiceWakeConfig>,
@@ -9998,125 +9963,6 @@ pub struct ChannelsConfig {
 }
 
 impl ChannelsConfig {
-<<<<<<< HEAD
-    /// get channels' metadata and whether the default alias is configured, except webhook
-    #[rustfmt::skip]
-    pub fn channels_except_webhook(&self) -> Vec<(Box<dyn super::traits::ConfigHandle>, bool)> {
-        vec![
-            (
-                Box::new(ConfigWrapper::new(self.telegram.get("default"))),
-                !self.telegram.is_empty(),
-            ),
-            (
-                Box::new(ConfigWrapper::new(self.discord.get("default"))),
-                !self.discord.is_empty(),
-            ),
-            (
-                Box::new(ConfigWrapper::new(self.slack.get("default"))),
-                !self.slack.is_empty(),
-            ),
-            (
-                Box::new(ConfigWrapper::new(self.mattermost.get("default"))),
-                !self.mattermost.is_empty(),
-            ),
-            (
-                Box::new(ConfigWrapper::new(self.imessage.get("default"))),
-                !self.imessage.is_empty(),
-            ),
-            (
-                Box::new(ConfigWrapper::new(self.matrix.get("default"))),
-                !self.matrix.is_empty(),
-            ),
-            (
-                Box::new(ConfigWrapper::new(self.signal.get("default"))),
-                !self.signal.is_empty(),
-            ),
-            (
-                Box::new(ConfigWrapper::new(self.whatsapp.get("default"))),
-                !self.whatsapp.is_empty(),
-            ),
-            (
-                Box::new(ConfigWrapper::new(self.linq.get("default"))),
-                !self.linq.is_empty(),
-            ),
-            (
-                Box::new(ConfigWrapper::new(self.wati.get("default"))),
-                !self.wati.is_empty(),
-            ),
-            (
-                Box::new(ConfigWrapper::new(self.nextcloud_talk.get("default"))),
-                !self.nextcloud_talk.is_empty(),
-            ),
-            (
-                Box::new(ConfigWrapper::new(self.email.get("default"))),
-                !self.email.is_empty(),
-            ),
-            (
-                Box::new(ConfigWrapper::new(self.gmail_push.get("default"))),
-                !self.gmail_push.is_empty(),
-            ),
-            (
-                Box::new(ConfigWrapper::new(self.irc.get("default"))),
-                !self.irc.is_empty()
-            ),
-            (
-                Box::new(ConfigWrapper::new(self.lark.get("default"))),
-                !self.lark.is_empty(),
-            ),
-            (
-                Box::new(ConfigWrapper::new(self.dingtalk.get("default"))),
-                !self.dingtalk.is_empty(),
-            ),
-            (
-                Box::new(ConfigWrapper::new(self.wecom.get("default"))),
-                !self.wecom.is_empty(),
-            ),
-            (
-                Box::new(ConfigWrapper::new(self.wechat.get("default"))),
-                !self.wechat.is_empty(),
-            ),
-            (
-                Box::new(ConfigWrapper::new(self.qq.get("default"))),
-                !self.qq.is_empty()
-            ),
-            #[cfg(feature = "channel-nostr")]
-            (
-                Box::new(ConfigWrapper::new(self.nostr.get("default"))),
-                !self.nostr.is_empty(),
-            ),
-            (
-                Box::new(ConfigWrapper::new(self.clawdtalk.get("default"))),
-                !self.clawdtalk.is_empty(),
-            ),
-            (
-                Box::new(ConfigWrapper::new(self.reddit.get("default"))),
-                !self.reddit.is_empty(),
-            ),
-            (
-                Box::new(ConfigWrapper::new(self.bluesky.get("default"))),
-                !self.bluesky.is_empty(),
-            ),
-            #[cfg(feature = "voice-wake")]
-            (
-                Box::new(ConfigWrapper::new(self.voice_wake.get("default"))),
-                !self.voice_wake.is_empty(),
-            ),
-            (
-                Box::new(ConfigWrapper::new(self.mqtt.get("default"))),
-                !self.mqtt.is_empty(),
-            ),
-        ]
-    }
-
-    pub fn channels(&self) -> Vec<(Box<dyn super::traits::ConfigHandle>, bool)> {
-        let mut ret = self.channels_except_webhook();
-        ret.push((
-            Box::new(ConfigWrapper::new(self.webhook.get("default"))),
-            !self.webhook.is_empty(),
-        ));
-        ret
-    }
-=======
     /// Returns metadata and configuration status for every known channel type.
     ///
     /// Always returns the full set of channel types regardless of compile-time
@@ -10289,7 +10135,6 @@ impl ChannelsConfig {
             },
         ]
     }
->>>>>>> origin/master
 }
 
 fn default_channel_message_timeout_secs() -> u64 {
@@ -10323,27 +10168,16 @@ impl Default for ChannelsConfig {
             line: HashMap::new(),
             dingtalk: HashMap::new(),
             wecom: HashMap::new(),
-<<<<<<< HEAD
-=======
             wecom_ws: HashMap::new(),
->>>>>>> origin/master
             wechat: HashMap::new(),
             qq: HashMap::new(),
             twitter: HashMap::new(),
             mochat: HashMap::new(),
-<<<<<<< HEAD
-            #[cfg(feature = "channel-nostr")]
-=======
->>>>>>> origin/master
             nostr: HashMap::new(),
             clawdtalk: HashMap::new(),
             reddit: HashMap::new(),
             bluesky: HashMap::new(),
             voice_call: HashMap::new(),
-<<<<<<< HEAD
-            #[cfg(feature = "voice-wake")]
-=======
->>>>>>> origin/master
             voice_wake: HashMap::new(),
             voice_duplex: HashMap::new(),
             mqtt: HashMap::new(),
@@ -12118,8 +11952,6 @@ impl ChannelConfig for WeComConfig {
     }
 }
 
-<<<<<<< HEAD
-=======
 fn default_wecom_ws_file_retention_days() -> u32 {
     7
 }
@@ -12210,7 +12042,6 @@ impl ChannelConfig for WeComWsConfig {
     }
 }
 
->>>>>>> origin/master
 /// WeChat personal iLink Bot channel configuration.
 ///
 /// Uses the iLink Bot API (`ilinkai.weixin.qq.com`) with QR-code login.
@@ -12461,10 +12292,6 @@ pub struct VoiceDuplexConfig {
 /// Listens on the default microphone for a configurable wake word,
 /// then captures the following utterance and transcribes it via the
 /// existing transcription API.
-<<<<<<< HEAD
-#[cfg(feature = "voice-wake")]
-=======
->>>>>>> origin/master
 #[derive(Debug, Clone, Serialize, Deserialize, zeroclaw_macros::Configurable)]
 #[cfg_attr(feature = "schema-export", derive(schemars::JsonSchema))]
 #[prefix = "voice-wake"]
@@ -12498,42 +12325,22 @@ pub struct VoiceWakeConfig {
     pub excluded_tools: Vec<String>,
 }
 
-<<<<<<< HEAD
-#[cfg(feature = "voice-wake")]
-=======
->>>>>>> origin/master
 fn default_voice_wake_word() -> String {
     "hey zeroclaw".into()
 }
 
-<<<<<<< HEAD
-#[cfg(feature = "voice-wake")]
-=======
->>>>>>> origin/master
 fn default_voice_wake_silence_timeout_ms() -> u32 {
     2000
 }
 
-<<<<<<< HEAD
-#[cfg(feature = "voice-wake")]
-=======
->>>>>>> origin/master
 fn default_voice_wake_energy_threshold() -> f32 {
     0.01
 }
 
-<<<<<<< HEAD
-#[cfg(feature = "voice-wake")]
-=======
->>>>>>> origin/master
 fn default_voice_wake_max_capture_secs() -> u32 {
     30
 }
 
-<<<<<<< HEAD
-#[cfg(feature = "voice-wake")]
-=======
->>>>>>> origin/master
 impl Default for VoiceWakeConfig {
     fn default() -> Self {
         Self {
@@ -12547,10 +12354,6 @@ impl Default for VoiceWakeConfig {
     }
 }
 
-<<<<<<< HEAD
-#[cfg(feature = "voice-wake")]
-=======
->>>>>>> origin/master
 impl ChannelConfig for VoiceWakeConfig {
     fn name() -> &'static str {
         "VoiceWake"
@@ -12561,10 +12364,6 @@ impl ChannelConfig for VoiceWakeConfig {
 }
 
 /// Nostr channel configuration (NIP-04 + NIP-17 private messages)
-<<<<<<< HEAD
-#[cfg(feature = "channel-nostr")]
-=======
->>>>>>> origin/master
 #[derive(Debug, Clone, Default, Serialize, Deserialize, Configurable)]
 #[cfg_attr(feature = "schema-export", derive(schemars::JsonSchema))]
 #[prefix = "channels.nostr"]
@@ -12589,10 +12388,6 @@ pub struct NostrConfig {
     pub excluded_tools: Vec<String>,
 }
 
-<<<<<<< HEAD
-#[cfg(feature = "channel-nostr")]
-=======
->>>>>>> origin/master
 impl ChannelConfig for NostrConfig {
     fn name() -> &'static str {
         "Nostr"
@@ -12602,10 +12397,6 @@ impl ChannelConfig for NostrConfig {
     }
 }
 
-<<<<<<< HEAD
-#[cfg(feature = "channel-nostr")]
-=======
->>>>>>> origin/master
 pub fn default_nostr_relays() -> Vec<String> {
     vec![
         "wss://relay.damus.io".to_string(),
@@ -12729,13 +12520,9 @@ pub struct JiraConfig {
     #[cfg_attr(feature = "schema-export", schemars(extend("x-secret" = true)))]
     pub api_token: String,
     /// Actions the agent is permitted to call.
-<<<<<<< HEAD
-    /// Valid values: `"get_ticket"`, `"search_tickets"`, `"comment_ticket"`.
-=======
     /// Valid values: `"get_ticket"`, `"search_tickets"`, `"comment_ticket"`,
     /// `"list_projects"`, `"myself"`, `"list_transitions"`,
     /// `"transition_ticket"`, `"create_ticket"`.
->>>>>>> origin/master
     /// Defaults to `["get_ticket"]` (read-only).
     #[serde(default = "default_jira_allowed_actions")]
     pub allowed_actions: Vec<String>,
@@ -13202,10 +12989,7 @@ enum ConfigResolutionSource {
     EnvDataDir,
     EnvWorkspaceLegacy,
     DefaultConfigDir,
-<<<<<<< HEAD
-=======
     HomebrewConfigDir,
->>>>>>> origin/master
 }
 
 impl ConfigResolutionSource {
@@ -13215,10 +12999,7 @@ impl ConfigResolutionSource {
             Self::EnvDataDir => "ZEROCLAW_DATA_DIR",
             Self::EnvWorkspaceLegacy => "ZEROCLAW_WORKSPACE",
             Self::DefaultConfigDir => "default",
-<<<<<<< HEAD
-=======
             Self::HomebrewConfigDir => "homebrew",
->>>>>>> origin/master
         }
     }
 }
@@ -13255,8 +13036,6 @@ fn expand_tilde_path(path: &str) -> PathBuf {
     PathBuf::from(expanded_str)
 }
 
-<<<<<<< HEAD
-=======
 /// Detect if an executable path lives under a macOS Homebrew prefix and return
 /// the Homebrew-managed config directory.
 ///
@@ -13310,7 +13089,6 @@ async fn try_resolve_macos_homebrew_config_dir(exe: &Path) -> Option<PathBuf> {
     Some(prefix.join("var").join("zeroclaw"))
 }
 
->>>>>>> origin/master
 async fn resolve_runtime_config_dirs(
     default_zeroclaw_dir: &Path,
     default_data_dir: &Path,
@@ -13399,8 +13177,6 @@ async fn resolve_runtime_config_dirs(
         ));
     }
 
-<<<<<<< HEAD
-=======
     if cfg!(target_os = "macos")
         && let Ok(exe) = std::env::current_exe()
         && let Some(homebrew_config_dir) = try_resolve_macos_homebrew_config_dir(&exe).await
@@ -13412,7 +13188,6 @@ async fn resolve_runtime_config_dirs(
         ));
     }
 
->>>>>>> origin/master
     Ok((
         default_zeroclaw_dir.to_path_buf(),
         default_data_dir.to_path_buf(),
@@ -13513,8 +13288,6 @@ fn is_local_ollama_endpoint(api_url: Option<&str>) -> bool {
         .is_some_and(|host| matches!(host.as_str(), "localhost" | "127.0.0.1" | "::1" | "0.0.0.0"))
 }
 
-<<<<<<< HEAD
-=======
 fn is_official_ollama_cloud_endpoint(api_url: Option<&str>) -> bool {
     let Some(raw) = api_url.map(str::trim).filter(|value| !value.is_empty()) else {
         return false;
@@ -13531,7 +13304,6 @@ fn is_official_ollama_cloud_endpoint(api_url: Option<&str>) -> bool {
         .unwrap_or(false)
 }
 
->>>>>>> origin/master
 fn has_ollama_cloud_credential(config_api_key: Option<&str>) -> bool {
     config_api_key
         .map(str::trim)
@@ -14417,29 +14189,6 @@ impl Config {
         }
 
         // Ollama cloud-routing safety checks
-<<<<<<< HEAD
-        if let Some(entry) = self
-            .providers
-            .models
-            .ollama
-            .values()
-            .next()
-            .map(|cfg| &cfg.base)
-            .filter(|e| {
-                e.model
-                    .as_deref()
-                    .is_some_and(|m| m.trim().ends_with(":cloud"))
-            })
-        {
-            if is_local_ollama_endpoint(entry.uri.as_deref()) {
-                anyhow::bail!(
-                    "default_model uses ':cloud' with model_provider 'ollama', but uri is local or unset. Set uri to a remote Ollama endpoint (for example https://ollama.com)."
-                );
-            }
-            if !has_ollama_cloud_credential(entry.api_key.as_deref()) {
-                anyhow::bail!(
-                    "default_model uses ':cloud' with model_provider 'ollama', but no API key is configured. Set api_key on [providers.models.ollama.<alias>] (or via the schema-mirror grammar: ZEROCLAW_providers__models__ollama__<alias>__api_key=<value>)."
-=======
         for (alias, cfg) in &self.providers.models.ollama {
             let entry = &cfg.base;
             if !entry
@@ -14460,7 +14209,6 @@ impl Config {
             {
                 anyhow::bail!(
                     "providers.models.ollama.{alias}.model uses ':cloud', but no API key is configured. Set api_key on [providers.models.ollama.{alias}] (or via the schema-mirror grammar: ZEROCLAW_providers__models__ollama__{alias}__api_key=<value>)."
->>>>>>> origin/master
                 );
             }
         }
@@ -14809,9 +14557,6 @@ impl Config {
                     "jira.api_token must be set (or JIRA_API_TOKEN env var) when jira.enabled = true"
                 );
             }
-<<<<<<< HEAD
-            let valid_actions = ["get_ticket", "search_tickets", "comment_ticket"];
-=======
             let valid_actions = [
                 "get_ticket",
                 "search_tickets",
@@ -14822,16 +14567,11 @@ impl Config {
                 "transition_ticket",
                 "create_ticket",
             ];
->>>>>>> origin/master
             for action in &self.jira.allowed_actions {
                 if !valid_actions.contains(&action.as_str()) {
                     anyhow::bail!(
                         "jira.allowed_actions contains unknown action: '{}'. \
-<<<<<<< HEAD
-                         Valid: get_ticket, search_tickets, comment_ticket",
-=======
                          Valid: get_ticket, search_tickets, comment_ticket, list_projects, myself, list_transitions, transition_ticket, create_ticket",
->>>>>>> origin/master
                         action
                     );
                 }
@@ -16321,11 +16061,6 @@ auto_save = true
         assert!(c.cli);
         assert!(c.telegram.is_empty());
         assert!(c.discord.is_empty());
-<<<<<<< HEAD
-        assert!(!c.show_tool_calls);
-    }
-
-=======
         assert!(c.wecom_ws.is_empty());
         assert!(!c.show_tool_calls);
     }
@@ -16387,7 +16122,6 @@ auto_save = true
         assert_eq!(ws.stream_mode, StreamMode::Partial);
     }
 
->>>>>>> origin/master
     // ── Serde round-trip ─────────────────────────────────────
 
     #[test]
@@ -16502,28 +16236,17 @@ auto_save = true
                 line: HashMap::new(),
                 dingtalk: HashMap::new(),
                 wecom: HashMap::new(),
-<<<<<<< HEAD
-=======
                 wecom_ws: HashMap::new(),
->>>>>>> origin/master
                 wechat: HashMap::new(),
                 qq: HashMap::new(),
                 twitter: HashMap::new(),
                 mochat: HashMap::new(),
-<<<<<<< HEAD
-                #[cfg(feature = "channel-nostr")]
-=======
->>>>>>> origin/master
                 nostr: HashMap::new(),
                 clawdtalk: HashMap::new(),
                 reddit: HashMap::new(),
                 bluesky: HashMap::new(),
                 voice_call: HashMap::new(),
                 voice_duplex: HashMap::new(),
-<<<<<<< HEAD
-                #[cfg(feature = "voice-wake")]
-=======
->>>>>>> origin/master
                 voice_wake: HashMap::new(),
                 mqtt: HashMap::new(),
                 message_timeout_secs: 300,
@@ -17745,28 +17468,17 @@ allowed_users = ["@u:matrix.org"]
             line: HashMap::new(),
             dingtalk: HashMap::new(),
             wecom: HashMap::new(),
-<<<<<<< HEAD
-=======
             wecom_ws: HashMap::new(),
->>>>>>> origin/master
             wechat: HashMap::new(),
             qq: HashMap::new(),
             twitter: HashMap::new(),
             mochat: HashMap::new(),
-<<<<<<< HEAD
-            #[cfg(feature = "channel-nostr")]
-=======
->>>>>>> origin/master
             nostr: HashMap::new(),
             clawdtalk: HashMap::new(),
             reddit: HashMap::new(),
             bluesky: HashMap::new(),
             voice_call: HashMap::new(),
             voice_duplex: HashMap::new(),
-<<<<<<< HEAD
-            #[cfg(feature = "voice-wake")]
-=======
->>>>>>> origin/master
             voice_wake: HashMap::new(),
             mqtt: HashMap::new(),
             message_timeout_secs: 300,
@@ -18140,28 +17852,17 @@ allowed_numbers = ["+1", "+2"]
             line: HashMap::new(),
             dingtalk: HashMap::new(),
             wecom: HashMap::new(),
-<<<<<<< HEAD
-=======
             wecom_ws: HashMap::new(),
->>>>>>> origin/master
             wechat: HashMap::new(),
             qq: HashMap::new(),
             twitter: HashMap::new(),
             mochat: HashMap::new(),
-<<<<<<< HEAD
-            #[cfg(feature = "channel-nostr")]
-=======
->>>>>>> origin/master
             nostr: HashMap::new(),
             clawdtalk: HashMap::new(),
             reddit: HashMap::new(),
             bluesky: HashMap::new(),
             voice_call: HashMap::new(),
             voice_duplex: HashMap::new(),
-<<<<<<< HEAD
-            #[cfg(feature = "voice-wake")]
-=======
->>>>>>> origin/master
             voice_wake: HashMap::new(),
             mqtt: HashMap::new(),
             message_timeout_secs: 300,
@@ -18772,9 +18473,6 @@ model = "primary-model"
 
         let error = config.validate().expect_err("expected validation to fail");
         assert!(error.to_string().contains(
-<<<<<<< HEAD
-            "default_model uses ':cloud' with model_provider 'ollama', but uri is local or unset"
-=======
             "providers.models.ollama.default.model uses ':cloud', but uri is local or unset"
         ));
     }
@@ -18820,7 +18518,6 @@ model = "primary-model"
         let error = config.validate().expect_err("expected validation to fail");
         assert!(error.to_string().contains(
             "providers.models.ollama.default.model uses ':cloud', but no API key is configured"
->>>>>>> origin/master
         ));
     }
 
@@ -18848,8 +18545,6 @@ model = "primary-model"
     }
 
     #[test]
-<<<<<<< HEAD
-=======
     async fn validate_ollama_cloud_model_checks_each_alias_for_official_key() {
         let _env_guard = env_override_lock().await;
         let mut config = Config::default();
@@ -18884,7 +18579,6 @@ model = "primary-model"
     }
 
     #[test]
->>>>>>> origin/master
     async fn deserialize_rejects_unknown_model_provider_wire_api() {
         let toml = r#"
 schema_version = 3
@@ -18975,8 +18669,6 @@ wire_api = "ws"
         let _ = fs::remove_dir_all(default_config_dir).await;
     }
 
-<<<<<<< HEAD
-=======
     async fn create_homebrew_prefix() -> TempDir {
         let prefix = TempDir::new().expect("homebrew prefix temp dir");
         fs::create_dir_all(prefix.path().join("Cellar"))
@@ -19040,7 +18732,6 @@ wire_api = "ws"
         assert!(try_resolve_macos_homebrew_config_dir(&exe).await.is_none());
     }
 
->>>>>>> origin/master
     #[test]
     async fn default_path_under_config_dir_respects_zeroclaw_config_dir() {
         let _env_guard = env_override_lock().await;
@@ -19361,19 +19052,8 @@ default_model = "persisted-profile"
     }
 
     #[test]
-<<<<<<< HEAD
-    async fn validate_rejects_unpublished_jira_actions() {
-        // Restored from upstream's #6116 (Jira API v2 server mode). The
-        // validation logic at `Config::validate -> jira.allowed_actions`
-        // exists unchanged; this test was dropped during the
-        // upstream/master merge resolution alongside the env_override
-        // tests that were intentionally deleted with `apply_env_overrides()`.
-        // Restoring it here.
-        for action in ["list_projects", "myself"] {
-=======
     async fn validate_rejects_unknown_jira_actions() {
         for action in ["delete_ticket", "drop_database", ""] {
->>>>>>> origin/master
             let mut config = Config::default();
             config.jira.enabled = true;
             config.jira.base_url = "https://jira.example.test".into();
@@ -19382,13 +19062,6 @@ default_model = "persisted-profile"
 
             let err = config
                 .validate()
-<<<<<<< HEAD
-                .expect_err("unpublished Jira action should be rejected")
-                .to_string();
-            assert!(
-                err.contains("jira.allowed_actions contains unknown action"),
-                "expected Jira allowed action error for {action}, got: {err}"
-=======
                 .expect_err("unknown Jira action should be rejected")
                 .to_string();
             assert!(
@@ -19419,7 +19092,6 @@ default_model = "persisted-profile"
             assert!(
                 config.validate().is_ok(),
                 "published Jira action {action:?} should validate"
->>>>>>> origin/master
             );
         }
     }

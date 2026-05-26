@@ -9,11 +9,7 @@ cargo mdbook serve                       # serve all locales at http://localhost
 cargo mdbook serve --locale ja           # live-reload against Japanese source
 cargo mdbook build                       # static build of every locale into docs/book/book/
 cargo mdbook refs                        # regenerate the auto-generated reference pages
-<<<<<<< HEAD
-cargo mdbook sync                        # after editing English source: re-extract + AI-fill delta
-=======
 cargo mdbook sync                        # translation-cache pass: re-extract + merge .po files
->>>>>>> origin/master
 cargo mdbook sync --locale ja            # sync one locale only
 cargo mdbook sync --force                # force-retranslate everything (quality pass)
 cargo mdbook sync --locale ja --force    # force-retranslate one locale
@@ -56,8 +52,6 @@ Then the command counts fuzzy + untranslated entries. If there's a delta and `--
 
 Without `--provider`, `cargo mdbook sync` still runs extract + merge and reports how many strings need translation. Strings without a `msgstr` fall back to English at render time — partial translations are valid.
 
-<<<<<<< HEAD
-=======
 `cargo mdbook sync` normalizes generated gettext catalogs with stable output rules (`msgcat --sort-output --no-wrap --add-location=file`). That keeps diffs focused on real source changes and avoids global line-number churn from small edits.
 
 Expected unavoidable churn:
@@ -82,7 +76,6 @@ Include `.po` updates only when one of these is true:
 - The PR adds a new locale.
 - `cargo mdbook sync` produces a small, reviewable diff limited to the strings changed by the PR.
 
->>>>>>> origin/master
 ## Adding a new locale
 
 1. Edit `locales.toml` at the repo root — the **only** file you need to touch:

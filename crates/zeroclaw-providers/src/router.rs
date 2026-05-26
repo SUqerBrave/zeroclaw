@@ -174,8 +174,16 @@ impl RouterModelProvider {
             );
             return (self.default_index, self.default_model.clone());
         }
+            ::zeroclaw_log::record!(
+                WARN,
+                ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                    .with_outcome(::zeroclaw_log::EventOutcome::Unknown)
+                    .with_attrs(::serde_json::json!({"hint": hint})),
+                "Unknown route hint, falling back to default model_provider"
+            );
+        }
 
-        // Not a hint — use default model_provider with the model as-is
+        // Not a hint or hint not found — use default model_provider with the model as-is
         (self.default_index, model.to_string())
     }
 }

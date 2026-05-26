@@ -326,10 +326,7 @@ impl ModelProvider for AzureOpenAiModelProvider {
             native_tool_calling: true,
             vision: true,
             prompt_caching: false,
-<<<<<<< HEAD
-=======
             extended_thinking: false,
->>>>>>> origin/master
         }
     }
 

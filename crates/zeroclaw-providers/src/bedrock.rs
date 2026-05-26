@@ -470,11 +470,8 @@ struct ConverseRequest {
     inference_config: Option<InferenceConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
     tool_config: Option<ToolConfig>,
-<<<<<<< HEAD
-=======
     #[serde(skip_serializing_if = "Option::is_none")]
     additional_model_request_fields: Option<serde_json::Value>,
->>>>>>> origin/master
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -497,8 +494,6 @@ enum ContentBlock {
     ToolResult(ToolResultWrapper),
     CachePointBlock(CachePointWrapper),
     Image(ImageWrapper),
-<<<<<<< HEAD
-=======
     /// Thinking block for round-tripping extended thinking in conversation
     /// history. Required when thinking is enabled and assistant messages
     /// contain tool_use blocks.
@@ -527,7 +522,6 @@ struct ReasoningTextOutField {
     /// original thinking block returned by the model.
     #[serde(skip_serializing_if = "Option::is_none")]
     signature: Option<String>,
->>>>>>> origin/master
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -629,8 +623,6 @@ fn bedrock_model_omits_temperature(model: &str) -> bool {
     model.contains("claude-opus-4-7")
 }
 
-<<<<<<< HEAD
-=======
 /// Whether a Bedrock model accepts the fixed-budget native-thinking shape
 /// (`additionalModelRequestFields.thinking = {"type": "enabled", "budget_tokens": N}`).
 /// AWS's Opus 4.7 model card states the model only supports adaptive thinking
@@ -642,7 +634,6 @@ fn bedrock_model_supports_native_thinking(model: &str) -> bool {
     !model.contains("claude-opus-4-7")
 }
 
->>>>>>> origin/master
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct ToolConfig {
@@ -707,31 +698,20 @@ struct ConverseOutputMessage {
 /// Response content blocks from the Converse API.
 ///
 /// Uses `#[serde(untagged)]` to match Bedrock's union format where `text` is a
-<<<<<<< HEAD
-/// simple string value and `toolUse` is a nested object. Unknown block types
-/// (e.g. `reasoningContent`, `guardContent`) are captured as `Other` to prevent
-/// deserialization failures.
-=======
 /// simple string value and `toolUse` is a nested object. `reasoningContent`
 /// carries extended thinking output. Unknown block types (e.g. `guardContent`)
 /// are captured as `Other` to prevent deserialization failures.
->>>>>>> origin/master
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 enum ResponseContentBlock {
     ToolUse(ResponseToolUseWrapper),
-<<<<<<< HEAD
-=======
     ReasoningContent(ReasoningContentWrapper),
->>>>>>> origin/master
     Text(TextBlock),
     Other(#[allow(dead_code)] serde_json::Value),
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-<<<<<<< HEAD
-=======
 struct ReasoningContentWrapper {
     reasoning_content: ReasoningContentBlock,
 }
@@ -755,7 +735,6 @@ struct ReasoningTextField {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
->>>>>>> origin/master
 struct ResponseToolUseWrapper {
     tool_use: ToolUseBlock,
 }
@@ -1193,8 +1172,6 @@ impl BedrockModelProvider {
             .and_then(|v| serde_json::from_value::<Vec<ProviderToolCall>>(v.clone()).ok())?;
 
         let mut blocks = Vec::new();
-<<<<<<< HEAD
-=======
 
         // When extended thinking is enabled, assistant messages must start
         // with reasoning content blocks (including signatures) before any
@@ -1227,7 +1204,6 @@ impl BedrockModelProvider {
             }
         }
 
->>>>>>> origin/master
         if let Some(text) = value
             .get("content")
             .and_then(serde_json::Value::as_str)
@@ -1304,10 +1280,7 @@ impl BedrockModelProvider {
 
     fn parse_converse_response(response: ConverseResponse) -> ProviderChatResponse {
         let mut text_parts = Vec::new();
-<<<<<<< HEAD
-=======
         let mut thinking_parts = Vec::new();
->>>>>>> origin/master
         let mut tool_calls = Vec::new();
 
         let usage = response.usage.map(|u| TokenUsage {
@@ -1327,8 +1300,6 @@ impl BedrockModelProvider {
                             text_parts.push(trimmed);
                         }
                     }
-<<<<<<< HEAD
-=======
                     ResponseContentBlock::ReasoningContent(wrapper) => {
                         if let Some(reasoning_text) = wrapper.reasoning_content.reasoning_text {
                             // Store as JSON with signature for round-tripping.
@@ -1339,7 +1310,6 @@ impl BedrockModelProvider {
                             thinking_parts.push(block.to_string());
                         }
                     }
->>>>>>> origin/master
                     ResponseContentBlock::ToolUse(wrapper) => {
                         if !wrapper.tool_use.name.is_empty() {
                             tool_calls.push(ProviderToolCall {
@@ -1355,15 +1325,12 @@ impl BedrockModelProvider {
             }
         }
 
-<<<<<<< HEAD
-=======
         let reasoning_content = if thinking_parts.is_empty() {
             None
         } else {
             Some(thinking_parts.join("\n"))
         };
 
->>>>>>> origin/master
         ProviderChatResponse {
             text: if text_parts.is_empty() {
                 None
@@ -1372,11 +1339,7 @@ impl BedrockModelProvider {
             },
             tool_calls,
             usage,
-<<<<<<< HEAD
-            reasoning_content: None,
-=======
             reasoning_content,
->>>>>>> origin/master
         }
     }
 
@@ -1497,10 +1460,7 @@ impl ModelProvider for BedrockModelProvider {
             native_tool_calling: true,
             vision: true,
             prompt_caching: false,
-<<<<<<< HEAD
-=======
             extended_thinking: true,
->>>>>>> origin/master
         }
     }
 
@@ -1564,10 +1524,7 @@ impl ModelProvider for BedrockModelProvider {
                 },
             }),
             tool_config: None,
-<<<<<<< HEAD
-=======
             additional_model_request_fields: None,
->>>>>>> origin/master
         };
 
         let response = self.send_converse_request(&auth, model, &request).await?;
@@ -1623,8 +1580,6 @@ impl ModelProvider for BedrockModelProvider {
 
         let tool_config = Self::convert_tools_to_converse(request.tools);
 
-<<<<<<< HEAD
-=======
         // Extended thinking support. Gate fixed-budget thinking off for
         // models that only support adaptive thinking (e.g. Opus 4.7) — those
         // requests would otherwise 400 at the provider. Caller-supplied
@@ -1676,27 +1631,15 @@ impl ModelProvider for BedrockModelProvider {
             Some(effective_temperature)
         };
 
->>>>>>> origin/master
         let converse_request = ConverseRequest {
             system,
             messages: converse_messages,
             inference_config: Some(InferenceConfig {
-<<<<<<< HEAD
-                max_tokens: self.max_tokens,
-                temperature: if bedrock_model_omits_temperature(model) {
-                    None
-                } else {
-                    Some(temperature)
-                },
-            }),
-            tool_config,
-=======
                 max_tokens: effective_max_tokens,
                 temperature: serialized_temperature,
             }),
             tool_config,
             additional_model_request_fields: additional_fields,
->>>>>>> origin/master
         };
 
         let response = self
@@ -2138,10 +2081,7 @@ mod tests {
                 temperature: Some(0.7),
             }),
             tool_config: None,
-<<<<<<< HEAD
-=======
             additional_model_request_fields: None,
->>>>>>> origin/master
         };
         let json = serde_json::to_string(&req).unwrap();
         assert!(!json.contains("system"));
@@ -2175,8 +2115,6 @@ mod tests {
     }
 
     #[test]
-<<<<<<< HEAD
-=======
     fn bedrock_model_supports_native_thinking_excludes_opus_4_7() {
         // Per AWS Bedrock model card, Opus 4.7 only supports adaptive thinking;
         // fixed-budget native thinking returns a 400.
@@ -2202,7 +2140,6 @@ mod tests {
     }
 
     #[test]
->>>>>>> origin/master
     fn inference_config_serializes_without_temperature_when_none() {
         let cfg = InferenceConfig {
             max_tokens: 4096,

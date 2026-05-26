@@ -69,10 +69,7 @@ pub async fn run_full(config: &crate::config::Config) -> Result<Vec<CheckResult>
     results.push(check_memory_roundtrip(config).await);
 
     // 11. WebSocket handshake
-<<<<<<< HEAD
-=======
     #[cfg(feature = "gateway")]
->>>>>>> origin/master
     results.push(check_websocket_handshake(config).await);
 
     Ok(results)
@@ -201,13 +198,8 @@ fn check_tool_registry(config: &crate::config::Config) -> CheckResult {
 }
 
 fn check_channel_config(config: &crate::config::Config) -> CheckResult {
-<<<<<<< HEAD
-    let channels = config.channels.channels();
-    let configured = channels.iter().filter(|(_, c)| *c).count();
-=======
     let channels = zeroclaw_channels::listing::compiled_channels(&config.channels);
     let configured = channels.iter().filter(|e| e.configured).count();
->>>>>>> origin/master
     CheckResult::pass(
         "channels",
         format!(
@@ -343,10 +335,7 @@ async fn check_memory_roundtrip(config: &crate::config::Config) -> CheckResult {
     }
 }
 
-<<<<<<< HEAD
-=======
 #[cfg(feature = "gateway")]
->>>>>>> origin/master
 async fn check_websocket_handshake(config: &crate::config::Config) -> CheckResult {
     let port = config.gateway.port;
     let (probe_host, _) = resolve_probe_host(&config.gateway.host);

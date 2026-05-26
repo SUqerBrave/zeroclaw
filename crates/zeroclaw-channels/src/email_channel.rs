@@ -19,10 +19,7 @@ use lettre::message::{Attachment, MultiPart, SinglePart};
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Message, SmtpTransport, Transport};
 use mail_parser::{MessageParser, MimeHeaders};
-<<<<<<< HEAD
-=======
 use pulldown_cmark::{Options, Parser, html};
->>>>>>> origin/master
 use rustls::{ClientConfig, RootCertStore};
 use rustls_pki_types::DnsName;
 use std::collections::HashSet;
@@ -349,10 +346,7 @@ impl EmailChannel {
                         _uid: uid,
                         msg_id,
                         sender,
-<<<<<<< HEAD
-=======
                         subject,
->>>>>>> origin/master
                         content,
                         timestamp: ts,
                         attachments,
@@ -612,10 +606,7 @@ impl EmailChannel {
                 thread_ts: None,
                 interruption_scope_id: None,
                 attachments: email.attachments,
-<<<<<<< HEAD
-=======
                 subject: Some(email.subject),
->>>>>>> origin/master
             };
 
             if tx.send(msg).await.is_err() {
@@ -627,10 +618,6 @@ impl EmailChannel {
         Ok(())
     }
 
-<<<<<<< HEAD
-    fn create_smtp_transport(&self) -> Result<SmtpTransport> {
-        let creds = Credentials::new(self.config.username.clone(), self.config.password.clone());
-=======
     fn smtp_credentials(&self) -> Credentials {
         let user = self
             .config
@@ -649,7 +636,6 @@ impl EmailChannel {
 
     fn create_smtp_transport(&self) -> Result<SmtpTransport> {
         let creds = self.smtp_credentials();
->>>>>>> origin/master
         let transport = if self.config.smtp_tls {
             SmtpTransport::relay(&self.config.smtp_host)?
                 .port(self.config.smtp_port)
@@ -670,10 +656,7 @@ struct ParsedEmail {
     _uid: u32,
     msg_id: String,
     sender: String,
-<<<<<<< HEAD
-=======
     subject: String,
->>>>>>> origin/master
     content: String,
     timestamp: u64,
     attachments: Vec<zeroclaw_api::media::MediaAttachment>,
@@ -695,9 +678,6 @@ impl ::zeroclaw_api::attribution::Attributable for EmailChannel {
     }
 }
 
-<<<<<<< HEAD
-#[async_trait]
-=======
 fn markdown_to_html(md: &str) -> String {
     let mut options = Options::empty();
     options.insert(Options::ENABLE_TABLES);
@@ -709,7 +689,6 @@ fn markdown_to_html(md: &str) -> String {
 }
 #[async_trait]
 
->>>>>>> origin/master
 impl Channel for EmailChannel {
     fn name(&self) -> &str {
         "email"
@@ -730,39 +709,6 @@ impl Channel for EmailChannel {
             (default_subject, message.content.as_str())
         };
 
-<<<<<<< HEAD
-        let email = if message.attachments.is_empty() {
-            // Existing plain-text path
-            Message::builder()
-                .from(self.config.from_address.parse()?)
-                .to(message.recipient.parse()?)
-                .subject(subject)
-                .singlepart(SinglePart::plain(body.to_string()))?
-        } else {
-            // Multipart with attachments
-            let mut multipart = MultiPart::mixed().singlepart(SinglePart::plain(body.to_string()));
-
-            for att in &message.attachments {
-                let content_type = att
-                    .mime_type
-                    .as_deref()
-                    .and_then(|m| ContentType::parse(m).ok())
-                    .unwrap_or_else(|| {
-                        ContentType::parse("application/octet-stream").expect("hardcoded MIME type")
-                    });
-
-                let attachment =
-                    Attachment::new(att.file_name.clone()).body(att.data.clone(), content_type);
-
-                multipart = multipart.singlepart(attachment);
-            }
-
-            Message::builder()
-                .from(self.config.from_address.parse()?)
-                .to(message.recipient.parse()?)
-                .subject(subject)
-                .multipart(multipart)?
-=======
         let mut builder = Message::builder()
             .from(self.config.from_address.parse()?)
             .to(message.recipient.parse()?)
@@ -821,7 +767,6 @@ impl Channel for EmailChannel {
                 }
                 builder.multipart(mixed)?
             }
->>>>>>> origin/master
         };
 
         let transport = self.create_smtp_transport()?;
@@ -993,8 +938,6 @@ mod tests {
         Arc::new(move || peers.clone())
     }
 
-<<<<<<< HEAD
-=======
     #[test]
     fn email_config_custom() {
         let config = EmailConfig {
@@ -1051,7 +994,6 @@ mod tests {
         assert_eq!(cloned.default_subject, config.default_subject);
     }
 
->>>>>>> origin/master
     #[tokio::test]
     async fn email_channel_new() {
         let config = EmailConfig::default();
@@ -1284,21 +1226,15 @@ mod tests {
             smtp_tls: true,
             username: "user@example.com".to_string(),
             password: "password123".to_string(),
-<<<<<<< HEAD
-=======
             smtp_username: None,
             smtp_password: None,
->>>>>>> origin/master
             from_address: "bot@example.com".to_string(),
             idle_timeout_secs: 1740,
             poll_interval_secs: 60,
             default_subject: "Serialization Test".to_string(),
             max_attachment_bytes: default_max_attachment_bytes(),
             excluded_tools: vec![],
-<<<<<<< HEAD
-=======
             html_body: true,
->>>>>>> origin/master
         };
 
         let json = serde_json::to_string(&config).unwrap();
@@ -1324,11 +1260,7 @@ mod tests {
         assert_eq!(config.smtp_port, 465); // default
         assert!(config.smtp_tls); // default
         assert_eq!(config.idle_timeout_secs, 1740); // default
-<<<<<<< HEAD
-        assert_eq!(config.default_subject, "ZeroClaw Message"); // default
-=======
         assert_eq!(config.default_subject, "Re: Message"); // default
->>>>>>> origin/master
     }
 
     #[test]
@@ -1398,8 +1330,6 @@ mod tests {
         let debug_str = format!("{:?}", config);
         assert!(debug_str.contains("imap.debug.com"));
     }
-<<<<<<< HEAD
-=======
 
     #[test]
     fn email_config_smtp_credentials_default_to_none() {
@@ -1440,5 +1370,4 @@ mod tests {
         let expected = Credentials::new("smtp@example.com".to_string(), "smtp_pass".to_string());
         assert_eq!(creds, expected);
     }
->>>>>>> origin/master
 }

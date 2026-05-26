@@ -25,6 +25,20 @@ fi
 
 echo "✓ 找到 aarch64-linux-musl-gcc"
 
+# 构建 Web Dashboard（必须在 cargo build 之前，embedded-web 需要 web/dist/）
+echo ""
+echo "正在构建 Web Dashboard..."
+WEB_DIR="$(dirname "$0")/web"
+if [ -f "$WEB_DIR/package.json" ]; then
+    (cd "$WEB_DIR" && npm ci --ignore-scripts && npm run build) || {
+        echo "❌ Web Dashboard 构建失败"
+        exit 1
+    }
+    echo "✓ Web Dashboard 构建完成"
+else
+    echo "⚠️  未找到 web/package.json，跳过 Web 构建"
+fi
+
 # 设置环境变量
 export PATH=/usr/local/aarch64-linux-musl-cross/bin:$PATH
 export CC=aarch64-linux-musl-gcc
@@ -42,12 +56,12 @@ echo ""
 echo "开始编译静态二进制..."
 echo ""
 
-# 编译静态链接的二进制
+# 编译静态链接的二进制（包含 embedded-web 将 Web Dashboard 嵌入二进制）
 # R68S 基于 RK3568 (Cortex-A55)，使用 cortex-a76 优化也兼容
 cargo build \
     --release \
     --target aarch64-unknown-linux-musl \
-    --features "agent-runtime,hardware,sandbox-landlock,channel-wechat"
+    --features "agent-runtime,hardware,sandbox-landlock,channel-wechat,embedded-web"
 
 # 如果编译失败，尝试不使用硬件特性
 if [ $? -ne 0 ]; then
@@ -55,7 +69,7 @@ if [ $? -ne 0 ]; then
     cargo build \
         --release \
         --target aarch64-unknown-linux-musl \
-        --features "agent-runtime,channel-wechat"
+        --features "agent-runtime,channel-wechat,embedded-web"
 fi
 
 echo ""

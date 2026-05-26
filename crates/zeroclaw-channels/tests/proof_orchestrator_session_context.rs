@@ -68,10 +68,7 @@ fn msg_from(
         thread_ts: thread.map(String::from),
         interruption_scope_id: None,
         attachments: Vec::new(),
-<<<<<<< HEAD
-=======
         subject: None,
->>>>>>> origin/master
     }
 }
 

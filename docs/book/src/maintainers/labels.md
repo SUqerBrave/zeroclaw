@@ -8,8 +8,6 @@ Single reference for every label used on PRs and issues. Sources of truth:
 
 When definitions conflict, update the source file first, then sync this page.
 
-<<<<<<< HEAD
-=======
 ## Ownership boundaries
 
 Labels are portable metadata. They should answer what kind of work this is, what code area it touches, how risky it is to review, and whether stale policy or triage policy needs special handling.
@@ -58,7 +56,6 @@ Type labels capture the high-level work class. They are separate from path label
 | `type: docs` | Documentation-only or docs-primary work |
 | `type:rfc` | RFC issue or proposal; protected from stale closure |
 
->>>>>>> origin/master
 ## Path labels
 
 Applied automatically by `pr-path-labeler.yml` (the only labeling automation currently active). Globs live in `.github/labeler.yml`.
@@ -139,10 +136,7 @@ Each channel gets a `channel:<name>` label in addition to the base `channel` lab
 | `provider:anthropic` | `anthropic.rs` |
 | `provider:azure-openai` | `azure_openai.rs` |
 | `provider:bedrock` | `bedrock.rs` |
-<<<<<<< HEAD
-=======
 | `provider:claude-code` | `claude_code.rs` |
->>>>>>> origin/master
 | `provider:compatible` | `compatible.rs` |
 | `provider:copilot` | `copilot.rs` |
 | `provider:gemini` | `gemini.rs`, `gemini_cli.rs` |
@@ -187,11 +181,7 @@ Based on effective changed line count, normalized for docs-only and lockfile-hea
 
 ## Risk labels
 
-<<<<<<< HEAD
-Heuristic combining touched paths and change size. Currently applied **manually**.
-=======
 For PRs, risk labels describe the actual diff under review: touched paths, behavior change, security boundary exposure, and rollback difficulty. For issues, risk labels describe the likely fix blast radius based on the report, help triage reviewer depth and contributor fit, and may change once a concrete PR shows the actual implementation path. Currently applied **manually**.
->>>>>>> origin/master
 
 | Label | Meaning |
 |---|---|
@@ -217,14 +207,6 @@ Defined in `.github/label-policy.json`. Based on the author's merged PR count qu
 
 ## Status labels
 
-<<<<<<< HEAD
-Track lifecycle state of RFCs and tracked work items. Applied manually.
-
-| Label | Description |
-|---|---|
-| `status:in-progress` | An open PR is actively targeting this issue |
-| `status:accepted` | RFC or work item ratified by the team |
-=======
 Track lifecycle state of RFCs and tracked work items. Applied manually unless a maintained workflow says otherwise.
 
 | Label | Description |
@@ -234,7 +216,6 @@ Track lifecycle state of RFCs and tracked work items. Applied manually unless a 
 | `status:in-progress` | An open PR is actively targeting this issue. Reconcile against live PR state during stale passes; the label is not a permanent exemption after the PR closes. |
 | `status:stale` | No author activity for the stale window; may close if not refreshed |
 | `status:no-stale` | Explicit stale exemption for accepted or otherwise long-lived work that is not already protected by another stale exclusion. Use only when a maintainer comment, issue body, or tracker entry records why the issue should stay open. |
->>>>>>> origin/master
 
 ## Triage labels
 
@@ -248,9 +229,6 @@ Applied manually — the auto-response automation that used to handle these was 
 | `duplicate` | Duplicate of an existing issue |
 | `stale-candidate` | Dormant PR or issue; candidate for closing |
 | `superseded` | Replaced by a newer PR |
-<<<<<<< HEAD
-| `no-stale` | Exempt from stale automation; accepted but blocked work |
-=======
 
 ## Community pickup labels
 
@@ -262,7 +240,6 @@ Applied manually when maintainers want outside contribution.
 | `help wanted` | Actionable, unblocked work that maintainers want external help on and can review, usually low or medium likely issue risk |
 
 Do not use `help wanted` as a generic marker for "valid but unstaffed." If an issue is blocked, architecture-dependent, missing acceptance criteria, likely high-risk, or waiting on a policy decision, leave it without pickup labels until the blocker is resolved or a maintainer writes the missing scope.
->>>>>>> origin/master
 
 ## Maintenance triggers
 

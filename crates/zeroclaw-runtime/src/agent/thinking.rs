@@ -26,12 +26,9 @@ pub struct ThinkingParams {
     pub max_tokens_adjustment: i64,
     /// Optional system prompt prefix injected before the existing system prompt.
     pub system_prompt_prefix: Option<String>,
-<<<<<<< HEAD
-=======
     /// Native extended thinking parameters, populated when the config enables
     /// native thinking and the level has a `budget_tokens` value.
     pub native_thinking: Option<zeroclaw_config::scattered_types::NativeThinkingParams>,
->>>>>>> origin/master
 }
 
 /// Parse a `/think:<level>` directive from the start of a message.
@@ -69,10 +66,7 @@ pub fn apply_thinking_level(level: ThinkingLevel) -> ThinkingParams {
                  unless explicitly asked. No preamble."
                     .into(),
             ),
-<<<<<<< HEAD
-=======
             native_thinking: None,
->>>>>>> origin/master
         },
         ThinkingLevel::Minimal => ThinkingParams {
             temperature_adjustment: -0.1,
@@ -82,28 +76,19 @@ pub fn apply_thinking_level(level: ThinkingLevel) -> ThinkingParams {
                  Prioritize speed over thoroughness."
                     .into(),
             ),
-<<<<<<< HEAD
-=======
             native_thinking: None,
->>>>>>> origin/master
         },
         ThinkingLevel::Low => ThinkingParams {
             temperature_adjustment: -0.05,
             max_tokens_adjustment: 0,
             system_prompt_prefix: Some("Keep reasoning light. Explain only when helpful.".into()),
-<<<<<<< HEAD
-=======
             native_thinking: None,
->>>>>>> origin/master
         },
         ThinkingLevel::Medium => ThinkingParams {
             temperature_adjustment: 0.0,
             max_tokens_adjustment: 0,
             system_prompt_prefix: None,
-<<<<<<< HEAD
-=======
             native_thinking: None,
->>>>>>> origin/master
         },
         ThinkingLevel::High => ThinkingParams {
             temperature_adjustment: 0.05,
@@ -113,10 +98,7 @@ pub fn apply_thinking_level(level: ThinkingLevel) -> ThinkingParams {
                  consider edge cases before answering."
                     .into(),
             ),
-<<<<<<< HEAD
-=======
             native_thinking: None,
->>>>>>> origin/master
         },
         ThinkingLevel::Max => ThinkingParams {
             temperature_adjustment: 0.1,
@@ -127,16 +109,11 @@ pub fn apply_thinking_level(level: ThinkingLevel) -> ThinkingParams {
                  and provide the most thorough analysis possible."
                     .into(),
             ),
-<<<<<<< HEAD
-=======
             native_thinking: None,
->>>>>>> origin/master
         },
     }
 }
 
-<<<<<<< HEAD
-=======
 /// Convert a `ThinkingLevel` into parameters, resolving native extended
 /// thinking from the provided config.
 pub fn apply_thinking_level_with_config(
@@ -169,7 +146,6 @@ pub fn apply_thinking_level_with_config(
     params
 }
 
->>>>>>> origin/master
 /// Resolve the effective thinking level using the priority hierarchy:
 /// 1. Inline directive (if present)
 /// 2. Session override (reserved, currently always `None`)
@@ -190,8 +166,6 @@ pub fn clamp_temperature(temp: f64) -> f64 {
     temp.clamp(0.0, 2.0)
 }
 
-<<<<<<< HEAD
-=======
 pub struct ResolvedThinking {
     pub effective_message: String,
     pub params: ThinkingParams,
@@ -231,7 +205,6 @@ pub fn resolve_thinking_from_message(
     }
 }
 
->>>>>>> origin/master
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -408,10 +381,7 @@ mod tests {
     fn resolve_inline_directive_takes_priority() {
         let config = ThinkingConfig {
             default_level: ThinkingLevel::Low,
-<<<<<<< HEAD
-=======
             ..ThinkingConfig::default()
->>>>>>> origin/master
         };
         let result =
             resolve_thinking_level(Some(ThinkingLevel::Max), Some(ThinkingLevel::High), &config);
@@ -422,10 +392,7 @@ mod tests {
     fn resolve_session_override_takes_priority_over_config() {
         let config = ThinkingConfig {
             default_level: ThinkingLevel::Low,
-<<<<<<< HEAD
-=======
             ..ThinkingConfig::default()
->>>>>>> origin/master
         };
         let result = resolve_thinking_level(None, Some(ThinkingLevel::High), &config);
         assert_eq!(result, ThinkingLevel::High);
@@ -435,10 +402,7 @@ mod tests {
     fn resolve_falls_back_to_config_default() {
         let config = ThinkingConfig {
             default_level: ThinkingLevel::Minimal,
-<<<<<<< HEAD
-=======
             ..ThinkingConfig::default()
->>>>>>> origin/master
         };
         let result = resolve_thinking_level(None, None, &config);
         assert_eq!(result, ThinkingLevel::Minimal);
@@ -470,8 +434,6 @@ mod tests {
         assert!((clamp_temperature(3.0) - 2.0).abs() < f64::EPSILON);
     }
 
-<<<<<<< HEAD
-=======
     // ── Budget-token clamping ────────────────────────────────────
 
     #[test]
@@ -527,7 +489,6 @@ mod tests {
         assert_eq!(native.budget_tokens, MAX_BUDGET_TOKENS);
     }
 
->>>>>>> origin/master
     // ── Serde round-trip ─────────────────────────────────────────
 
     #[test]
@@ -550,8 +511,6 @@ mod tests {
         let json = serde_json::to_string(&level).unwrap();
         assert_eq!(json, "\"high\"");
     }
-<<<<<<< HEAD
-=======
 
     /// Regression test for the wiring fix in PR #5652: when
     /// `NATIVE_THINKING_OVERRIDE.scope(params, fut)` is installed by the
@@ -626,5 +585,4 @@ mod tests {
         }
         validate_thinking_config(&cfg_all_valid);
     }
->>>>>>> origin/master
 }

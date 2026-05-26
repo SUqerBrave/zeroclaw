@@ -24,16 +24,6 @@ pub async fn handle_command(command: crate::ChannelCommands, config: &Config) ->
         crate::ChannelCommands::List => {
             println!("Channels:");
             println!("  ✅ CLI (always available)");
-<<<<<<< HEAD
-            for (channel, configured) in config.channels.channels() {
-                println!(
-                    "  {} {}",
-                    if configured { "✅" } else { "❌" },
-                    channel.name()
-                );
-            }
-            // Notion is a top-level config section, not part of ChannelsConfig
-=======
             for entry in zeroclaw_channels::listing::compiled_channels(&config.channels) {
                 println!(
                     "  {} {}",
@@ -43,24 +33,10 @@ pub async fn handle_command(command: crate::ChannelCommands, config: &Config) ->
             }
             // Notion is a top-level config section, not part of ChannelsConfig
             #[cfg(feature = "channel-notion")]
->>>>>>> origin/master
             {
                 let notion_configured =
                     config.notion.enabled && !config.notion.database_id.trim().is_empty();
                 println!("  {} Notion", if notion_configured { "✅" } else { "❌" });
-<<<<<<< HEAD
-            }
-            if !cfg!(feature = "channel-matrix") {
-                println!(
-                    "  ℹ️ Matrix channel support is disabled in this build (enable `channel-matrix`)."
-                );
-            }
-            if !cfg!(feature = "channel-lark") {
-                println!(
-                    "  ℹ️ Lark/Feishu channel support is disabled in this build (enable `channel-lark`)."
-                );
-=======
->>>>>>> origin/master
             }
             println!("\nTo start channels: zeroclaw channel start");
             println!("To check health:    zeroclaw channel doctor");

@@ -19,8 +19,6 @@ pub struct MediaAttachment {
 }
 
 impl MediaAttachment {
-<<<<<<< HEAD
-=======
     /// Load an attachment from a file path on disk.
     pub fn from_file(path: &str) -> anyhow::Result<Self> {
         let p = std::path::Path::new(path);
@@ -52,7 +50,6 @@ impl MediaAttachment {
         })
     }
 
->>>>>>> origin/master
     /// Classify this attachment into a [`MediaKind`].
     pub fn kind(&self) -> MediaKind {
         // Try MIME type first.

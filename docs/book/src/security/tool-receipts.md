@@ -60,11 +60,7 @@ The `zc-receipt-` prefix exists so the leak detector doesn't redact them (receip
 ### In debug logs
 
 ```bash
-<<<<<<< HEAD
-RUST_LOG=zeroclaw::agent=debug zeroclaw daemon
-=======
 RUST_LOG=zeroclaw_runtime::agent=debug zeroclaw daemon
->>>>>>> origin/master
 ```
 
 Produces:

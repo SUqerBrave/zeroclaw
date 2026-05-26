@@ -146,11 +146,6 @@ gated_actions = [
 ]
 gated_domains = []
 gated_domain_categories = []
-<<<<<<< HEAD
-challenge_delivery = "dm"
-challenge_timeout_secs = 120
-=======
->>>>>>> origin/master
 challenge_max_attempts = 3
 
 [security.estop]

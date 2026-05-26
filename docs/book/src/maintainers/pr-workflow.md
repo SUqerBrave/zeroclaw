@@ -21,8 +21,6 @@ The control loop that delivers this is layered on purpose:
 
 Automation handles intake labels and CI gating. Final merge accountability stays with human maintainers and PR authors.
 
-<<<<<<< HEAD
-=======
 ## Project board contract
 
 The Project board is an automated planning board, not the authoritative PR review queue.
@@ -49,7 +47,6 @@ PR lanes are routing expectations, not another required label family. Use them t
 
 Do not build a separate manual PR board for these lanes unless native GitHub state and CODEOWNERS stop answering the routing question. Check native GitHub merge state before normal lane review: `DIRTY` means resolve conflicts first; `BEHIND` alone is mergeability housekeeping, not an author-facing blocker.
 
->>>>>>> origin/master
 ## Required repository settings
 
 Branch protection on `master`:
@@ -128,11 +125,7 @@ For AI-heavy PRs, reviewers focus on:
 
 - First maintainer triage target: **within 48 hours**.
 - Blocked PRs get one actionable checklist comment, not a series of partial reviews.
-<<<<<<< HEAD
-- `no-stale` reserved for accepted-but-blocked work.
-=======
 - `status:no-stale` is reserved for accepted or otherwise long-lived work with a recorded reason to stay open when the issue is not already protected by another stale exclusion.
->>>>>>> origin/master
 
 For stacked work, require explicit `Depends on #...` so review order is deterministic.
 

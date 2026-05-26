@@ -98,10 +98,6 @@ sandbox-landlock = ["dep:landlock"]
 schema-export = ["dep:schemars", "zeroclaw-config/schema-export"]
 
 
-<<<<<<< HEAD
-channel-nostr = ["zeroclaw-config/channel-nostr"]
-=======
->>>>>>> origin/master
 browser-native = []
 rag-pdf = ["dep:pdf-extract"]
 plugins-wasm = ["dep:zeroclaw-plugins"]

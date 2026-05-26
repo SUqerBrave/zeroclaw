@@ -1,17 +1,11 @@
 use async_trait::async_trait;
 use futures_util::StreamExt;
-<<<<<<< HEAD
-use reqwest::Client;
-use serde::Deserialize;
-use std::collections::HashMap;
-=======
 use lru::LruCache;
 use parking_lot::Mutex as SyncMutex;
 use reqwest::Client;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::num::NonZeroUsize;
->>>>>>> origin/master
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::{Mutex, mpsc, oneshot};
@@ -22,8 +16,6 @@ use zeroclaw_api::channel::{
 
 const GROUP_TARGET_PREFIX: &str = "group:";
 
-<<<<<<< HEAD
-=======
 /// How many recent inbound messages we remember for the purpose of
 /// addressing outbound reactions back at them. signal-cli's `sendReaction`
 /// is keyed on `(targetAuthor, targetTimestamp)`, but we don't want those
@@ -32,15 +24,12 @@ const GROUP_TARGET_PREFIX: &str = "group:";
 /// opaque id and remember the mapping channel-locally.
 const RECENT_TARGETS_CAPACITY: usize = 1024;
 
->>>>>>> origin/master
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum RecipientTarget {
     Direct(String),
     Group(String),
 }
 
-<<<<<<< HEAD
-=======
 /// `(targetAuthor, targetTimestamp_ms)` recovered by `add_reaction` /
 /// `remove_reaction` from an opaque inbound id. Held in `recent_targets`.
 #[derive(Debug, Clone)]
@@ -49,7 +38,6 @@ struct ReactionTarget {
     timestamp_ms: u64,
 }
 
->>>>>>> origin/master
 /// Signal channel using signal-cli daemon's native JSON-RPC + SSE API.
 ///
 /// Connects to a running `signal-cli daemon --http <host:port>`.
@@ -77,14 +65,11 @@ pub struct SignalChannel {
     /// Seconds to wait for an operator reply to a `request_approval` prompt
     /// before treating the silence as a deny. Default 300.
     approval_timeout_secs: u64,
-<<<<<<< HEAD
-=======
     /// Opaque inbound message id → `(targetAuthor, targetTimestamp)` so
     /// outbound reactions can be addressed without embedding the Signal
     /// sender (E.164 phone number or UUID) in `ChannelMessage.id`. Bounded
     /// LRU; once a message ages out, reactions against it fail cleanly.
     recent_targets: Arc<SyncMutex<LruCache<String, ReactionTarget>>>,
->>>>>>> origin/master
 }
 
 // ── signal-cli SSE event JSON shapes ────────────────────────────
@@ -151,13 +136,10 @@ impl SignalChannel {
             proxy_url: None,
             pending_approvals: Arc::new(Mutex::new(HashMap::new())),
             approval_timeout_secs: 300,
-<<<<<<< HEAD
-=======
             recent_targets: Arc::new(SyncMutex::new(LruCache::new(
                 NonZeroUsize::new(RECENT_TARGETS_CAPACITY)
                     .expect("RECENT_TARGETS_CAPACITY is a non-zero constant"),
             ))),
->>>>>>> origin/master
         }
     }
 
@@ -227,8 +209,6 @@ impl SignalChannel {
         }
     }
 
-<<<<<<< HEAD
-=======
     /// Build the JSON-RPC params for signal-cli's `sendReaction` method.
     ///
     /// `targetAuthor` and `targetTimestamp` are recovered from
@@ -273,7 +253,6 @@ impl SignalChannel {
         Ok(params)
     }
 
->>>>>>> origin/master
     /// Check whether the message passes the group/DM filter.
     ///
     /// - `dm_only = true`: only DMs accepted; all group messages rejected.
@@ -404,10 +383,6 @@ impl SignalChannel {
                 .unwrap_or(u64::MAX)
             });
 
-<<<<<<< HEAD
-        Some(ChannelMessage {
-            id: format!("sig_{timestamp}"),
-=======
         // Opaque id: timestamp is convenient for debugging, the random
         // suffix disambiguates two senders that happen to post at the same
         // millisecond in a group. Crucially, neither component reveals the
@@ -424,7 +399,6 @@ impl SignalChannel {
 
         Some(ChannelMessage {
             id,
->>>>>>> origin/master
             sender: sender.clone(),
             reply_target: target,
             content: text.to_string(),
@@ -434,10 +408,6 @@ impl SignalChannel {
             thread_ts: None,
             interruption_scope_id: None,
             attachments: vec![],
-<<<<<<< HEAD
-        })
-    }
-=======
             subject: None,
         })
     }
@@ -450,7 +420,6 @@ impl SignalChannel {
             .map(|_| CHARSET[rng.random_range(0..CHARSET.len())] as char)
             .collect()
     }
->>>>>>> origin/master
 }
 
 impl ::zeroclaw_api::attribution::Attributable for SignalChannel {
@@ -714,8 +683,6 @@ impl Channel for SignalChannel {
         Ok(())
     }
 
-<<<<<<< HEAD
-=======
     async fn add_reaction(
         &self,
         channel_id: &str,
@@ -738,7 +705,6 @@ impl Channel for SignalChannel {
         Ok(())
     }
 
->>>>>>> origin/master
     async fn request_approval(
         &self,
         recipient: &str,
@@ -1185,8 +1151,6 @@ mod tests {
         assert_eq!(msg.sender, uuid);
         assert_eq!(msg.reply_target, uuid);
         assert_eq!(msg.content, "Hello from privacy user");
-<<<<<<< HEAD
-=======
         assert!(
             msg.id.starts_with("sig_1700000000000_"),
             "id should embed timestamp but stay opaque: {}",
@@ -1202,7 +1166,6 @@ mod tests {
         );
         assert_eq!(msg.timestamp, 1_700_000_000);
         assert_eq!(msg.channel_alias.as_deref(), Some("signal_test_alias"));
->>>>>>> origin/master
 
         // Verify reply routing: UUID sender in DM should route as Direct
         let target = SignalChannel::parse_recipient_target(&msg.reply_target);
@@ -1280,8 +1243,6 @@ mod tests {
         assert_eq!(msg.content, "Hello!");
         assert_eq!(msg.sender, "+1111111111");
         assert_eq!(msg.channel, "signal");
-<<<<<<< HEAD
-=======
         assert!(
             msg.id.starts_with("sig_1700000000000_"),
             "id should embed timestamp but stay opaque: {}",
@@ -1297,7 +1258,6 @@ mod tests {
         );
         assert_eq!(msg.timestamp, 1_700_000_000);
         assert_eq!(msg.channel_alias.as_deref(), Some("signal_test_alias"));
->>>>>>> origin/master
     }
 
     #[test]
@@ -1408,8 +1368,6 @@ mod tests {
     }
 
     #[test]
-<<<<<<< HEAD
-=======
     fn process_envelope_group_happy_path() {
         let dm_only = false;
         let ignore_attachments = false;
@@ -1502,7 +1460,6 @@ mod tests {
     }
 
     #[test]
->>>>>>> origin/master
     fn sse_envelope_deserializes() {
         let json = r#"{
             "envelope": {
@@ -1619,8 +1576,6 @@ mod tests {
         sender.send(ChannelApprovalResponse::Approve).unwrap();
         assert_eq!(rx.await.unwrap(), ChannelApprovalResponse::Approve);
     }
-<<<<<<< HEAD
-=======
 
     fn make_reaction_channel() -> SignalChannel {
         SignalChannel::new(
@@ -1739,5 +1694,4 @@ mod tests {
             "unexpected error: {err}"
         );
     }
->>>>>>> origin/master
 }

@@ -253,8 +253,6 @@ fn response_message_item(role: &str, content: Vec<Value>) -> Value {
     })
 }
 
-<<<<<<< HEAD
-=======
 fn legacy_tool_output_message(content: &str) -> Value {
     response_message_item(
         "user",
@@ -265,7 +263,6 @@ fn legacy_tool_output_message(content: &str) -> Value {
     )
 }
 
->>>>>>> origin/master
 fn response_item_type(item: &Value) -> Option<&str> {
     item.get("type").and_then(Value::as_str)
 }
@@ -425,15 +422,11 @@ fn build_responses_input(messages: &[ChatMessage]) -> (String, Vec<Value>) {
             }
             "tool" => {
                 if let Ok(value) = serde_json::from_str::<Value>(&msg.content) {
-<<<<<<< HEAD
-                    if let Some(call_id) = value.get("tool_call_id").and_then(Value::as_str) {
-=======
                     if let Some(call_id) = value
                         .get("tool_call_id")
                         .and_then(Value::as_str)
                         .and_then(|id| first_nonempty(Some(id)))
                     {
->>>>>>> origin/master
                         let output = value
                             .get("content")
                             .and_then(Value::as_str)
@@ -444,27 +437,10 @@ fn build_responses_input(messages: &[ChatMessage]) -> (String, Vec<Value>) {
                             "output": output,
                         }));
                     } else if !msg.content.trim().is_empty() {
-<<<<<<< HEAD
-                        input.push(response_message_item(
-                            "tool",
-                            vec![serde_json::json!({
-                                "type": "output_text",
-                                "text": msg.content,
-                            })],
-                        ));
-                    }
-                } else if !msg.content.trim().is_empty() {
-                    input.push(serde_json::json!({
-                        "type": "function_call_output",
-                        "call_id": uuid::Uuid::new_v4().to_string(),
-                        "output": msg.content,
-                    }));
-=======
                         input.push(legacy_tool_output_message(&msg.content));
                     }
                 } else if !msg.content.trim().is_empty() {
                     input.push(legacy_tool_output_message(&msg.content));
->>>>>>> origin/master
                 }
             }
             _ => {}
@@ -1116,10 +1092,6 @@ async fn decode_responses_body(response: reqwest::Response) -> anyhow::Result<Re
     }
 
     if !pending_utf8.is_empty() {
-<<<<<<< HEAD
-        let err = std::str::from_utf8(&pending_utf8)
-            .expect_err("pending bytes should be invalid UTF-8 at end of stream");
-=======
         let err = match std::str::from_utf8(&pending_utf8) {
             Err(e) => e,
             Ok(_) => {
@@ -1138,7 +1110,6 @@ async fn decode_responses_body(response: reqwest::Response) -> anyhow::Result<Re
                 ));
             }
         };
->>>>>>> origin/master
         ::zeroclaw_log::record!(
             ERROR,
             ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Fail)
@@ -1391,10 +1362,7 @@ impl ModelProvider for OpenAiCodexModelProvider {
             native_tool_calling: true,
             vision: true,
             prompt_caching: false,
-<<<<<<< HEAD
-=======
             extended_thinking: false,
->>>>>>> origin/master
         }
     }
 
@@ -1738,10 +1706,7 @@ mod tests {
                 ProviderChatRequest {
                     messages: &messages,
                     tools: None,
-<<<<<<< HEAD
-=======
                     thinking: None,
->>>>>>> origin/master
                 },
                 "gpt-5-codex",
                 None,
@@ -1778,10 +1743,7 @@ mod tests {
                 ProviderChatRequest {
                     messages: &messages,
                     tools: None,
-<<<<<<< HEAD
-=======
                     thinking: None,
->>>>>>> origin/master
                 },
                 "gpt-5-codex",
                 None,
@@ -1814,10 +1776,7 @@ mod tests {
                 ProviderChatRequest {
                     messages: &messages,
                     tools: None,
-<<<<<<< HEAD
-=======
                     thinking: None,
->>>>>>> origin/master
                 },
                 "gpt-5-codex",
                 None,
@@ -1850,10 +1809,7 @@ mod tests {
                 ProviderChatRequest {
                     messages: &messages,
                     tools: None,
-<<<<<<< HEAD
-=======
                     thinking: None,
->>>>>>> origin/master
                 },
                 "gpt-5-codex",
                 None,
@@ -2102,8 +2058,6 @@ data: [DONE]
     }
 
     #[test]
-<<<<<<< HEAD
-=======
     fn build_responses_input_replays_plain_tool_text_without_synthetic_call_id() {
         let messages = vec![ChatMessage {
             role: "tool".into(),
@@ -2173,7 +2127,6 @@ data: [DONE]
     }
 
     #[test]
->>>>>>> origin/master
     fn build_responses_input_maps_native_assistant_tool_calls() {
         let messages = vec![ChatMessage::assistant(
             r#"{"content":"Using shell","tool_calls":[{"id":"call_abc","name":"shell","arguments":"{\"command\":\"pwd\"}"}]}"#,

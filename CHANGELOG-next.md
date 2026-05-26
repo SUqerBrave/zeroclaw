@@ -54,8 +54,6 @@ The multi-agent epic (#6272) is the spine of this release:
 - MiniMax split into Global and China picker entries (#6758); llama.cpp promoted to a dedicated provider kind (#6417).
 - OpenRouter prompt caching (#6008); Codex native Responses tool calls (#6117); Ollama `num_ctx`/`num_predict`/`temperature` tuning (#6178).
 - Trait-driven provider dispatch with OAuth refresh on the per-alias schema; Azure rewired to typed config (and `AZURE_OPENAI_*` env vars retired); `models.dev` keys pre-populate the model picker.
-<<<<<<< HEAD
-=======
 - **Anthropic / Bedrock:** opt-in native extended thinking with `budget_tokens`
   and signed thinking-block round-trip across multi-turn tool use (#5652).
   Disabled by default — set `agent.thinking.native_thinking = true` to enable.
@@ -71,7 +69,6 @@ The multi-agent epic (#6272) is the spine of this release:
   a WARN, avoiding a 400 when a config value dips below the provider minimum.
   Full `thinking_delta` / `signature_delta` SSE handling remains a follow-up
   for token-by-token streaming of thinking text.
->>>>>>> origin/master
 
 ### Channels
 

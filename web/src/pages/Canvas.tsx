@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { useState, useEffect, useRef, useCallback } from 'react';
-=======
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
->>>>>>> origin/master
 import { Monitor, Trash2, History, RefreshCw } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
 import { basePath } from '@/lib/basePath';
@@ -30,10 +26,6 @@ export default function Canvas() {
   const [showHistory, setShowHistory] = useState(false);
   const [canvasList, setCanvasList] = useState<string[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
-<<<<<<< HEAD
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-=======
->>>>>>> origin/master
 
   // Build WebSocket URL for canvas
   const getWsUrl = useCallback((id: string) => {
@@ -99,18 +91,6 @@ export default function Canvas() {
     return () => clearInterval(interval);
   }, []);
 
-<<<<<<< HEAD
-  // Render content into the iframe
-  useEffect(() => {
-    if (!iframeRef.current || !currentFrame) return;
-    if (currentFrame.content_type === 'eval') return; // eval frames are special
-
-    const iframe = iframeRef.current;
-    const doc = iframe.contentDocument;
-    if (!doc) return;
-
-    let html = currentFrame.content;
-=======
   // Build srcdoc HTML for the iframe — avoids needing allow-same-origin to
   // access contentDocument.  Content types that don't need scripts get a
   // restrictive CSP meta tag; only the explicit `html` content type can
@@ -121,7 +101,6 @@ export default function Canvas() {
   const srcdoc = useMemo(() => {
     if (!currentFrame) return undefined;
 
->>>>>>> origin/master
     const cs = getComputedStyle(document.documentElement);
     const bgBase = cs.getPropertyValue('--pc-bg-base').trim() || '#1e1e24';
     const textPrimary = cs.getPropertyValue('--pc-text-primary').trim() || '#d4d4d8';
@@ -129,27 +108,6 @@ export default function Canvas() {
     const fontMono = cs.getPropertyValue('--pc-font-mono').trim() || 'monospace';
     const fontUi = cs.getPropertyValue('--pc-font-ui').trim() || 'system-ui,sans-serif';
 
-<<<<<<< HEAD
-    if (currentFrame.content_type === 'svg') {
-      html = `<!DOCTYPE html><html><head><style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:${bgBase};}</style></head><body>${currentFrame.content}</body></html>`;
-    } else if (currentFrame.content_type === 'markdown') {
-      const escaped = currentFrame.content
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-      html = `<!DOCTYPE html><html><head><style>body{margin:1rem;font-family:${fontUi};color:${textSecondary};background:${bgBase};line-height:1.6;}pre{white-space:pre-wrap;word-wrap:break-word;}</style></head><body><pre>${escaped}</pre></body></html>`;
-    } else if (currentFrame.content_type === 'text') {
-      const escaped = currentFrame.content
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-      html = `<!DOCTYPE html><html><head><style>body{margin:1rem;font-family:${fontMono};color:${textPrimary};background:${bgBase};white-space:pre-wrap;}</style></head><body>${escaped}</body></html>`;
-    }
-
-    doc.open();
-    doc.write(html);
-    doc.close();
-=======
     // CSP that blocks all scripts — used for non-interactive content types
     // and for the inert placeholder.  object-src 'none' is required
     // separately because in the absence of a default-src directive,
@@ -208,7 +166,6 @@ export default function Canvas() {
     // Unrecognised content_type — render inert rather than defaulting to
     // scriptable HTML.  Future content types must be added explicitly above.
     return inertDoc;
->>>>>>> origin/master
   }, [currentFrame]);
 
   const handleSwitchCanvas = () => {
@@ -339,13 +296,8 @@ export default function Canvas() {
         >
           {currentFrame ? (
             <iframe
-<<<<<<< HEAD
-              ref={iframeRef}
-              sandbox="allow-scripts allow-same-origin"
-=======
               sandbox="allow-scripts"
               srcDoc={srcdoc}
->>>>>>> origin/master
               className="w-full h-full border-0"
               title={`Canvas: ${canvasId}`}
               style={{ background: 'var(--pc-bg-base)' }}

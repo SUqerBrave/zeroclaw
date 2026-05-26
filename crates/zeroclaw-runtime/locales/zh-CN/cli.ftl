@@ -22,8 +22,6 @@ cli-skills-install-tier-community =
     正在安装 {$name} v{$version} — 社区提交
     此技能未经 ZeroClaw 审计。请检查技能内容，
     并在授予任何权限或用于生产前运行 `zeroclaw skills audit {$name}`。
-<<<<<<< HEAD
-=======
 
 channel-wecom-ws-stream-bootstrap = 正在处理中，请稍候。
 channel-wecom-ws-stop-ack = 已停止当前消息处理。
@@ -59,4 +57,3 @@ channel-wecom-ws-dm-access-denied =
     你的 userid: {$userid}
 
     请管理员将你的 userid 加入 {$allowed_users_path}。
->>>>>>> origin/master

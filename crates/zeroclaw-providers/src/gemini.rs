@@ -1377,10 +1377,7 @@ impl ModelProvider for GeminiModelProvider {
             vision: true,
             native_tool_calling: false,
             prompt_caching: false,
-<<<<<<< HEAD
-=======
             extended_thinking: false,
->>>>>>> origin/master
         }
     }
 

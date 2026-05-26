@@ -64,8 +64,6 @@ impl Sandbox for BubblewrapSandbox {
             "--unshare-all",
             "--die-with-parent",
         ]);
-<<<<<<< HEAD
-=======
         // Conditionally bind dynamic-loader library directories that may exist
         // on the host.  On Fedora / RHEL systems the ELF interpreter and shared
         // libraries live in /lib64; on some older or non-merged-usr distros they
@@ -77,7 +75,6 @@ impl Sandbox for BubblewrapSandbox {
                 bwrap_cmd.args(["--ro-bind", lib_dir, lib_dir]);
             }
         }
->>>>>>> origin/master
         bwrap_cmd.arg(&program);
         bwrap_cmd.args(&args);
 
@@ -180,8 +177,6 @@ mod tests {
     }
 
     #[test]
-<<<<<<< HEAD
-=======
     fn bubblewrap_wrap_command_conditionally_binds_lib_dirs() {
         // /lib64 and /lib must be bind-mounted (with --ro-bind src dst) when
         // they exist on the host so that dynamically linked binaries (e.g.
@@ -215,7 +210,6 @@ mod tests {
     }
 
     #[test]
->>>>>>> origin/master
     fn bubblewrap_wrap_command_binds_required_paths() {
         let sandbox = BubblewrapSandbox;
         let mut cmd = Command::new("echo");

@@ -28,14 +28,6 @@ enum LevelOfDetails {
 /// (`Authorization: Bearer <api_token>`) — the standard Jira Server /
 /// Data Center (self-hosted) authentication model.
 ///
-<<<<<<< HEAD
-/// Supports five actions gated by `[jira].allowed_actions` in config:
-/// - `get_ticket`     — always in the default allowlist; read-only.
-/// - `search_tickets` — requires explicit opt-in; read-only.
-/// - `comment_ticket` — requires explicit opt-in; mutating (Act policy).
-/// - `list_projects`  — requires explicit opt-in; read-only.
-/// - `myself`         — requires explicit opt-in; read-only. Verifies credentials.
-=======
 /// Supports eight actions gated by `[jira].allowed_actions` in config:
 /// - `get_ticket`        — always in the default allowlist; read-only.
 /// - `search_tickets`    — requires explicit opt-in; read-only.
@@ -45,7 +37,6 @@ enum LevelOfDetails {
 /// - `list_transitions`  — requires explicit opt-in; read-only.
 /// - `transition_ticket` — requires explicit opt-in; mutating (Act policy).
 /// - `create_ticket`     — requires explicit opt-in; mutating (Act policy).
->>>>>>> origin/master
 pub struct JiraTool {
     base_url: String,
     email: Option<String>,
@@ -698,8 +689,6 @@ impl JiraTool {
             }
         })
     }
-<<<<<<< HEAD
-=======
 
     /// Fetches the available transitions for an issue and returns a minimal
     /// shape `{ transitions: [{ id, name, to_status }] }`.
@@ -954,7 +943,6 @@ impl JiraTool {
             error: None,
         })
     }
->>>>>>> origin/master
 }
 
 #[async_trait]
@@ -964,11 +952,7 @@ impl Tool for JiraTool {
     }
 
     fn description(&self) -> &str {
-<<<<<<< HEAD
-        "Interact with Jira: get tickets with configurable detail level, search issues with JQL, add comments with mention and formatting support."
-=======
         "Interact with Jira: read tickets, search with JQL, add comments, list projects and per-issue transitions, transition an issue through its workflow, and create new issues."
->>>>>>> origin/master
     }
 
     fn parameters_schema(&self) -> serde_json::Value {
@@ -977,9 +961,6 @@ impl Tool for JiraTool {
             "properties": {
                 "action": {
                     "type": "string",
-<<<<<<< HEAD
-                    "enum": ["get_ticket", "search_tickets", "comment_ticket", "list_projects", "myself"],
-=======
                     "enum": [
                         "get_ticket",
                         "search_tickets",
@@ -990,16 +971,11 @@ impl Tool for JiraTool {
                         "transition_ticket",
                         "create_ticket"
                     ],
->>>>>>> origin/master
                     "description": "The Jira action to perform. Enabled actions are configured in [jira].allowed_actions. Use 'myself' to verify that credentials are valid and the Jira connection is working."
                 },
                 "issue_key": {
                     "type": "string",
-<<<<<<< HEAD
-                    "description": "Jira issue key, e.g. 'PROJ-123'. Required for get_ticket and comment_ticket."
-=======
                     "description": "Jira issue key, e.g. 'PROJ-123'. Required for get_ticket, comment_ticket, list_transitions, and transition_ticket."
->>>>>>> origin/master
                 },
                 "level_of_details": {
                     "type": "string",
@@ -1018,8 +994,6 @@ impl Tool for JiraTool {
                 "comment": {
                     "type": "string",
                     "description": "Comment body for comment_ticket. In Jira Cloud mode, supports a limited markdown-like syntax converted to Atlassian Document Format (ADF): mention a user with @user@domain.com (the leading @ is required; a bare email without @ prefix is treated as plain text), bold with **text**, bullet list items with a leading '- ', and newlines as line breaks. In Jira Server/Data Center mode, comments are posted as plain text with no ADF conversion or mention resolution. Example: 'Hi @john@company.com, this is **important**.\n- Check the logs\n- Rerun the pipeline'"
-<<<<<<< HEAD
-=======
                 },
                 "transition_id": {
                     "type": "string",
@@ -1057,7 +1031,6 @@ impl Tool for JiraTool {
                 "parent_key": {
                     "type": "string",
                     "description": "Parent issue key for create_ticket. Optional. Used for sub-tasks or to set the parent epic (e.g. 'PROJ-100')."
->>>>>>> origin/master
                 }
             },
             "required": ["action"]
@@ -1080,9 +1053,6 @@ impl Tool for JiraTool {
         // clear "unknown action" error rather than a misleading "not enabled" one.
         if !matches!(
             action,
-<<<<<<< HEAD
-            "get_ticket" | "search_tickets" | "comment_ticket" | "list_projects" | "myself"
-=======
             "get_ticket"
                 | "search_tickets"
                 | "comment_ticket"
@@ -1091,17 +1061,12 @@ impl Tool for JiraTool {
                 | "list_transitions"
                 | "transition_ticket"
                 | "create_ticket"
->>>>>>> origin/master
         ) {
             return Ok(ToolResult {
                 success: false,
                 output: String::new(),
                 error: Some(format!(
-<<<<<<< HEAD
-                    "Unknown action: '{action}'. Valid actions: get_ticket, search_tickets, comment_ticket, list_projects, myself"
-=======
                     "Unknown action: '{action}'. Valid actions: get_ticket, search_tickets, comment_ticket, list_projects, myself, list_transitions, transition_ticket, create_ticket"
->>>>>>> origin/master
                 )),
             });
         }
@@ -1119,15 +1084,10 @@ impl Tool for JiraTool {
         }
 
         let operation = match action {
-<<<<<<< HEAD
-            "get_ticket" | "search_tickets" | "list_projects" | "myself" => ToolOperation::Read,
-            "comment_ticket" => ToolOperation::Act,
-=======
             "get_ticket" | "search_tickets" | "list_projects" | "myself" | "list_transitions" => {
                 ToolOperation::Read
             }
             "comment_ticket" | "transition_ticket" | "create_ticket" => ToolOperation::Act,
->>>>>>> origin/master
             _ => unreachable!(),
         };
 
@@ -1203,8 +1163,6 @@ impl Tool for JiraTool {
                 };
                 self.comment_ticket(issue_key, comment).await
             }
-<<<<<<< HEAD
-=======
             "list_transitions" => {
                 let issue_key = match args.get("issue_key").and_then(|v| v.as_str()) {
                     Some(k) => k,
@@ -1326,7 +1284,6 @@ impl Tool for JiraTool {
                 )
                 .await
             }
->>>>>>> origin/master
             _ => unreachable!(),
         };
 
@@ -1362,8 +1319,6 @@ fn validate_issue_key(key: &str) -> anyhow::Result<()> {
     }
 }
 
-<<<<<<< HEAD
-=======
 /// Validates that `key` matches the Jira project key format. Same character
 /// class as the project portion of `validate_issue_key` so the two stay in
 /// step.
@@ -1376,7 +1331,6 @@ fn validate_project_key(key: &str) -> anyhow::Result<()> {
     }
 }
 
->>>>>>> origin/master
 // ── Response shaping ──────────────────────────────────────────────────────────
 
 /// Safely extracts the first 10 characters (date prefix) from a string.
@@ -1483,8 +1437,6 @@ fn shape_comment_response(raw: &Value) -> Value {
     })
 }
 
-<<<<<<< HEAD
-=======
 /// Trims Jira's transitions response to `[{ id, name, to_status }]`, dropping
 /// icons, conditions, and other workflow-engine internals.
 fn shape_transitions(raw: &Value) -> Vec<Value> {
@@ -1504,7 +1456,6 @@ fn shape_transitions(raw: &Value) -> Vec<Value> {
         .unwrap_or_default()
 }
 
->>>>>>> origin/master
 fn shape_projects(projects: &[Value], statuses_per_project: &[Value]) -> Vec<Value> {
     projects
         .iter()
@@ -2560,8 +2511,6 @@ mod tests {
         let shaped = shape_projects(&[], &[]);
         assert_eq!(shaped.len(), 0);
     }
-<<<<<<< HEAD
-=======
 
     // ── list_transitions / transition_ticket / create_ticket ─────────────────
 
@@ -3231,5 +3180,4 @@ mod tests {
     fn shape_transitions_handles_missing_array() {
         assert!(shape_transitions(&json!({})).is_empty());
     }
->>>>>>> origin/master
 }
