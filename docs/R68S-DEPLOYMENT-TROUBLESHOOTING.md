@@ -509,3 +509,59 @@ zeroclaw --config-dir /var/lib/zeroclaw/.zeroclaw config list | grep -A1 "model-
 model-routes    = [{"hint":"fast","model_provider":"glm.flash",...},{"hint":"default","model_provider":"deepseek.flash",...},{"hint":"reasoning","model_provider":"deepseek.pro",...}]
 agents.default.model-provider = deepseek.flash
 ```
+
+## 25. 更新 query_classification / model_routes 后分类不生效
+
+### 现象
+已更新 `config.toml` 中添加了 `[[query_classification.rules]]` 或修改了 `[[model_routes]]`，日志中出现 `"Applied updated channel runtime config from disk"`（热加载成功），但简单消息仍然不使用 fast 路由、或分类规则完全不触发。日志中不会出现 `"Classified message route"` 或 `"Auto-classified by complexity"`。
+
+### 原因分析
+daemon 的热加载逻辑（`maybe_apply_runtime_config_update`）只更新了 **model provider 缓存**（清空并重建默认 provider 连接池），以下字段在 `ChannelRuntimeContext` 创建时（即 daemon 启动时）设置，热加载**不会**刷新：
+
+| 字段 | 设置位置 | 热加载是否更新 |
+|------|---------|:---:|
+| `query_classification` | `orchestrator/mod.rs:7920` |   |
+| `model_routes` | `orchestrator/mod.rs:7919` |   |
+| `agent_cfg` | `orchestrator/mod.rs:7864` |   |
+
+因此如果你是在服务运行中修改了这些段（包括 `[[query_classification.rules]]`、`[[model_routes]]`、`[agents.default.auto_classify]`），热加载不会使其生效。
+
+### 解决方案
+必须**重启 daemon** 才能让 `ChannelRuntimeContext` 重新创建并读取新的配置：
+
+```bash
+sshpass -p "password" ssh root@10.13.0.1 "/etc/init.d/zeroclaw restart"
+```
+
+重启后观察日志，确认分类生效：
+```bash
+sshpass -p "password" ssh root@10.13.0.1 "logread | grep -E 'Classified|Auto-classified'"
+```
+
+如果分类生效，日志中应出现类似：
+```
+Channel message classified — overriding route
+Auto-classified by complexity
+```
+
+### 最小配置示例
+
+```toml
+[query_classification]
+enabled = true
+
+[[query_classification.rules]]
+hint = "fast"
+keywords = ["hi", "hello", "在吗", "你好", "谢谢", "ok"]
+priority = 10
+max_length = 50
+
+[[query_classification.rules]]
+hint = "reasoning"
+keywords = ["explain", "analyze", "debug", "implement", "refactor", "分析", "实现"]
+patterns = ["fn ", "```", "def ", "class "]
+priority = 20
+min_length = 30
+```
+
+> **注意**：如果 `query_classification.enabled = true` 但没有配置任何 `[[query_classification.rules]]`，规则匹配永远返回空。此时会 fallback 到 `auto_classify` 的复杂度推断（按消息长度和关键词自动分级），最终 fallback 到 agent 默认 `model_provider`。
