@@ -241,6 +241,32 @@ async fn execute_job_with_retry(
         }
     }
 
+    // Primary model exhausted all retries.  Try the fallback model once
+    // when one is configured and the job is an agent job.
+    if job.job_type == JobType::Agent
+        && let Some(ref fallback) = job.fallback_model
+        && !fallback.trim().is_empty()
+    {
+        ::zeroclaw_log::record!(
+            INFO,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_attrs(::serde_json::json!({
+                    "job_id": job.id,
+                    "primary_model": job.model,
+                    "fallback_model": fallback,
+                })),
+            "Primary model failed; trying fallback model"
+        );
+        let mut fallback_job = job.clone();
+        fallback_job.model = Some(fallback.clone());
+        let (fb_success, fb_output) =
+            Box::pin(run_agent_job(config, security, agent_alias, &fallback_job)).await;
+        if fb_success {
+            return (true, fb_output);
+        }
+        return (false, fb_output);
+    }
+
     (false, last_output)
 }
 
@@ -942,6 +968,7 @@ mod tests {
             job_type: JobType::Shell,
             session_target: SessionTarget::Isolated,
             model: None,
+            fallback_model: None,
             agent_alias: TEST_AGENT.into(),
             enabled: true,
             delivery: DeliveryConfig::default(),
@@ -1470,6 +1497,7 @@ mod tests {
             SessionTarget::Isolated,
             None,
             None,
+            None,
             true,
             None,
         )
@@ -1495,6 +1523,7 @@ mod tests {
             crate::cron::Schedule::At { at },
             "Hello",
             SessionTarget::Isolated,
+            None,
             None,
             None,
             true,
@@ -1523,6 +1552,7 @@ mod tests {
             crate::cron::Schedule::At { at },
             "Hello",
             SessionTarget::Isolated,
+            None,
             None,
             None,
             true,
@@ -1675,6 +1705,7 @@ mod tests {
             "deliver this",
             SessionTarget::Isolated,
             None,
+            None,
             Some(DeliveryConfig {
                 mode: "announce".into(),
                 channel: Some("telegram".into()),
@@ -1757,6 +1788,7 @@ mod tests {
             crate::cron::Schedule::At { at },
             "Hello",
             SessionTarget::Isolated,
+            None,
             None,
             None,
             false,

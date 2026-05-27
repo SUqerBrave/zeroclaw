@@ -98,6 +98,7 @@ pub struct CronAddBody {
     pub delivery: Option<zeroclaw_runtime::cron::DeliveryConfig>,
     pub session_target: Option<String>,
     pub model: Option<String>,
+    pub fallback_model: Option<String>,
     pub allowed_tools: Option<Vec<String>>,
     pub delete_after_run: Option<bool>,
 }
@@ -113,6 +114,7 @@ pub struct CronPatchBody {
     pub clear_tz: Option<bool>,
     pub command: Option<String>,
     pub prompt: Option<String>,
+    pub fallback_model: Option<String>,
 }
 
 enum CronTimezonePatch {
@@ -344,6 +346,7 @@ pub async fn handle_api_cron_add(
         delivery,
         session_target,
         model,
+        fallback_model,
         allowed_tools,
         delete_after_run,
     } = body;
@@ -406,6 +409,7 @@ pub async fn handle_api_cron_add(
             prompt,
             session_target,
             model,
+            fallback_model,
             delivery,
             delete_after_run,
             allowed_tools,
@@ -637,6 +641,7 @@ pub async fn handle_api_cron_patch(
         clear_tz,
         command,
         prompt,
+        fallback_model,
     } = body;
     let timezone_patch = match parse_timezone_patch(tz, clear_tz) {
         Ok(patch) => patch,
@@ -699,6 +704,7 @@ pub async fn handle_api_cron_patch(
         schedule,
         command: patch_command,
         prompt: patch_prompt,
+        fallback_model,
         ..zeroclaw_runtime::cron::CronJobPatch::default()
     };
 

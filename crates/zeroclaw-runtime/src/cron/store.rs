@@ -119,6 +119,7 @@ pub fn add_agent_job(
     prompt: &str,
     session_target: SessionTarget,
     model: Option<String>,
+    fallback_model: Option<String>,
     delivery: Option<DeliveryConfig>,
     delete_after_run: bool,
     allowed_tools: Option<Vec<String>>,
@@ -140,8 +141,8 @@ pub fn add_agent_job(
         conn.execute(
             "INSERT INTO cron_jobs (
                 id, expression, command, schedule, job_type, prompt, name, session_target, model,
-                enabled, delivery, delete_after_run, allowed_tools, agent_alias, created_at, next_run
-             ) VALUES (?1, ?2, '', ?3, 'agent', ?4, ?5, ?6, ?7, 1, ?8, ?9, ?10, ?11, ?12, ?13)",
+                fallback_model, enabled, delivery, delete_after_run, allowed_tools, agent_alias, created_at, next_run
+             ) VALUES (?1, ?2, '', ?3, 'agent', ?4, ?5, ?6, ?7, ?8, 1, ?9, ?10, ?11, ?12, ?13, ?14)",
             params![
                 id,
                 expression,
@@ -150,6 +151,7 @@ pub fn add_agent_job(
                 name,
                 session_target.as_str(),
                 model,
+                fallback_model,
                 serde_json::to_string(&delivery)?,
                 if delete_after_run { 1 } else { 0 },
                 encode_allowed_tools(allowed_tools.as_ref())?,
@@ -169,8 +171,8 @@ pub fn list_jobs(config: &Config) -> Result<Vec<CronJob>> {
     let Some(jobs) = with_read_connection(config, |conn| {
         let mut stmt = conn.prepare(
             "SELECT id, expression, command, schedule, job_type, prompt, name, session_target, model,
-                    enabled, delivery, delete_after_run, created_at, next_run, last_run, last_status, last_output,
-                    allowed_tools, source, uses_memory, agent_alias
+                    fallback_model, enabled, delivery, delete_after_run, created_at, next_run, last_run,
+                    last_status, last_output, allowed_tools, source, uses_memory, agent_alias
              FROM cron_jobs ORDER BY next_run ASC",
         )?;
 
@@ -193,8 +195,8 @@ pub fn get_job(config: &Config, job_id: &str) -> Result<CronJob> {
     let Some(job) = with_read_connection(config, |conn| {
         let mut stmt = conn.prepare(
             "SELECT id, expression, command, schedule, job_type, prompt, name, session_target, model,
-                    enabled, delivery, delete_after_run, created_at, next_run, last_run, last_status, last_output,
-                    allowed_tools, source, uses_memory, agent_alias
+                    fallback_model, enabled, delivery, delete_after_run, created_at, next_run, last_run,
+                    last_status, last_output, allowed_tools, source, uses_memory, agent_alias
              FROM cron_jobs WHERE id = ?1",
         )?;
 
@@ -232,8 +234,8 @@ pub fn due_jobs(config: &Config, now: DateTime<Utc>) -> Result<Vec<CronJob>> {
     let Some(jobs) = with_read_connection(config, |conn| {
         let mut stmt = conn.prepare(
             "SELECT id, expression, command, schedule, job_type, prompt, name, session_target, model,
-                    enabled, delivery, delete_after_run, created_at, next_run, last_run, last_status, last_output,
-                    allowed_tools, source, uses_memory, agent_alias
+                    fallback_model, enabled, delivery, delete_after_run, created_at, next_run, last_run,
+                    last_status, last_output, allowed_tools, source, uses_memory, agent_alias
              FROM cron_jobs
              WHERE enabled = 1 AND next_run <= ?1
              ORDER BY next_run ASC
@@ -273,8 +275,8 @@ pub fn all_overdue_jobs(config: &Config, now: DateTime<Utc>) -> Result<Vec<CronJ
     let Some(jobs) = with_read_connection(config, |conn| {
         let mut stmt = conn.prepare(
             "SELECT id, expression, command, schedule, job_type, prompt, name, session_target, model,
-                    enabled, delivery, delete_after_run, created_at, next_run, last_run, last_status, last_output,
-                    allowed_tools, source, uses_memory, agent_alias
+                    fallback_model, enabled, delivery, delete_after_run, created_at, next_run, last_run,
+                    last_status, last_output, allowed_tools, source, uses_memory, agent_alias
              FROM cron_jobs
              WHERE enabled = 1 AND next_run <= ?1
              ORDER BY next_run ASC",
@@ -332,6 +334,9 @@ pub fn update_job(config: &Config, job_id: &str, patch: CronJobPatch) -> Result<
     if let Some(model) = patch.model {
         job.model = Some(model);
     }
+    if let Some(fallback_model) = patch.fallback_model {
+        job.fallback_model = Some(fallback_model);
+    }
     if let Some(target) = patch.session_target {
         job.session_target = target;
     }
@@ -359,9 +364,9 @@ pub fn update_job(config: &Config, job_id: &str, patch: CronJobPatch) -> Result<
         conn.execute(
             "UPDATE cron_jobs
              SET expression = ?1, command = ?2, schedule = ?3, job_type = ?4, prompt = ?5, name = ?6,
-                 session_target = ?7, model = ?8, enabled = ?9, delivery = ?10, delete_after_run = ?11,
-                 allowed_tools = ?12, next_run = ?13, uses_memory = ?14
-             WHERE id = ?15",
+                 session_target = ?7, model = ?8, fallback_model = ?9, enabled = ?10, delivery = ?11,
+                 delete_after_run = ?12, allowed_tools = ?13, next_run = ?14, uses_memory = ?15
+             WHERE id = ?16",
             params![
                 job.expression,
                 job.command,
@@ -371,6 +376,7 @@ pub fn update_job(config: &Config, job_id: &str, patch: CronJobPatch) -> Result<
                 job.name,
                 job.session_target.as_str(),
                 job.model,
+                job.fallback_model,
                 if job.enabled { 1 } else { 0 },
                 serde_json::to_string(&job.delivery)?,
                 if job.delete_after_run { 1 } else { 0 },
@@ -680,16 +686,16 @@ fn map_cron_job_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<CronJob> {
     let schedule =
         decode_schedule(schedule_raw.as_deref(), &expression).map_err(sql_conversion_error)?;
 
-    let delivery_raw: Option<String> = row.get(10)?;
+    let delivery_raw: Option<String> = row.get(11)?;
     let delivery = decode_delivery(delivery_raw.as_deref()).map_err(sql_conversion_error)?;
 
-    let next_run_raw: String = row.get(13)?;
-    let last_run_raw: Option<String> = row.get(14)?;
-    let created_at_raw: String = row.get(12)?;
-    let allowed_tools_raw: Option<String> = row.get(17)?;
-    let source: Option<String> = row.get(18)?;
-    let uses_memory: Option<i64> = row.get(19)?;
-    let agent_alias: Option<String> = row.get(20)?;
+    let next_run_raw: String = row.get(14)?;
+    let last_run_raw: Option<String> = row.get(15)?;
+    let created_at_raw: String = row.get(13)?;
+    let allowed_tools_raw: Option<String> = row.get(18)?;
+    let source: Option<String> = row.get(19)?;
+    let uses_memory: Option<i64> = row.get(20)?;
+    let agent_alias: Option<String> = row.get(21)?;
 
     Ok(CronJob {
         id: row.get(0)?,
@@ -701,12 +707,13 @@ fn map_cron_job_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<CronJob> {
         name: row.get(6)?,
         session_target: SessionTarget::parse(&row.get::<_, String>(7)?),
         model: row.get(8)?,
+        fallback_model: row.get(9)?,
         agent_alias: agent_alias
             .map(|s| s.trim().to_string())
             .unwrap_or_default(),
-        enabled: row.get::<_, i64>(9)? != 0,
+        enabled: row.get::<_, i64>(10)? != 0,
         delivery,
-        delete_after_run: row.get::<_, i64>(11)? != 0,
+        delete_after_run: row.get::<_, i64>(12)? != 0,
         source: source.unwrap_or_else(|| "imperative".to_string()),
         uses_memory: uses_memory != Some(0),
         created_at: parse_rfc3339(&created_at_raw).map_err(sql_conversion_error)?,
@@ -715,8 +722,8 @@ fn map_cron_job_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<CronJob> {
             Some(raw) => Some(parse_rfc3339(&raw).map_err(sql_conversion_error)?),
             None => None,
         },
-        last_status: row.get(15)?,
-        last_output: row.get(16)?,
+        last_status: row.get(16)?,
+        last_output: row.get(17)?,
         allowed_tools: decode_allowed_tools(allowed_tools_raw.as_deref())
             .map_err(sql_conversion_error)?,
     })
@@ -881,10 +888,10 @@ pub fn sync_declarative_jobs(
                         "UPDATE cron_jobs
                          SET expression = ?1, command = ?2, schedule = ?3, job_type = ?4,
                              prompt = ?5, name = ?6, session_target = ?7, model = ?8,
-                             enabled = ?9, delivery = ?10, delete_after_run = ?11,
-                             allowed_tools = ?12, source = 'declarative', next_run = ?13,
-                             uses_memory = ?14
-                         WHERE id = ?15",
+                             fallback_model = ?9, enabled = ?10, delivery = ?11,
+                             delete_after_run = ?12, allowed_tools = ?13, source = 'declarative',
+                             next_run = ?14, uses_memory = ?15
+                         WHERE id = ?16",
                         params![
                             expression,
                             command,
@@ -894,6 +901,7 @@ pub fn sync_declarative_jobs(
                             decl.name,
                             session_target,
                             decl.model,
+                            None::<String>,
                             i32::from(decl.enabled),
                             delivery_json,
                             i32::from(delete_after_run),
@@ -909,10 +917,10 @@ pub fn sync_declarative_jobs(
                         "UPDATE cron_jobs
                          SET expression = ?1, command = ?2, schedule = ?3, job_type = ?4,
                              prompt = ?5, name = ?6, session_target = ?7, model = ?8,
-                             enabled = ?9, delivery = ?10, delete_after_run = ?11,
-                             allowed_tools = ?12, source = 'declarative',
-                             uses_memory = ?13
-                         WHERE id = ?14",
+                             fallback_model = ?9, enabled = ?10, delivery = ?11,
+                             delete_after_run = ?12, allowed_tools = ?13, source = 'declarative',
+                             uses_memory = ?14
+                         WHERE id = ?15",
                         params![
                             expression,
                             command,
@@ -922,6 +930,7 @@ pub fn sync_declarative_jobs(
                             decl.name,
                             session_target,
                             decl.model,
+                            None::<String>,
                             i32::from(decl.enabled),
                             delivery_json,
                             i32::from(delete_after_run),
@@ -958,9 +967,9 @@ pub fn sync_declarative_jobs(
                 conn.execute(
                     "INSERT INTO cron_jobs (
                         id, expression, command, schedule, job_type, prompt, name,
-                        session_target, model, enabled, delivery, delete_after_run,
+                        session_target, model, fallback_model, enabled, delivery, delete_after_run,
                         allowed_tools, source, uses_memory, agent_alias, created_at, next_run
-                     ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, 'declarative', ?14, ?15, ?16, ?17)",
+                     ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, 'declarative', ?15, ?16, ?17, ?18)",
                     params![
                         id,
                         expression,
@@ -971,6 +980,7 @@ pub fn sync_declarative_jobs(
                         decl.name,
                         session_target,
                         decl.model,
+                        None::<String>,
                         i32::from(decl.enabled),
                         delivery_json,
                         i32::from(delete_after_run),
@@ -1292,6 +1302,7 @@ fn initialize_schema(conn: &Connection) -> Result<()> {
     // scheduler treats those as orphans (skip with warning) rather than
     // coercing them to a magic alias.
     add_column_if_missing(conn, "agent_alias", "TEXT NOT NULL DEFAULT ''")?;
+    add_column_if_missing(conn, "fallback_model", "TEXT")?;
 
     Ok(())
 }
@@ -1531,6 +1542,7 @@ mod tests {
             "summarize logs",
             SessionTarget::Isolated,
             None,
+            None,
             Some(DeliveryConfig {
                 mode: "announce".into(),
                 channel: Some("discord".into()),
@@ -1683,6 +1695,7 @@ mod tests {
             SessionTarget::Isolated,
             None,
             None,
+            None,
             false,
             Some(vec!["file_read".into(), "web_search".into()]),
         )
@@ -1709,6 +1722,7 @@ mod tests {
             Schedule::Every { every_ms: 60_000 },
             "do work",
             SessionTarget::Isolated,
+            None,
             None,
             None,
             false,

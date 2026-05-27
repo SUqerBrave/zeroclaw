@@ -160,6 +160,10 @@ impl Tool for CronAddTool {
                     "type": "string",
                     "description": "Optional model override for agent jobs, e.g. 'x-ai/grok-4-1-fast'"
                 },
+                "fallback_model": {
+                    "type": "string",
+                    "description": "Backup model to try when the primary model times out or errors"
+                },
                 "allowed_tools": {
                     "type": "array",
                     "items": { "type": "string" },
@@ -368,6 +372,10 @@ impl Tool for CronAddTool {
                     .get("model")
                     .and_then(serde_json::Value::as_str)
                     .map(str::to_string);
+                let fallback_model = args
+                    .get("fallback_model")
+                    .and_then(serde_json::Value::as_str)
+                    .map(str::to_string);
                 let allowed_tools = match args.get("allowed_tools") {
                     Some(v) => match serde_json::from_value::<Vec<String>>(v.clone()) {
                         Ok(v) => {
@@ -400,6 +408,7 @@ impl Tool for CronAddTool {
                     prompt,
                     session_target,
                     model,
+                    fallback_model,
                     delivery,
                     delete_after_run,
                     allowed_tools,

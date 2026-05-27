@@ -1106,6 +1106,7 @@ export function addCronJob(body: {
   job_type?: string;
   prompt?: string;
   model?: string;
+  fallback_model?: string;
   session_target?: string;
   allowed_tools?: string[];
   enabled?: boolean;
@@ -1142,7 +1143,7 @@ export function triggerCronJob(id: string): Promise<CronTriggerResult> {
 
 export function patchCronJob(
   id: string,
-  patch: { name?: string; schedule?: string; tz?: string; clear_tz?: boolean; command?: string; prompt?: string },
+  patch: { name?: string; schedule?: string; tz?: string; clear_tz?: boolean; command?: string; prompt?: string; fallback_model?: string },
 ): Promise<CronJob> {
   return apiFetch<CronJob | { status: string; job: CronJob }>(
     `/api/cron/${encodeURIComponent(id)}`,
