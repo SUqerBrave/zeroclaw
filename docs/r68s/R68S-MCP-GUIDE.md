@@ -18,7 +18,7 @@ MCP (Model Context Protocol) allows ZeroClaw to connect to external tool servers
 SSH into your R68S and edit the config file:
 
 ```bash
-ssh root@<r68s-ip>
+sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no root@<r68s-ip>
 vi /root/.zeroclaw/config.toml
 ```
 
@@ -175,10 +175,10 @@ cargo build --release --target aarch64-unknown-linux-musl
 
 ```bash
 # Transfer to R68S
-scp target/aarch64-unknown-linux-musl/release/zeroclaw root@<r68s-ip>:/tmp/zeroclaw
+cat target/aarch64-unknown-linux-musl/release/zeroclaw | sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no root@<R68S_IP> "cat > /tmp/zeroclaw"
 
 # On R68S
-ssh root@<r68s-ip>
+sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no root@<r68s-ip>
 mv /tmp/zeroclaw /usr/local/bin/zeroclaw
 chmod +x /usr/local/bin/zeroclaw
 ```

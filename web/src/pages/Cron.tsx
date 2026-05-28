@@ -37,6 +37,11 @@ function formatDate(iso: string | null): string {
 
 function formatDuration(ms: number | null): string {
   if (ms === null || ms === undefined) return '-';
+  if (ms <= 0) return '0s';
+  if (ms % 86400000 === 0) return `${ms / 86400000}d`;
+  if (ms % 3600000 === 0) return `${ms / 3600000}h`;
+  if (ms % 60000 === 0) return `${ms / 60000}m`;
+  if (ms % 1000 === 0) return `${ms / 1000}s`;
   if (ms < 1000) return `${ms}ms`;
   const secs = ms / 1000;
   if (secs < 60) return `${secs.toFixed(1)}s`;
@@ -196,6 +201,7 @@ export default function Cron() {
   const [formDeliveryTo, setFormDeliveryTo] = useState('');
   const [formDeliveryBestEffort, setFormDeliveryBestEffort] = useState(true);
   const [agentOptions, setAgentOptions] = useState<string[]>([]);
+  const [modelOptions, setModelOptions] = useState<string[]>([]);
   const [boundChannels, setBoundChannels] = useState<AgentBoundChannel[]>([]);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -225,13 +231,21 @@ export default function Cron() {
   const openEditModal = (job: CronJob) => {
     const jobType = job.job_type === 'agent' ? 'agent' : 'shell';
     setFormName(job.name ?? '');
-    setFormSchedule(job.expression);
+    setFormSchedule(
+      job.schedule.kind === 'cron'
+        ? job.schedule.expr
+        : job.schedule.kind === 'every'
+          ? `@every ${formatDuration(job.schedule.every_ms)}`
+          : job.schedule.kind === 'at'
+            ? `@at ${job.schedule.at}`
+            : job.expression,
+    );
     setFormTimezone(scheduleTimezone(job) ?? '');
     setFormJobType(jobType);
     setFormAgent((job as CronJob & { agent_alias?: string }).agent_alias ?? 'default');
     const delivery = job.delivery;
     if (delivery && (delivery.mode === 'announce' || delivery.mode === 'none')) {
-      setFormDeliveryMode(delivery.mode);
+      setFormDeliveryMode(delivery.mode as 'none' | 'announce');
       setFormDeliveryChannel(delivery.channel ?? '');
       setFormDeliveryTo(delivery.to ?? '');
       setFormDeliveryBestEffort(delivery.best_effort ?? true);
@@ -298,17 +312,11 @@ export default function Cron() {
     void getAgentOptions()
       .then((opts) => {
         setAgentOptions(opts.agents);
-        // Pre-seed the agent field with the first option so the
-        // Add modal doesn't open with an empty required dropdown.
-        setFormAgent((current) => current || opts.agents[0] || '');
+        setModelOptions(opts.model_providers);
+        setFormAgent((current) => current || opts.agents[0] || "");
       })
-      .catch(() => {
-        /* swallow: form will show an empty agent list */
-      });
+      .catch(() => { });
   }, []);
-
-  // When the picked agent changes, refresh the bound-channels list so the
-  // delivery-channel picker stays scoped to channels that agent owns.
   useEffect(() => {
     if (!formAgent) {
       setBoundChannels([]);
@@ -366,9 +374,16 @@ export default function Cron() {
       if (isEditing) {
         const existingTimezone = scheduleTimezone(modalJob as CronJob);
         const timezone = formTimezone.trim();
-        const patch: { name?: string; schedule?: string; tz?: string; clear_tz?: boolean; command?: string; prompt?: string; fallback_model?: string } = {
+        const patch: Parameters<typeof patchCronJob>[1] = {
+          agent: formAgent.trim(),
           name: formName.trim() || undefined,
           schedule: formSchedule.trim(),
+          delivery: {
+            mode: formDeliveryMode,
+            channel: formDeliveryChannel.trim() || undefined,
+            to: formDeliveryTo.trim() || undefined,
+            best_effort: formDeliveryBestEffort,
+          },
         };
         if (timezone) {
           patch.tz = timezone;
@@ -377,7 +392,13 @@ export default function Cron() {
         }
         if (isAgent) {
           patch.prompt = formPrompt.trim();
+          patch.model = formModel.trim() || undefined;
           if (formFallbackModel.trim()) patch.fallback_model = formFallbackModel.trim();
+          patch.session_target = formSessionTarget;
+          patch.allowed_tools = formAllowedTools
+            .split(',')
+            .map((s) => s.trim())
+            .filter((s) => s.length > 0);
         } else {
           patch.command = formCommand.trim();
         }
@@ -687,25 +708,35 @@ export default function Cron() {
                     <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: 'var(--pc-text-secondary)' }}>
                       {t('cron.model_optional')}
                     </label>
-                    <input
-                      type="text"
+                    <select
                       value={formModel}
                       onChange={(e) => setFormModel(e.target.value)}
-                      placeholder={t('cron.model_placeholder')}
-                      className="input-electric w-full px-3 py-2.5 text-sm"
-                    />
+                      className="input-electric w-full px-3 py-2.5 text-sm appearance-none cursor-pointer"
+                    >
+                      <option value="">{t('cron.model_placeholder')}</option>
+                      {modelOptions.map((alias) => (
+                        <option key={alias} value={alias}>
+                          {alias}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: 'var(--pc-text-secondary)' }}>
+                    <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: "var(--pc-text-secondary)" }}>
                       Fallback Model
                     </label>
-                    <input
-                      type="text"
+                    <select
                       value={formFallbackModel}
                       onChange={(e) => setFormFallbackModel(e.target.value)}
-                      placeholder="Backup model when primary fails (e.g. deepseek-v4-flash)"
-                      className="input-electric w-full px-3 py-2.5 text-sm"
-                    />
+                      className="input-electric w-full px-3 py-2.5 text-sm appearance-none cursor-pointer"
+                    >
+                      <option value="">None (disabled)</option>
+                      {modelOptions.map((alias) => (
+                        <option key={alias} value={alias}>
+                          {alias}
+                        </option>
+                      ))}
+                    </select>
                     <p className="text-xs mt-1" style={{ color: 'var(--pc-text-faint)' }}>
                       Tried once when the primary model times out or errors. Leave empty to disable.
                     </p>

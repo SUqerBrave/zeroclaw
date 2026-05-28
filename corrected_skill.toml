@@ -1,0 +1,41 @@
+[skill]
+name = "email-tool"
+description = "ZeroClaw email tool - Send, list, read, search, and delete emails"
+version = "0.3.1"
+author = "ZeroClaw Labs"
+tags = ["email", "smtp", "imap", "file-transfer", "notification", "inbox"]
+prompts = [
+    "The zc-email tool provides comprehensive email management: email_send, email_list, email_read, email_search, email_delete.",
+    "Example: zc-email send --to x@x.com --subject 'Test' --body 'Hello'"
+]
+
+[[tools]]
+name = "email_send"
+description = "Send an email"
+kind = "shell"
+command = "zc-email send"
+
+[[tools]]
+name = "email_list"
+description = "List recent emails"
+kind = "shell"
+command = "zc-email list"
+
+[[tools]]
+name = "email_read"
+description = "Read an email"
+kind = "shell"
+command = "zc-email read"
+
+[[tools]]
+name = "email_search"
+description = "Search emails"
+kind = "shell"
+command = "zc-email search"
+
+[[tools]]
+name = "email_delete"
+description = "Delete an email"
+kind = "shell"
+command = "zc-email delete"
+confirmation_required = true

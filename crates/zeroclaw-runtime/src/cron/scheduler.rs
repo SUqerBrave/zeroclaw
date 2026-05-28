@@ -447,7 +447,25 @@ async fn run_agent_job(
     };
 
     let prefixed_prompt = format!("{memory_context}[cron:{} {name}] {prompt}", job.id);
-    let model_override = job.model.clone();
+
+    // Parse model field: if it looks like a configured provider reference
+    // (e.g. "openrouter.default", "deepseek.flash"), use it as provider_override
+    // and let the provider pick its default model. Otherwise treat as model name.
+    let (provider_override, model_override) = match job.model.as_deref() {
+        Some(m) if !m.contains('/') && m.contains('.') => {
+            if let Some((family, alias)) = m.split_once('.') {
+                // Check if this is an actual configured provider entry
+                if config.providers.models.find(family, alias).is_some() {
+                    (Some(m.to_string()), None)
+                } else {
+                    (None, Some(m.to_string()))
+                }
+            } else {
+                (None, Some(m.to_string()))
+            }
+        }
+        other => (None, other.map(ToString::to_string)),
+    };
 
     let mut cron_config = config.clone();
     cron_config.memory.auto_save = false;
@@ -490,7 +508,7 @@ async fn run_agent_job(
                     cron_config,
                     agent_alias,
                     Some(prefixed_prompt),
-                    None,
+                    provider_override,
                     model_override,
                     config
                         .model_provider_for_agent(agent_alias)

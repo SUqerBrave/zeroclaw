@@ -1627,10 +1627,18 @@ async fn get_or_create_provider(
         None
     };
 
-    // Prefer route-specific credential; fall back to the global key.
+    // Prefer route-specific credential; fall back to the global key ONLY IF
+    // the provider name matches the default. Non-default providers (routed)
+    // resolve their own keys from config inside the factory.
     let effective_api_key = route_api_key
         .map(ToString::to_string)
-        .or_else(|| ctx.api_key.clone());
+        .or_else(|| {
+            if provider_name == ctx.default_model_provider.as_str() {
+                ctx.api_key.clone()
+            } else {
+                None
+            }
+        });
 
     let model_provider = create_resilient_model_provider_nonblocking(
         Arc::clone(&ctx.prompt_config),

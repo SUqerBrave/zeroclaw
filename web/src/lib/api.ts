@@ -3,6 +3,7 @@ import type {
   ToolSpec,
   CronJob,
   CronRun,
+  CronDeliveryConfig,
   Integration,
   DiagResult,
   MemoryEntry,
@@ -1143,7 +1144,22 @@ export function triggerCronJob(id: string): Promise<CronTriggerResult> {
 
 export function patchCronJob(
   id: string,
-  patch: { name?: string; schedule?: string; tz?: string; clear_tz?: boolean; command?: string; prompt?: string; fallback_model?: string },
+  patch: {
+    agent: string;
+    name?: string;
+    schedule?: string;
+    tz?: string;
+    clear_tz?: boolean;
+    command?: string;
+    prompt?: string;
+    model?: string;
+    fallback_model?: string;
+    delivery?: CronDeliveryConfig;
+    session_target?: string;
+    allowed_tools?: string[];
+    uses_memory?: boolean;
+    enabled?: boolean;
+  },
 ): Promise<CronJob> {
   return apiFetch<CronJob | { status: string; job: CronJob }>(
     `/api/cron/${encodeURIComponent(id)}`,

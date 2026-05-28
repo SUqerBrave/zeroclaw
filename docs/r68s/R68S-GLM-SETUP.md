@@ -25,7 +25,7 @@
 **步骤 2: SSH 登录 R68S**
 
 ```bash
-ssh root@10.13.0.1
+sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no root@<R68S_IP>
 ```
 
 **步骤 3: 配置环境变量**
@@ -92,7 +92,7 @@ default_model = "glm-4-flash"
 
 ```bash
 # SSH 到 R68S
-ssh root@10.13.0.1
+sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no root@<R68S_IP>
 
 # 加载环境变量
 source /etc/profile.d/zeroclaw-glm.sh

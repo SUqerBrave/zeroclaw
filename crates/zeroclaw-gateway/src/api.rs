@@ -114,7 +114,14 @@ pub struct CronPatchBody {
     pub clear_tz: Option<bool>,
     pub command: Option<String>,
     pub prompt: Option<String>,
+    pub model: Option<String>,
     pub fallback_model: Option<String>,
+    pub delivery: Option<zeroclaw_runtime::cron::DeliveryConfig>,
+    pub session_target: Option<String>,
+    pub delete_after_run: Option<bool>,
+    pub allowed_tools: Option<Vec<String>>,
+    pub uses_memory: Option<bool>,
+    pub enabled: Option<bool>,
 }
 
 enum CronTimezonePatch {
@@ -172,7 +179,34 @@ fn cron_schedule_from_api(
     expr: String,
     tz: Option<String>,
 ) -> Result<zeroclaw_runtime::cron::Schedule, (StatusCode, Json<serde_json::Value>)> {
-    let schedule = zeroclaw_runtime::cron::Schedule::Cron { expr, tz };
+    let expr = expr.trim();
+    if let Some(delay) = expr.strip_prefix("@every ") {
+        if tz.is_some() {
+            return Err(bad_request("Timezone cannot be combined with @every schedule"));
+        }
+        let duration = zeroclaw_runtime::cron::parse_delay(delay)
+            .map_err(|e| bad_request(format!("Invalid @every duration: {e}")))?;
+        let ms = duration
+            .num_milliseconds()
+            .try_into()
+            .map_err(|_| bad_request("Duration too large"))?;
+        return Ok(zeroclaw_runtime::cron::Schedule::Every { every_ms: ms });
+    }
+
+    if let Some(at_str) = expr.strip_prefix("@at ") {
+        if tz.is_some() {
+            return Err(bad_request("Timezone cannot be combined with @at schedule"));
+        }
+        let at = chrono::DateTime::parse_from_rfc3339(at_str)
+            .map_err(|e| bad_request(format!("Invalid @at timestamp (RFC3339 required): {e}")))?
+            .with_timezone(&chrono::Utc);
+        return Ok(zeroclaw_runtime::cron::Schedule::At { at });
+    }
+
+    let schedule = zeroclaw_runtime::cron::Schedule::Cron {
+        expr: expr.to_string(),
+        tz,
+    };
     zeroclaw_runtime::cron::validate_schedule(&schedule, chrono::Utc::now())
         .map_err(|e| bad_request(format!("Invalid cron schedule: {e}")))?;
     Ok(schedule)
@@ -641,7 +675,14 @@ pub async fn handle_api_cron_patch(
         clear_tz,
         command,
         prompt,
+        model,
         fallback_model,
+        delivery,
+        session_target,
+        delete_after_run,
+        allowed_tools,
+        uses_memory,
+        enabled,
     } = body;
     let timezone_patch = match parse_timezone_patch(tz, clear_tz) {
         Ok(patch) => patch,
@@ -704,8 +745,16 @@ pub async fn handle_api_cron_patch(
         schedule,
         command: patch_command,
         prompt: patch_prompt,
+        model,
         fallback_model,
-        ..zeroclaw_runtime::cron::CronJobPatch::default()
+        delivery,
+        session_target: session_target
+            .as_deref()
+            .map(zeroclaw_runtime::cron::SessionTarget::parse),
+        delete_after_run,
+        allowed_tools,
+        uses_memory,
+        enabled,
     };
 
     match zeroclaw_runtime::cron::update_shell_job_with_approval(

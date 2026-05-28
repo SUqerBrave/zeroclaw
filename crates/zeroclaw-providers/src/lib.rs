@@ -628,6 +628,9 @@ pub struct ModelProviderRuntimeOptions {
     pub think: Option<bool>,
     /// Passed verbatim as `chat_template_kwargs` to the llamacpp provider.
     pub chat_template_kwargs: Option<serde_json::Value>,
+    /// When true, the client pulls credentials from `OPENAI_API_KEY` or
+    /// `~/.codex/auth.json` instead of the `api_key` field.
+    pub requires_openai_auth: bool,
 }
 
 impl Default for ModelProviderRuntimeOptions {
@@ -649,6 +652,7 @@ impl Default for ModelProviderRuntimeOptions {
             wire_api: None,
             think: None,
             chat_template_kwargs: None,
+            requires_openai_auth: false,
         }
     }
 }
@@ -708,6 +712,7 @@ pub fn model_provider_runtime_options_from_model_provider_entry(
         wire_api: entry.and_then(|e| e.wire_api.map(|w| w.as_str().to_string())),
         think: entry.and_then(|e| e.think),
         chat_template_kwargs: entry.and_then(|e| e.chat_template_kwargs.clone()),
+        requires_openai_auth: entry.map(|e| e.requires_openai_auth).unwrap_or(false),
     }
 }
 
@@ -1211,9 +1216,16 @@ fn create_model_provider_inner(
     // Pre-flight: catch obvious API-key / model_provider mismatches early.
     if let Some(key_value) = key {
         let is_custom = name.starts_with("custom:") || name.starts_with("anthropic-custom:");
-        let has_custom_url = api_url.map(str::trim).filter(|u| !u.is_empty()).is_some();
+        let has_custom_url = api_url.map(str::trim).filter(|u| !u.is_empty()).is_some()
+            || options
+                .provider_api_url
+                .as_deref()
+                .map(str::trim)
+                .filter(|u| !u.is_empty())
+                .is_some();
         if !is_custom
             && !has_custom_url
+            && !options.requires_openai_auth
             && let Some(likely_model_provider) = check_api_key_prefix(name, key_value)
         {
             let visible = &key_value[..key_value.len().min(8)];

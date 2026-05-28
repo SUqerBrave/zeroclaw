@@ -3177,12 +3177,35 @@ pub async fn run(
         let provider_runtime_options =
             zeroclaw_providers::provider_runtime_options_from_config(&config);
 
+        // When provider_override switches to a different provider, resolve
+        // the API key from the target provider's config entry instead of
+        // the agent's original provider.
+        let (effective_api_key, effective_api_url) = if provider_override.is_some() {
+            let parts: Vec<&str> = provider_name.splitn(2, '.').collect();
+            let target = if parts.len() == 2 {
+                config.providers.models.find(parts[0], parts[1])
+            } else {
+                None
+            };
+            (
+                target.and_then(|e| e.api_key.as_deref())
+                    .or(agent_model_provider.and_then(|e| e.api_key.as_deref())),
+                target.and_then(|e| e.uri.as_deref())
+                    .or(agent_model_provider.and_then(|e| e.uri.as_deref())),
+            )
+        } else {
+            (
+                agent_model_provider.and_then(|e| e.api_key.as_deref()),
+                agent_model_provider.and_then(|e| e.uri.as_deref()),
+            )
+        };
+
         let mut model_provider: Box<dyn ModelProvider> =
             zeroclaw_providers::create_routed_model_provider_with_options(
                 &config,
                 &provider_name,
-                agent_model_provider.and_then(|e| e.api_key.as_deref()),
-                agent_model_provider.and_then(|e| e.uri.as_deref()),
+                effective_api_key,
+                effective_api_url,
                 &config.reliability,
                 &config.model_routes,
                 &model_name,

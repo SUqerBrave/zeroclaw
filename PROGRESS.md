@@ -11,7 +11,15 @@ Documentation restructuring complete.
 - [x] Run `make test` to ensure repository consistency.
 - [x] Unify query classification logic between `Agent` mode and `Orchestrator` mode (QQ/WeChat) to support complexity-based auto-classification globally.
 - [x] Fix pre-existing test failures in `zeroclaw-config` security policy.
+- [x] Fix Cron Job Edit Modal: Correctly load existing schedule/timezone from `job.schedule` and support `@every` interval display.
+- [x] Fix Cron Job Save Logic: Ensure `agent` alias is sent in PATCH requests for security validation.
+- [x] Fix OpenRouter API Key Validation: Update provider factory to allow `sk-` prefixed keys when `requires_openai_auth` is enabled or custom URI is used.
+
+## Active Issues
+- [ ] **401 Unauthorized on Channel Routing**: QQ/WeChat channels fail with "Missing Authentication header" when messages are routed to non-default providers (e.g., OpenRouter). Root cause suspected to be incorrect credential propagation in `get_or_create_provider`.
+- [ ] **401 Unauthorized on Cron Jobs**: Scheduled agent jobs fail with 401 errors when calling DeepSeek/OpenRouter. Credentials from `config.toml` are not being correctly loaded into the cron execution context.
 
 ## Next Steps
+- [ ] Resolve 401 Authentication issues in Orchestrator and Cron subsystems.
 - [ ] Monitor agent performance with the new `AGENTS.md` instructions.
 - [ ] Continue with planned feature development as per project roadmap.

@@ -9,7 +9,7 @@
 ./test-r68s-quick.sh
 
 # 或指定 IP
-./test-r68s-quick.sh 10.13.0.1 root 22
+./test-r68s-quick.sh <R68S_IP> root 22
 ```
 
 ### 方法 2: 完整脚本
@@ -19,7 +19,7 @@
 ./test-r68s
 
 # 带参数
-./test-r68s --ip 10.13.0.1 --port 22 --user root --keep-binary
+./test-r68s --ip <R68S_IP> --port 22 --user root --keep-binary
 ```
 
 ## 前置要求
@@ -40,7 +40,7 @@ rustup target add aarch64-unknown-linux-gnu
 
 | 方式 | 工具 | 速度 | 需要交互 |
 |------|------|------|---------|
-| Base64 + SSH | ssh | 中等 | 需要密码 |
+| Base64 + SSH | sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no | 中等 | 需要密码 |
 | SCP | sshpass | 快 | 自动（需安装） |
 
 ### 安装 sshpass（可选，自动输入密码）
@@ -77,7 +77,7 @@ sudo apt install sshpass
 ==========================================
 ZeroClaw R68S 快速测试
 ==========================================
-设备: root@10.13.0.1:22
+设备: root@<R68S_IP>:22
 
 1️⃣ 检查工具链...
 ✓ 工具链检查完成
@@ -124,16 +124,16 @@ sudo apt install gcc-aarch64-linux-gnu
 
 ```bash
 # 测试连接
-ssh -p 22 root@10.13.0.1 "echo test"
+sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no -p 22 root@<R68S_IP> "echo test"
 
 # 检查网络
-ping 10.13.0.1
+ping <R68S_IP>
 ```
 
 ### 传输失败
 
 Base64 传输需要输入密码 1-2 次，请确保：
-- SSH 密码正确（默认: password）
+- SSH 密码正确（默认: <R68S_PASSWORD>）
 - 网络连接稳定
 - 设备有足够存储空间
 
@@ -143,7 +143,7 @@ Base64 传输需要输入密码 1-2 次，请确保：
 
 ```bash
 # SSH 登录
-ssh root@10.13.0.1
+sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no root@<R68S_IP>
 
 # 安装
 cp /tmp/zeroclaw-test/zeroclaw /usr/bin/zeroclaw

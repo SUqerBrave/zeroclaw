@@ -32,9 +32,9 @@ make deploy
 ### 仅部署（不重新编译）
 
 ```bash
-sshpass -p "password" ssh -o StrictHostKeyChecking=no root@10.13.0.1 "/etc/init.d/zeroclaw stop"
-sshpass -p "password" scp -O -o StrictHostKeyChecking=no target/aarch64-unknown-linux-musl/release/zeroclaw root@10.13.0.1:/usr/bin/zeroclaw
-sshpass -p "password" ssh -o StrictHostKeyChecking=no root@10.13.0.1 "chmod +x /usr/bin/zeroclaw && /etc/init.d/zeroclaw start"
+sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no -o StrictHostKeyChecking=no root@<R68S_IP> "/etc/init.d/zeroclaw stop"
+cat target/aarch64-unknown-linux-musl/release/zeroclaw | sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no root@<R68S_IP> "cat > /usr/bin/zeroclaw"
+sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no -o StrictHostKeyChecking=no root@<R68S_IP> "chmod +x /usr/bin/zeroclaw && /etc/init.d/zeroclaw start"
 ```
 
 > **注意**：覆盖部署前必须先停服，否则会报 `Text file busy`。
@@ -290,8 +290,8 @@ agent-runtime,hardware,sandbox-landlock,channel-wechat,embedded-web
 ### 解决方案
 *   **先停后装**：Linux 不允许覆盖正在运行的可执行文件。必须先停止服务并确保进程已清理：
     ```bash
-    ssh root@10.13.0.1 "/etc/init.d/zeroclaw stop; pkill -9 zeroclaw; rm -f /usr/bin/zeroclaw"
-    cat target/.../zeroclaw | ssh root@10.13.0.1 "cat > /usr/bin/zeroclaw"
+    sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no root@<R68S_IP> "/etc/init.d/zeroclaw stop; pkill -9 zeroclaw; rm -f /usr/bin/zeroclaw"
+    cat target/.../zeroclaw | sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no root@<R68S_IP> "cat > /usr/bin/zeroclaw"
     ```
 
 ## 17. Git 执行被安全策略拦截
@@ -530,12 +530,12 @@ daemon 的热加载逻辑（`maybe_apply_runtime_config_update`）只更新了 *
 必须**重启 daemon** 才能让 `ChannelRuntimeContext` 重新创建并读取新的配置：
 
 ```bash
-sshpass -p "password" ssh root@10.13.0.1 "/etc/init.d/zeroclaw restart"
+sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no root@<R68S_IP> "/etc/init.d/zeroclaw restart"
 ```
 
 重启后观察日志，确认分类生效：
 ```bash
-sshpass -p "password" ssh root@10.13.0.1 "logread | grep -E 'Classified|Auto-classified'"
+sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no root@<R68S_IP> "logread | grep -E 'Classified|Auto-classified'"
 ```
 
 如果分类生效，日志中应出现类似：

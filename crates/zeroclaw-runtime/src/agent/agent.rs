@@ -1982,7 +1982,7 @@ pub async fn run(
     let start = Instant::now();
 
     let mut effective_config = config;
-    if let Some(p) = provider_override {
+    if let Some(p) = provider_override.as_deref() {
         // When a model_provider override is specified, ensure that model_provider type exists
         // in models and is set as the first (and only) entry for routing purposes.
         if let Some((type_key, alias_key)) = p.split_once('.') {
@@ -1991,7 +1991,7 @@ pub async fn run(
                 .models
                 .ensure(type_key, alias_key);
         } else {
-            effective_config.providers.models.ensure(&p, "default");
+            effective_config.providers.models.ensure(p, "default");
         }
     }
     if let Some(entry) = effective_config.first_model_provider_mut() {

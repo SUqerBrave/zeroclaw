@@ -182,7 +182,7 @@ zeroclaw daemon > /dev/null 2>&1 &
 
 ```bash
 # SSH 登录 R68S
-ssh root@10.13.0.1
+sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no root@<R68S_IP>
 
 # 创建测试文件
 mkdir -p /root/tmp

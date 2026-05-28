@@ -18,7 +18,7 @@ Model: anthropic/claude-sonnet-4.6
 
 SSH 登录 R68S：
 ```bash
-ssh root@10.13.0.1
+sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no root@<R68S_IP>
 ```
 
 创建环境变量文件：
@@ -60,7 +60,7 @@ zeroclaw daemon
 
 在 R68S 上：
 ```bash
-ssh root@10.13.0.1
+sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no root@<R68S_IP>
 vi /root/.zeroclaw/config.toml
 ```
 
@@ -217,7 +217,7 @@ claude-3-haiku              # 轻量快速
 
 查看所有支持的 provider：
 ```bash
-ssh root@10.13.0.1
+sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no root@<R68S_IP>
 zeroclaw providers
 ```
 
@@ -241,7 +241,7 @@ zeroclaw providers
 
 编辑配置：
 ```bash
-ssh root@10.13.0.1
+sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no root@<R68S_IP>
 vi /root/.zeroclaw/config.toml
 ```
 
@@ -280,7 +280,7 @@ export OPENAI_API_KEY="sk-xxxxxx"
 
 ```bash
 # SSH 到 R68S
-ssh root@10.13.0.1
+sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no root@<R68S_IP>
 
 # 查看所有 providers
 zeroclaw providers
@@ -305,7 +305,7 @@ zeroclaw agent --message "你好"
 ### Q: 如何查看当前使用的 Provider？
 
 ```bash
-ssh root@10.13.0.1
+sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no root@<R68S_IP>
 cat /root/.zeroclaw/config.toml | grep default_provider
 ```
 

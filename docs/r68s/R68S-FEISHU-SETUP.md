@@ -33,7 +33,7 @@
 
 **请求 URL:**
 ```
-http://10.13.0.1:8080/feishu/webhook
+http://<R68S_IP>:8080/feishu/webhook
 ```
 
 **订阅事件:**
@@ -58,7 +58,7 @@ http://10.13.0.1:8080/feishu/webhook
 SSH 登录 R68S:
 
 ```bash
-ssh root@10.13.0.1
+sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no root@<R68S_IP>
 ```
 
 编辑配置文件:
