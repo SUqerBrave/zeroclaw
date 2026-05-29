@@ -3200,8 +3200,6 @@ pub async fn run(
             )
         };
 
-        eprintln!("[LOOP_PROVIDER_DEBUG] provider_name={} model_name={} has_key={} has_override={}", provider_name, model_name, effective_api_key.map(|k| &k[..k.len().min(8)]).unwrap_or("NONE"), provider_override.is_some());
-
         ::zeroclaw_log::record!(
             INFO,
             ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)

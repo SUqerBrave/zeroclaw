@@ -1212,7 +1212,6 @@ fn create_model_provider_inner(
         .map(|v| String::from_utf8(v.into_bytes()).unwrap_or_default());
     #[allow(clippy::option_as_ref_deref)]
     let key = resolved_credential.as_ref().map(String::as_str);
-    eprintln!("[CREATE_PROVIDER] name={} alias={} api_key_param={} resolved_key={}", name, alias, api_key.map(|k| &k[..k.len().min(8)]).unwrap_or("None"), key.map(|k| &k[..k.len().min(8)]).unwrap_or("None"));
 
     // Pre-flight: catch obvious API-key / model_provider mismatches early.
     if let Some(key_value) = key {
