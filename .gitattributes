@@ -64,3 +64,8 @@ Cargo.toml text eol=lf
 *.bz2 binary
 *.7z binary
 *.db binary
+
+# Ignore merges for these files (keep local version)
+AGENTS.md merge=ours
+GEMINI.md merge=ours
+CLAUDE.md merge=ours

@@ -102,6 +102,10 @@ impl Tool for CronUpdateTool {
                             "type": "string",
                             "description": "Model override for agent jobs, e.g. 'x-ai/grok-4-1-fast'"
                         },
+                        "fallback_model": {
+                            "type": "string",
+                            "description": "Backup model to try when the primary model times out or errors"
+                        },
                         "allowed_tools": {
                             "type": "array",
                             "items": { "type": "string" },
@@ -717,6 +721,7 @@ mod tests {
             crate::cron::SessionTarget::Isolated,
             None,
             None,
+            None,
             false,
             Some(vec!["file_read".into()]),
         )
@@ -753,6 +758,7 @@ mod tests {
             },
             "check status",
             crate::cron::SessionTarget::Isolated,
+            None,
             None,
             None,
             false,

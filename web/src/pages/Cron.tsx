@@ -187,6 +187,7 @@ export default function Cron() {
   const [formJobType, setFormJobType] = useState<'shell' | 'agent'>('shell');
   const [formPrompt, setFormPrompt] = useState('');
   const [formModel, setFormModel] = useState('');
+  const [formFallbackModel, setFormFallbackModel] = useState('');
   const [formSessionTarget, setFormSessionTarget] = useState<'isolated' | 'main'>('isolated');
   const [formAllowedTools, setFormAllowedTools] = useState('');
   const [formAgent, setFormAgent] = useState('');
@@ -209,6 +210,7 @@ export default function Cron() {
     setFormJobType('shell');
     setFormPrompt('');
     setFormModel('');
+    setFormFallbackModel('');
     setFormSessionTarget('isolated');
     setFormAllowedTools('');
     setFormAgent(agentOptions[0] ?? '');
@@ -243,6 +245,7 @@ export default function Cron() {
       setFormPrompt(job.prompt ?? '');
       setFormCommand('');
       setFormModel(job.model ?? '');
+      setFormFallbackModel((job as CronJob & { fallback_model?: string }).fallback_model ?? '');
       setFormSessionTarget(
         job.session_target === 'main' ? 'main' : 'isolated',
       );
@@ -363,7 +366,7 @@ export default function Cron() {
       if (isEditing) {
         const existingTimezone = scheduleTimezone(modalJob as CronJob);
         const timezone = formTimezone.trim();
-        const patch: { name?: string; schedule?: string; tz?: string; clear_tz?: boolean; command?: string; prompt?: string } = {
+        const patch: { name?: string; schedule?: string; tz?: string; clear_tz?: boolean; command?: string; prompt?: string; fallback_model?: string } = {
           name: formName.trim() || undefined,
           schedule: formSchedule.trim(),
         };
@@ -374,6 +377,7 @@ export default function Cron() {
         }
         if (isAgent) {
           patch.prompt = formPrompt.trim();
+          if (formFallbackModel.trim()) patch.fallback_model = formFallbackModel.trim();
         } else {
           patch.command = formCommand.trim();
         }
@@ -394,6 +398,7 @@ export default function Cron() {
         if (isAgent) {
           body.prompt = formPrompt.trim();
           if (formModel.trim()) body.model = formModel.trim();
+          if (formFallbackModel.trim()) body.fallback_model = formFallbackModel.trim();
           body.session_target = formSessionTarget;
           const parsedTools = formAllowedTools
             .split(',')
@@ -678,20 +683,35 @@ export default function Cron() {
                       className="input-electric w-full px-3 py-2.5 text-sm resize-y"
                     />
                   </div>
+                  <div>
+                    <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: 'var(--pc-text-secondary)' }}>
+                      {t('cron.model_optional')}
+                    </label>
+                    <input
+                      type="text"
+                      value={formModel}
+                      onChange={(e) => setFormModel(e.target.value)}
+                      placeholder={t('cron.model_placeholder')}
+                      className="input-electric w-full px-3 py-2.5 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: 'var(--pc-text-secondary)' }}>
+                      Fallback Model
+                    </label>
+                    <input
+                      type="text"
+                      value={formFallbackModel}
+                      onChange={(e) => setFormFallbackModel(e.target.value)}
+                      placeholder="Backup model when primary fails (e.g. deepseek-v4-flash)"
+                      className="input-electric w-full px-3 py-2.5 text-sm"
+                    />
+                    <p className="text-xs mt-1" style={{ color: 'var(--pc-text-faint)' }}>
+                      Tried once when the primary model times out or errors. Leave empty to disable.
+                    </p>
+                  </div>
                   {!isEditing && (
                     <>
-                      <div>
-                        <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: 'var(--pc-text-secondary)' }}>
-                          {t('cron.model_optional')}
-                        </label>
-                        <input
-                          type="text"
-                          value={formModel}
-                          onChange={(e) => setFormModel(e.target.value)}
-                          placeholder={t('cron.model_placeholder')}
-                          className="input-electric w-full px-3 py-2.5 text-sm"
-                        />
-                      </div>
                       <div>
                         <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: 'var(--pc-text-secondary)' }}>
                           {t('cron.session_target')}

@@ -1,0 +1,63 @@
+# ==========================================
+# ZeroClaw 飞书 (Feishu) 配置模板
+# ==========================================
+#
+# 使用说明:
+# 1. 访问 https://open.feishu.cn/ 创建应用
+# 2. 获取 App ID 和 App Secret
+# 3. 配置事件订阅（Webhook 模式）
+# 4. 将此配置追加到 /root/.zeroclaw/config.toml
+# ==========================================
+
+# 基础配置（最简单，测试用）
+[[channels.feishu]]
+app_id = "cli_xxxxxxxxxxxxx"        # 替换为你的 App ID
+app_secret = "xxxxxxxxxxxxx"         # 替换为你的 App Secret
+allowed_users = ["*"]                # "*" 允许所有用户
+receive_mode = "webhook"             # "webhook" 或 "websocket"
+port = 8080                          # Webhook 端口
+
+# ==========================================
+# 完整配置示例（带加密和验证）
+# ==========================================
+# [[channels.feishu]]
+# app_id = "cli_xxxxxxxxxxxxx"
+# app_secret = "xxxxxxxxxxxxx"
+# encrypt_key = "xxxxxxxxxxxxx"       # 可选：从飞书事件订阅页面获取
+# verification_token = "xxxxxxxxxxxxx" # 可选：从飞书事件订阅页面获取
+# allowed_users = ["*"]               # 或指定用户: ["ou_xxx", "ou_yyy"]
+# receive_mode = "webhook"            # "webhook" 或 "websocket"
+# port = 8080                         # Webhook 端口
+# ==========================================
+
+# ==========================================
+# 飞书开放平台配置步骤
+# ==========================================
+#
+# 1. 创建应用
+#    访问: https://open.feishu.cn/
+#    创建企业自建应用
+#
+# 2. 配置权限
+#    在 "权限管理" 中开通:
+#    - im:message (消息)
+#    - im:message:send_as_bot
+#    - im:message:at_mention
+#    - im:chat
+#
+# 3. 配置事件订阅
+#    进入 "事件订阅"
+#    请求 URL: http://10.13.0.1:8080/feishu/webhook
+#    订阅事件: im.message.receive_v1
+#
+#    如启用加密:
+#    - 记录 Encrypt Key
+#    - 记录 Verification Token
+#
+# 4. 发布版本
+#    在 "版本管理与发布" 中创建并发布版本
+#
+# 5. 添加机器人到群组
+#    在飞书群组中添加应用为机器人
+#
+# ==========================================

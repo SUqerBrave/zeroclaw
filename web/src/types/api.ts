@@ -79,6 +79,7 @@ export interface CronJob {
   delete_after_run: boolean;
   session_target: string | null;
   model: string | null;
+  fallback_model: string | null;
   allowed_tools: string[] | null;
   source: string | null;
   agent_alias: string;
