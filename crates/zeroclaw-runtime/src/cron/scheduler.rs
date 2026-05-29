@@ -259,6 +259,7 @@ async fn execute_job_with_retry(
         );
         let mut fallback_job = job.clone();
         fallback_job.model = Some(fallback.clone());
+        eprintln!("[FALLBACK_DEBUG] primary_model={:?} fallback_model={:?} fallback_job_model={:?}", job.model, fallback, fallback_job.model);
         let (fb_success, fb_output) =
             Box::pin(run_agent_job(config, security, agent_alias, &fallback_job)).await;
         if fb_success {
@@ -450,14 +451,37 @@ async fn run_agent_job(
 
     // Parse model field: if it looks like a configured provider reference
     // (e.g. "openrouter.default", "deepseek.flash"), use it as provider_override
-    // and let the provider pick its default model. Otherwise treat as model name.
+    // AND extract the provider's configured model so loop_::run doesn't fall
+    // back to the agent's original provider model (which may belong to a
+    // different family, causing API mismatches and fallback charges).
     let (provider_override, model_override) = match job.model.as_deref() {
         Some(m) if !m.contains('/') && m.contains('.') => {
             if let Some((family, alias)) = m.split_once('.') {
                 // Check if this is an actual configured provider entry
-                if config.providers.models.find(family, alias).is_some() {
-                    (Some(m.to_string()), None)
+                if let Some(entry) = config.providers.models.find(family, alias) {
+                    let provider_model = entry.model.clone();
+                    ::zeroclaw_log::record!(
+                        INFO,
+                        ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                            .with_attrs(::serde_json::json!({
+                                "job_id": job.id,
+                                "provider_ref": m,
+                                "resolved_model": provider_model,
+                                "has_api_key": entry.api_key.as_deref().map(|k| &k[..k.len().min(8)]),
+                            })),
+                        "cron: resolved provider reference"
+                    );
+                    (Some(m.to_string()), provider_model)
                 } else {
+                    ::zeroclaw_log::record!(
+                        WARN,
+                        ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                            .with_attrs(::serde_json::json!({
+                                "job_id": job.id,
+                                "provider_ref": m,
+                            })),
+                        "cron: provider reference not found in config, treating as model name"
+                    );
                     (None, Some(m.to_string()))
                 }
             } else {
@@ -466,6 +490,7 @@ async fn run_agent_job(
         }
         other => (None, other.map(ToString::to_string)),
     };
+    eprintln!("[CRON_MODEL_DEBUG] job.model={:?} => provider_override={:?} model_override={:?}", job.model, provider_override, model_override);
 
     let mut cron_config = config.clone();
     cron_config.memory.auto_save = false;

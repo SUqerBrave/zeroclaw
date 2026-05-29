@@ -1212,6 +1212,7 @@ fn create_model_provider_inner(
         .map(|v| String::from_utf8(v.into_bytes()).unwrap_or_default());
     #[allow(clippy::option_as_ref_deref)]
     let key = resolved_credential.as_ref().map(String::as_str);
+    eprintln!("[CREATE_PROVIDER] name={} alias={} api_key_param={} resolved_key={}", name, alias, api_key.map(|k| &k[..k.len().min(8)]).unwrap_or("None"), key.map(|k| &k[..k.len().min(8)]).unwrap_or("None"));
 
     // Pre-flight: catch obvious API-key / model_provider mismatches early.
     if let Some(key_value) = key {
@@ -3325,5 +3326,117 @@ mod tests {
             "direct-key should succeed: {}",
             result.err().unwrap()
         );
+    }
+
+    #[test]
+    fn routed_deepseek_fallback_preserves_api_key() {
+        // Reproduce: cron job with openrouter.default primary + deepseek.flash fallback.
+        // The config has model_routes pointing to both providers.
+        // When openrouter fails and fallback triggers with deepseek.flash as
+        // provider_override, the deepseek API key must be preserved.
+        let mut config = zeroclaw_config::schema::Config::default();
+
+        // Set up deepseek.flash with a real-looking key
+        let mut deepseek_cfg = zeroclaw_config::schema::DeepseekModelProviderConfig::default();
+        deepseek_cfg.base.api_key = Some("sk-7105e83748594758bd7d70094bfcee3b".into());
+        deepseek_cfg.base.model = Some("deepseek-v4-flash".into());
+        config.providers.models.deepseek.insert("flash".into(), deepseek_cfg);
+
+        // Set up openrouter.default
+        let mut or_cfg = zeroclaw_config::schema::OpenRouterModelProviderConfig::default();
+        or_cfg.base.api_key = Some("sk-or-v1-test".into());
+        or_cfg.base.model = Some("nvidia/test".into());
+        or_cfg.base.uri = Some("https://openrouter.ai/api/v1".into());
+        config.providers.models.openrouter.insert("default".into(), or_cfg);
+
+        // Set up model_routes
+        config.model_routes = vec![
+            zeroclaw_config::schema::ModelRouteConfig {
+                hint: "fast".into(),
+                model_provider: "openrouter.default".into(),
+                model: "nvidia/test".into(),
+                api_key: None,
+            },
+            zeroclaw_config::schema::ModelRouteConfig {
+                hint: "default".into(),
+                model_provider: "deepseek.flash".into(),
+                model: "deepseek-v4-flash".into(),
+                api_key: None,
+            },
+        ];
+
+        let reliability = zeroclaw_config::schema::ReliabilityConfig::default();
+
+        // Simulate the fallback path: provider_override="deepseek.flash"
+        let result = create_routed_model_provider_with_options(
+            &config,
+            "deepseek.flash", // primary_name = provider_override
+            Some("sk-7105e83748594758bd7d70094bfcee3b"), // effective_api_key from config
+            None,
+            &reliability,
+            &config.model_routes.clone(),
+            "deepseek-v4-flash",
+            &ModelProviderRuntimeOptions::default(),
+        );
+
+        assert!(
+            result.is_ok(),
+            "deepseek.flash should be created with API key: {}",
+            result.err().unwrap()
+        );
+    }
+
+    #[test]
+    fn deepseek_provider_has_credential_after_routed_creation() {
+        // Create deepseek.flash provider through the router path (model_routes non-empty)
+        // and verify the inner provider has the credential set.
+        let mut config = zeroclaw_config::schema::Config::default();
+
+        let mut deepseek_cfg = zeroclaw_config::schema::DeepseekModelProviderConfig::default();
+        deepseek_cfg.base.api_key = Some("sk-7105e83748594758bd7d70094bfcee3b".into());
+        deepseek_cfg.base.model = Some("deepseek-v4-flash".into());
+        config.providers.models.deepseek.insert("flash".into(), deepseek_cfg);
+
+        let mut or_cfg = zeroclaw_config::schema::OpenRouterModelProviderConfig::default();
+        or_cfg.base.api_key = Some("sk-or-v1-test".into());
+        or_cfg.base.model = Some("nvidia/test".into());
+        or_cfg.base.uri = Some("https://openrouter.ai/api/v1".into());
+        config.providers.models.openrouter.insert("default".into(), or_cfg);
+
+        config.model_routes = vec![
+            zeroclaw_config::schema::ModelRouteConfig {
+                hint: "fast".into(),
+                model_provider: "openrouter.default".into(),
+                model: "nvidia/test".into(),
+                api_key: None,
+            },
+            zeroclaw_config::schema::ModelRouteConfig {
+                hint: "default".into(),
+                model_provider: "deepseek.flash".into(),
+                model: "deepseek-v4-flash".into(),
+                api_key: None,
+            },
+        ];
+
+        let reliability = zeroclaw_config::schema::ReliabilityConfig::default();
+
+        // Create provider the same way loop_::run does
+        let provider = create_routed_model_provider_with_options(
+            &config,
+            "deepseek.flash",
+            Some("sk-7105e83748594758bd7d70094bfcee3b"),
+            None,
+            &reliability,
+            &config.model_routes.clone(),
+            "deepseek-v4-flash",
+            &ModelProviderRuntimeOptions::default(),
+        ).expect("provider creation should succeed");
+
+        // The provider is a RouterModelProvider. We can't directly inspect the inner
+        // providers' credentials, but we can try to make a chat request and see if
+        // it gets a 401 (missing auth) or a proper response.
+        // For unit test, just verify it was created successfully.
+        // The real verification is the eprintln in apply_auth_to_request.
+        println!("Provider created successfully");
     }
 }

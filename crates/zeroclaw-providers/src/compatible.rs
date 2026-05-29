@@ -127,6 +127,7 @@ fn apply_auth_to_request(
     style: &AuthStyle,
     credential: Option<&str>,
 ) -> reqwest::RequestBuilder {
+    eprintln!("[AUTH] credential_present={} prefix={:?}", credential.is_some(), credential.map(|c| &c[..c.len().min(8)]));
     let credential = match credential {
         Some(c) => c,
         None => return req,

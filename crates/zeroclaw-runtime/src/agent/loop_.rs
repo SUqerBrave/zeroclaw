@@ -3175,7 +3175,7 @@ pub async fn run(
         }
 
         let provider_runtime_options =
-            zeroclaw_providers::provider_runtime_options_from_config(&config);
+            zeroclaw_providers::provider_runtime_options_for_agent(&config, agent_alias);
 
         // When provider_override switches to a different provider, resolve
         // the API key from the target provider's config entry instead of
@@ -3199,6 +3199,20 @@ pub async fn run(
                 agent_model_provider.and_then(|e| e.uri.as_deref()),
             )
         };
+
+        eprintln!("[LOOP_PROVIDER_DEBUG] provider_name={} model_name={} has_key={} has_override={}", provider_name, model_name, effective_api_key.map(|k| &k[..k.len().min(8)]).unwrap_or("NONE"), provider_override.is_some());
+
+        ::zeroclaw_log::record!(
+            INFO,
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                .with_attrs(::serde_json::json!({
+                    "provider_name": provider_name,
+                    "model_name": model_name,
+                    "has_effective_key": effective_api_key.map(|k| &k[..k.len().min(8)]),
+                    "has_provider_override": provider_override.is_some(),
+                })),
+            "agent::run provider resolution"
+        );
 
         let mut model_provider: Box<dyn ModelProvider> =
             zeroclaw_providers::create_routed_model_provider_with_options(
@@ -4436,7 +4450,7 @@ pub async fn process_message(
             ),
         };
         let provider_runtime_options =
-            zeroclaw_providers::provider_runtime_options_from_config(&config);
+            zeroclaw_providers::provider_runtime_options_for_agent(&config, agent_alias);
         let model_provider: Box<dyn ModelProvider> =
             zeroclaw_providers::create_routed_model_provider_with_options(
                 &config,
