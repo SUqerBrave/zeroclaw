@@ -150,6 +150,10 @@ pub struct CronJob {
     pub job_type: JobType,
     pub session_target: SessionTarget,
     pub model: Option<String>,
+    /// Backup model to try when the primary `model` (or agent default)
+    /// fails with a timeout or provider error.  `None` means no fallback.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fallback_model: Option<String>,
     /// Agent alias this job runs under. Empty when the row was written
     /// before the column existed and no agent has claimed it; the
     /// scheduler skips such rows with a warning rather than coercing
@@ -201,6 +205,7 @@ pub struct CronJobPatch {
     pub enabled: Option<bool>,
     pub delivery: Option<DeliveryConfig>,
     pub model: Option<String>,
+    pub fallback_model: Option<String>,
     pub session_target: Option<SessionTarget>,
     pub delete_after_run: Option<bool>,
     pub allowed_tools: Option<Vec<String>>,

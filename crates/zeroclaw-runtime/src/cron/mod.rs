@@ -805,6 +805,7 @@ mod tests {
             SessionTarget::Isolated,
             None,
             None,
+            None,
             false,
             None,
             true,

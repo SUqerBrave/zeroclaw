@@ -316,7 +316,14 @@ pub fn dispatch_family_factory(
                                 &default_cfg
                             }
                         };
-                        cfg.create_provider(alias, key, api_url, opts)
+                        // Conventional env-var fallback: when neither the
+                        // caller nor the config supplies an API key, check
+                        // the provider-specific env var.
+                        let env_fallback = env_key_for_family(family);
+                        let effective_key = key
+                            .or(cfg.base.api_key.as_deref())
+                            .or(env_fallback.as_deref());
+                        cfg.create_provider(alias, effective_key, api_url, opts)
                     }
                 )+
                 _ => {
@@ -384,6 +391,25 @@ pub(crate) fn fallback_auth_ready_for_alias(
         }
     }
     zeroclaw_config::for_each_model_provider_slot!(emit_auth_ready)
+}
+
+/// Map a canonical provider family name to its conventional env-var name
+/// and return the value if set.
+fn env_key_for_family(family: &str) -> Option<String> {
+    let env_var = match family {
+        "openrouter" => "OPENROUTER_API_KEY",
+        "openai" => "OPENAI_API_KEY",
+        "anthropic" => "ANTHROPIC_API_KEY",
+        "deepseek" => "DEEPSEEK_API_KEY",
+        "groq" => "GROQ_API_KEY",
+        "google" | "gemini" => "GOOGLE_API_KEY",
+        "mistral" => "MISTRAL_API_KEY",
+        "xai" => "XAI_API_KEY",
+        _ => return None,
+    };
+    std::env::var(env_var)
+        .ok()
+        .filter(|v| !v.trim().is_empty())
 }
 
 // ════════════════════════════════════════════════════════════════════════

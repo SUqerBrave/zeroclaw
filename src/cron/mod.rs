@@ -115,6 +115,7 @@ pub fn handle_command(command: crate::CronCommands, config: &Config) -> Result<(
                     SessionTarget::Isolated,
                     None,
                     None,
+                    None,
                     false,
                     if allowed_tools.is_empty() {
                         None
@@ -193,6 +194,7 @@ pub fn handle_command(command: crate::CronCommands, config: &Config) -> Result<(
                     SessionTarget::Isolated,
                     None,
                     None,
+                    None,
                     true,
                     if allowed_tools.is_empty() {
                         None
@@ -263,6 +265,7 @@ pub fn handle_command(command: crate::CronCommands, config: &Config) -> Result<(
                     schedule,
                     &command,
                     SessionTarget::Isolated,
+                    None,
                     None,
                     None,
                     false,
@@ -354,6 +357,7 @@ pub fn handle_command(command: crate::CronCommands, config: &Config) -> Result<(
                     schedule,
                     &command,
                     SessionTarget::Isolated,
+                    None,
                     None,
                     None,
                     true,

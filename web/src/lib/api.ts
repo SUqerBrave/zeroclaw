@@ -1821,6 +1821,7 @@ export function addCronJob(body: {
   job_type?: string;
   prompt?: string;
   model?: string;
+  fallback_model?: string;
   session_target?: string;
   allowed_tools?: string[];
   enabled?: boolean;
@@ -1881,6 +1882,7 @@ export function patchCronJob(
     prompt?: string;
     enabled?: boolean;
     uses_memory?: boolean;
+    fallback_model?: string;
   },
 ): Promise<CronJob> {
   return apiFetch<CronJob | { status: string; job: CronJob }>(

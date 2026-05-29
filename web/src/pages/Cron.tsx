@@ -206,6 +206,7 @@ export default function Cron() {
   const [formJobType, setFormJobType] = useState<'shell' | 'agent'>('shell');
   const [formPrompt, setFormPrompt] = useState('');
   const [formModel, setFormModel] = useState('');
+  const [formFallbackModel, setFormFallbackModel] = useState('');
   const [formSessionTarget, setFormSessionTarget] = useState<'isolated' | 'main'>('isolated');
   const [formAllowedTools, setFormAllowedTools] = useState('');
   const [formAgent, setFormAgent] = useState('');
@@ -229,6 +230,7 @@ export default function Cron() {
     setFormJobType('shell');
     setFormPrompt('');
     setFormModel('');
+    setFormFallbackModel('');
     setFormSessionTarget('isolated');
     setFormAllowedTools('');
     setFormAgent(agentOptions[0] ?? '');
@@ -264,6 +266,7 @@ export default function Cron() {
       setFormPrompt(job.prompt ?? '');
       setFormCommand('');
       setFormModel(job.model ?? '');
+      setFormFallbackModel(job.fallback_model ?? '');
       setFormSessionTarget(
         job.session_target === 'main' ? 'main' : 'isolated',
       );
@@ -274,6 +277,7 @@ export default function Cron() {
       setFormCommand(job.command);
       setFormPrompt('');
       setFormModel('');
+      setFormFallbackModel('');
       setFormSessionTarget('isolated');
       setFormAllowedTools('');
     }
@@ -389,7 +393,7 @@ export default function Cron() {
       if (isEditing) {
         const existingTimezone = scheduleTimezone(modalJob as CronJob);
         const timezone = formTimezone.trim();
-        const patch: { agent: string; name?: string; schedule?: string; tz?: string; clear_tz?: boolean; command?: string; prompt?: string; uses_memory?: boolean } = {
+        const patch: { agent: string; name?: string; schedule?: string; tz?: string; clear_tz?: boolean; command?: string; prompt?: string; uses_memory?: boolean; fallback_model?: string } = {
           // The gateway requires `agent` on every patch (it risk-gates a
           // command change); send the job's existing alias so a pure
           // name/schedule/prompt edit doesn't 422 with "missing field agent".
@@ -404,6 +408,7 @@ export default function Cron() {
         }
         if (isAgent) {
           patch.prompt = formPrompt.trim();
+          if (formFallbackModel.trim()) patch.fallback_model = formFallbackModel.trim();
         } else {
           patch.command = formCommand.trim();
         }
@@ -425,6 +430,7 @@ export default function Cron() {
         if (isAgent) {
           body.prompt = formPrompt.trim();
           if (formModel.trim()) body.model = formModel.trim();
+          if (formFallbackModel.trim()) body.fallback_model = formFallbackModel.trim();
           body.session_target = formSessionTarget;
           const parsedTools = formAllowedTools
             .split(',')
@@ -741,6 +747,21 @@ export default function Cron() {
                       rows={4}
                       className="rounded-[var(--radius-md)] border border-pc-border bg-pc-input text-pc-text placeholder:text-pc-text-faint transition-colors focus:outline-none focus:border-pc-border-strong focus:ring-2 focus:ring-[var(--pc-focus)]/30 w-full px-3 py-2.5 text-sm resize-y"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider text-pc-text-faint">
+                      {t('cron.fallback_model_optional')}
+                    </label>
+                    <input
+                      type="text"
+                      value={formFallbackModel}
+                      onChange={(e) => setFormFallbackModel(e.target.value)}
+                      placeholder={t('cron.fallback_model_placeholder')}
+                      className="rounded-[var(--radius-md)] border border-pc-border bg-pc-input text-pc-text placeholder:text-pc-text-faint transition-colors focus:outline-none focus:border-pc-border-strong focus:ring-2 focus:ring-[var(--pc-focus)]/30 w-full px-3 py-2.5 text-sm"
+                    />
+                    <p className="mt-1 text-xs text-pc-text-faint">
+                      {t('cron.fallback_model_help')}
+                    </p>
                   </div>
                   {/* Model / session-target / allowed-tools. patchCronJob does
                       NOT accept any of these, so on edit they render read-only

@@ -1,0 +1,100 @@
+# ZeroClaw R68S Configuration with MCP Support
+# Copy this to /root/.zeroclaw/config.toml on your R68S
+
+[agent]
+# Agent behavior settings
+compact_context = false  # R68S has enough RAM for full context
+max_tool_iterations = 10
+max_history_messages = 50
+parallel_tools = true  # Enable parallel tool execution
+
+# Optional: Filter MCP tools to reduce token usage
+# [[agent.tool_filter_groups]]
+# mode = "always"
+# tools = ["mcp_fs_*"]  # Always include filesystem tools
+
+[security]
+# Security settings
+policy_path = "/root/.zeroclaw/policy.toml"
+pairing_enabled = true
+
+[security.otp]
+enabled = false  # Enable if you want OTP protection
+
+[mcp]
+# MCP (Model Context Protocol) Configuration
+enabled = true
+deferred_loading = true  # Recommended: Load tool schemas on-demand
+
+# ===== MCP SERVERS =====
+# Add your MCP servers below. Tools will be available as: <server>__<tool>
+
+# Example 1: Filesystem access (recommended for R68S)
+[[mcp.servers]]
+name = "fs"
+transport = "stdio"
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "/root", "/data", "/tmp"]
+tool_timeout_secs = 180
+# No env vars needed for filesystem server
+
+# Example 2: Brave Search (requires API key)
+# [[mcp.servers]]
+# name = "brave"
+# transport = "stdio"
+# command = "npx"
+# args = ["-y", "@modelcontextprotocol/server-brave-search"]
+# env = { "BRAVE_API_KEY" = "your_brave_api_key_here" }
+# tool_timeout_secs = 60
+
+# Example 3: GitHub integration (requires token)
+# [[mcp.servers]]
+# name = "github"
+# transport = "stdio"
+# command = "npx"
+# args = ["-y", "@modelcontextprotocol/server-github"]
+# env = { "GITHUB_TOKEN" = "your_github_token_here" }
+# tool_timeout_secs = 180
+
+# Example 4: Custom HTTP MCP server
+# [[mcp.servers]]
+# name = "custom-api"
+# transport = "http"
+# url = "http://localhost:3000/mcp"
+# headers = { "Authorization" = "Bearer your_token" }
+# tool_timeout_secs = 180
+
+# Example 5: SQLite database access
+# [[mcp.servers]]
+# name = "db"
+# transport = "stdio"
+# command = "npx"
+# args = ["-y", "@modelcontextprotocol/server-sqlite", "--db-path", "/data/app.db"]
+# tool_timeout_secs = 180
+
+# Example 6: Postgres database access
+# [[mcp.servers]]
+# name = "postgres"
+# transport = "stdio"
+# command = "npx"
+# args = ["-y", "@modelcontextprotocol/server-postgres", "--connection-string", "postgresql://user:pass@localhost/db"]
+# tool_timeout_secs = 180
+
+# ===== END MCP SERVERS =====
+
+[provider]
+# Your LLM provider configuration
+type = "openai"  # or anthropic, openrouter, etc.
+api_key = "your_api_key_here"
+model = "gpt-4o"  # or your preferred model
+
+[gateway]
+# Gateway configuration (if enabled)
+enabled = true
+bind_address = "0.0.0.0:7878"
+
+[channels]
+# Channel configurations (Telegram, Discord, etc.)
+# Example:
+# [[channels.telegram]]
+# bot_token = "your_bot_token"
