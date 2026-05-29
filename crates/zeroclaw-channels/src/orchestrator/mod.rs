@@ -5571,6 +5571,17 @@ async fn process_channel_message_body(
     });
     let loop_knobs = LoopKnobs::default();
     let turn_id = uuid::Uuid::new_v4().to_string();
+    // Pre-compute fallback route: when the current route uses a non-default
+    // provider and it fails with an auth error, retry once with the current
+    // runtime default resolved from the same immutable snapshot as this turn.
+    let fallback_route = if route.model_provider
+        != runtime_defaults.defaults.default_model_provider.as_str()
+    {
+        Some(default_route_selection_from_snapshot(&runtime_defaults))
+    } else {
+        None
+    };
+    let mut fallback_attempted = false;
     let (llm_result, fallback_info) = scope_provider_fallback(async {
         let llm_result = loop {
             let thread_scope_id = msg
@@ -5783,6 +5794,61 @@ async fn process_channel_message_body(
                         );
                         clear_model_switch_request();
                         // Fall through with the original error
+                    }
+                }
+            }
+
+            // Provider fallback: if routed provider failed with auth error,
+            // retry once with the default provider.
+            if let LlmExecutionResult::Completed(Ok(Err(ref e))) = loop_result {
+                if !fallback_attempted {
+                    if let Some(ref fb_route) = fallback_route {
+                        if zeroclaw_providers::reliable::is_auth_error(e) {
+                            fallback_attempted = true;
+                            ::zeroclaw_log::record!(
+                                INFO,
+                                ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                                    .with_attrs(::serde_json::json!({
+                                        "from_provider": route.model_provider,
+                                        "to_provider": fb_route.model_provider,
+                                        "error": e.to_string(),
+                                    })),
+                                "Routed provider failed, falling back to default provider"
+                            );
+                            // Evict the failed provider from cache
+                            let cache_key = provider_cache_key(
+                                &route.model_provider,
+                                route.api_key.as_deref(),
+                                runtime_defaults.generation,
+                            );
+                            ctx.provider_cache.lock().unwrap_or_else(|p| p.into_inner()).remove(&cache_key);
+
+                            // Swap to fallback provider
+                            match get_or_create_provider(
+                                ctx.as_ref(),
+                                &fb_route.model_provider,
+                                fb_route.api_key.as_deref(),
+                                &runtime_defaults,
+                            ).await {
+                                Ok(new_prov) => {
+                                    active_model_provider = new_prov;
+                                    route = fb_route.clone();
+                                    // Rollback the failed user turn so retry has clean history
+                                    rollback_orphan_user_turn(ctx.as_ref(), &history_key, &msg.content);
+                                    append_sender_turn(ctx.as_ref(), &history_key, ChatMessage::user(&msg.content));
+                                    continue; // retry with fallback provider
+                                }
+                                Err(err) => {
+                                    ::zeroclaw_log::record!(
+                                        WARN,
+                                        ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Fail)
+                                            .with_attrs(::serde_json::json!({"err": err.to_string()})),
+                                        "Failed to create fallback provider, reporting original error"
+                                    );
+                                    // Fall through with the original error
+                                }
+                            }
+                        }
                     }
                 }
             }
