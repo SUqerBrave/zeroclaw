@@ -127,6 +127,7 @@ test_config_dir/
 # R68S setup docs that contained secrets
 docs/R68S-DISCORD-SETUP.md
 docs/discord_config_template.toml
+docs/r68s-testing.md
 # Generated OpenAPI spec (transient handoff for openapi-typescript)
 target/openapi.json
 /v[0-9]*.toml

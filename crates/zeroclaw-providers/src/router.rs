@@ -173,6 +173,7 @@ impl RouterModelProvider {
                     .with_attrs(::serde_json::json!({"hint": hint})),
                 "Unknown route hint, falling back to default model_provider"
             );
+            return (self.default_index, self.default_model.clone());
         }
 
         // Not a hint or hint not found — use default model_provider with the model as-is
@@ -719,7 +720,7 @@ mod tests {
         assert_eq!(result, "default-response");
         assert_eq!(mocks[0].call_count(), 1);
         // Falls back to default with the hint as model name
-        assert_eq!(mocks[0].last_model(), "hint:nonexistent");
+        assert_eq!(mocks[0].last_model(), "default-model");
     }
 
     #[tokio::test]

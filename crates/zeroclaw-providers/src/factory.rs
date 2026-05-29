@@ -407,9 +407,7 @@ fn env_key_for_family(family: &str) -> Option<String> {
         "xai" => "XAI_API_KEY",
         _ => return None,
     };
-    std::env::var(env_var)
-        .ok()
-        .filter(|v| !v.trim().is_empty())
+    std::env::var(env_var).ok().filter(|v| !v.trim().is_empty())
 }
 
 // ════════════════════════════════════════════════════════════════════════

@@ -651,12 +651,13 @@ async fn execute_job_with_retry(
     {
         ::zeroclaw_log::record!(
             INFO,
-            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                .with_attrs(::serde_json::json!({
+            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note).with_attrs(
+                ::serde_json::json!({
                     "job_id": job.id,
                     "primary_model": job.model,
                     "fallback_model": fallback,
-                })),
+                })
+            ),
             "Primary model failed; trying fallback model"
         );
         let mut fallback_job = job.clone();

@@ -134,6 +134,7 @@ use zeroclaw_memory::MEMORY_CONTEXT_OPEN;
 use zeroclaw_memory::{self, Memory};
 use zeroclaw_providers::reliable::{scope_provider_fallback, take_last_provider_fallback};
 use zeroclaw_providers::{self, ChatMessage, ModelProvider, ProviderDispatch};
+use zeroclaw_runtime::agent::eval::{AutoClassifyExt, estimate_complexity};
 use zeroclaw_runtime::agent::loop_::{
     LoopKnobs, ResolvedAgentExecution, ResolvedIo, ResolvedModelAccess, ResolvedRuntimeKnobs,
     ToolLoop, apply_policy_tool_filter, apply_text_tool_prompt_policy,
@@ -4909,8 +4910,30 @@ async fn process_channel_message_body(
     // agent scope overrides resolved above — i.e. content-based routing wins over
     // a manual `/model`, exactly as it already did for the per-chat `/model`.
     // (Unconfigured = the default, so the scope ladder is fully honored there.)
-    if let Some(hint) =
-        zeroclaw_runtime::agent::classifier::classify(&ctx.query_classification, &msg.content)
+    let mut matched_hint =
+        zeroclaw_runtime::agent::classifier::classify(&ctx.query_classification, &msg.content);
+
+    // Fallback: auto-classify by complexity when no rule matched.
+    if matched_hint.is_none()
+        && let Some(ref auto_classify) = ctx.agent_cfg.resolved.auto_classify
+    {
+        let tier = estimate_complexity(&msg.content);
+        if let Some(hint) = auto_classify.hint_for(tier) {
+            ::zeroclaw_log::record!(
+                INFO,
+                ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                    .with_attrs(::serde_json::json!({
+                        "hint": hint,
+                        "complexity": format!("{:?}", tier),
+                        "message_length": msg.content.len()
+                    })),
+                "Auto-classified by complexity"
+            );
+            matched_hint = Some(hint.to_string());
+        }
+    }
+
+    if let Some(hint) = matched_hint
         && let Some(matched_route) = ctx
             .model_routes
             .iter()
