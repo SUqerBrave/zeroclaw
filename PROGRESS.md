@@ -17,9 +17,10 @@ Documentation restructuring complete.
 
 ## Active Issues
 - [ ] **401 Unauthorized on Channel Routing**: QQ/WeChat channels fail with "Missing Authentication header" when messages are routed to non-default providers (e.g., OpenRouter). Root cause suspected to be incorrect credential propagation in `get_or_create_provider`.
-- [ ] **401 Unauthorized on Cron Jobs**: Scheduled agent jobs fail with 401 errors when calling DeepSeek/OpenRouter. Credentials from `config.toml` are not being correctly loaded into the cron execution context.
+
+## Resolved Issues
+- [x] **401 Unauthorized on Cron Fallback**: Root cause was `provider_runtime_options_from_config` always using the first provider's options (openrouter.default), leaking its base URL to DeepSeek. Fixed by switching to `provider_runtime_options_for_agent`. See commits `9ec66659e` and `f92ab4832`.
 
 ## Next Steps
-- [ ] Resolve 401 Authentication issues in Orchestrator and Cron subsystems.
 - [ ] Monitor agent performance with the new `AGENTS.md` instructions.
 - [ ] Continue with planned feature development as per project roadmap.
