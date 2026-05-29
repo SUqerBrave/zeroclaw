@@ -970,10 +970,11 @@ pub fn create_model_provider(
     name: &str,
     api_key: Option<&str>,
 ) -> anyhow::Result<Box<dyn ModelProvider>> {
+    let (family, alias) = name.split_once('.').unwrap_or((name, "default"));
     create_model_provider_inner(
         None,
-        name,
-        "default",
+        family,
+        alias,
         api_key,
         None,
         &ModelProviderRuntimeOptions::default(),
@@ -988,7 +989,8 @@ pub fn create_model_provider_with_options(
     api_key: Option<&str>,
     options: &ModelProviderRuntimeOptions,
 ) -> anyhow::Result<Box<dyn ModelProvider>> {
-    create_model_provider_inner(None, name, "default", api_key, None, options)
+    let (family, alias) = name.split_once('.').unwrap_or((name, "default"));
+    create_model_provider_inner(None, family, alias, api_key, None, options)
 }
 
 /// Factory: create model_provider with optional custom base URL.
@@ -999,10 +1001,11 @@ pub fn create_model_provider_with_url(
     api_key: Option<&str>,
     api_url: Option<&str>,
 ) -> anyhow::Result<Box<dyn ModelProvider>> {
+    let (family, alias) = name.split_once('.').unwrap_or((name, "default"));
     create_model_provider_inner(
         None,
-        name,
-        "default",
+        family,
+        alias,
         api_key,
         api_url,
         &ModelProviderRuntimeOptions::default(),

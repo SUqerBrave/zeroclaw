@@ -117,6 +117,7 @@ use zeroclaw_log::Instrument;
 use zeroclaw_memory::{self, MEMORY_CONTEXT_CLOSE, MEMORY_CONTEXT_OPEN, Memory};
 use zeroclaw_providers::reliable::{scope_provider_fallback, take_last_provider_fallback};
 use zeroclaw_providers::{self, ChatMessage, ModelProvider};
+use zeroclaw_runtime::agent::eval::{AutoClassifyExt, estimate_complexity};
 use zeroclaw_runtime::agent::loop_::{
     apply_text_tool_prompt_policy, build_tool_instructions_for_names, clear_model_switch_request,
     get_model_switch_state, is_model_switch_requested, run_tool_call_loop, scope_session_key,
@@ -1629,15 +1630,13 @@ async fn get_or_create_provider(
     // Prefer route-specific credential; fall back to the global key ONLY IF
     // the provider name matches the default. Non-default providers (routed)
     // resolve their own keys from config inside the factory.
-    let effective_api_key = route_api_key
-        .map(ToString::to_string)
-        .or_else(|| {
-            if provider_name == ctx.default_model_provider.as_str() {
-                ctx.api_key.clone()
-            } else {
-                None
-            }
-        });
+    let effective_api_key = route_api_key.map(ToString::to_string).or_else(|| {
+        if provider_name == ctx.default_model_provider.as_str() {
+            ctx.api_key.clone()
+        } else {
+            None
+        }
+    });
 
     let model_provider = create_resilient_model_provider_nonblocking(
         Arc::clone(&ctx.prompt_config),
@@ -3358,8 +3357,30 @@ async fn process_channel_message_body(
     let mut route = get_route_selection(ctx.as_ref(), &history_key);
 
     // ── Query classification: override route when a rule matches ──
-    if let Some(hint) =
-        zeroclaw_runtime::agent::classifier::classify(&ctx.query_classification, &msg.content)
+    let mut matched_hint =
+        zeroclaw_runtime::agent::classifier::classify(&ctx.query_classification, &msg.content);
+
+    // Fallback: auto-classify by complexity when no rule matched.
+    if matched_hint.is_none() {
+        if let Some(ref ac) = ctx.agent_cfg.auto_classify {
+            let tier = estimate_complexity(&msg.content);
+            if let Some(hint) = ac.hint_for(tier) {
+                ::zeroclaw_log::record!(
+                    INFO,
+                    ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                        .with_attrs(::serde_json::json!({
+                            "hint": hint,
+                            "complexity": format!("{:?}", tier),
+                            "message_length": msg.content.len()
+                        })),
+                    "Auto-classified by complexity"
+                );
+                matched_hint = Some(hint.to_string());
+            }
+        }
+    }
+
+    if let Some(hint) = matched_hint
         && let Some(matched_route) = ctx
             .model_routes
             .iter()
