@@ -71,13 +71,15 @@ if [ ! -f "$SECRET_FILE" ]; then
 # 部署时不会覆盖此文件。请手动在此填入您的授权码。
 ZC_EMAIL_PASSWORD=""
 SMTP_FROM=""
-SMTP_SERVER=""
-SMTP_PORT=""
+SMTP_SERVER="smtp.qq.com"
+SMTP_PORT="465"
+IMAP_SERVER="imap.qq.com"
+IMAP_PORT="993"
 EOF
     chmod 600 "$SECRET_FILE"
-    echo "✓ 已创建初始环境文件: $SECRET_FILE (请稍后手动编辑)"
+    echo "✓ 已创建初始环境文件: $SECRET_FILE (请手动编辑并填入授权码)"
 else
-    echo "✓ 环境文件已存在，跳过创建以保护现有凭据。"
+    echo "✓ 环境文件已存在，将保留现有内容。"
 fi
 
 # 停止运行中的服务 (防止 Text file busy)
@@ -96,7 +98,7 @@ else
 fi
 chmod +x "$BINARY"
 
-# 创建 OpenWrt init 脚本
+# 创建 OpenWrt init 脚本 (使用 procd_append_param 解决环境变量覆盖问题)
 cat > /etc/init.d/zeroclaw << EOF
 #!/bin/sh /etc/rc.common
 
@@ -115,18 +117,26 @@ start_service() {
 
     procd_open_instance
     procd_set_param user "$USER"
+    # 使用 set_param 设置第一个变量，后续使用 append_param 累加
     procd_set_param env HOME="$HOME_DIR"
-    procd_set_param env RUST_LOG=info
+    procd_append_param env RUST_LOG=info
     
-    # 动态注入环境文件中的变量
+    # 动态注入环境文件中的所有变量
     if [ -f "\$ENV_FILE" ]; then
-        # 逐行读取并注入到 procd
         while IFS= read -r line || [ -n "\$line" ]; do
-            # 跳过注释和空行
-            case "\$line" in
-                "#"*) continue ;;
-                "") continue ;;
-                *=*) procd_set_param env "\$line" ;;
+            # 跳过注释、空行，并清理两侧空格和引号
+            clean_line=\$(echo "\$line" | sed -e "s/^[[:space:]]*//" -e "s/[[:space:]]*\$//" -e "s/^#.*//")
+            [ -z "\$clean_line" ] && continue
+            
+            # 确保是 KEY=VALUE 格式
+            case "\$clean_line" in
+                *=*) 
+                    # 再次清理值两端的引号 (如果有)
+                    key=\${clean_line%%=*}
+                    val=\${clean_line#*=}
+                    val=\$(echo "\$val" | sed -e "s/^[\"'"'"']//" -e "s/[\"'"'"']\$//")
+                    procd_append_param env "\$key=\$val"
+                    ;;
             esac
         done < "\$ENV_FILE"
     fi
@@ -135,7 +145,8 @@ start_service() {
     procd_set_param respawn 3600 5 5
     procd_set_param stderr 1
     procd_set_param stdout 1
-    procd_add_jail_mount "\$RUN_DIR" "\$LOG_DIR" "\$CONF_DIR" /root "\$ENV_FILE"
+    # 增加对常用路径的可见性
+    procd_add_jail_mount "\$RUN_DIR" "\$LOG_DIR" "\$CONF_DIR" /root "\$ENV_FILE" /usr/bin
     procd_close_instance
 }
 
@@ -153,6 +164,7 @@ echo "  /etc/init.d/zeroclaw start"
 echo ""
 echo "配置提示:"
 echo "  敏感变量请编辑: $SECRET_FILE"
+echo "  修改后必须重启: /etc/init.d/zeroclaw restart"
 '
 
 # 通过 SSH 执行安装
