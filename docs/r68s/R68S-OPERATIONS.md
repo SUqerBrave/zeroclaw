@@ -23,16 +23,23 @@
 2.  **停止服务**：必须先执行 `/etc/init.d/zeroclaw stop` 以避免 "Text file busy" 错误。
 3.  **安全传输**：由于 R68S 环境可能缺少完整的 SCP/SFTP 支持，建议使用以下两种方式之一：
 
-    -   **方式 A：SSH 管道 (推荐用于自动化/小文件)**：
+    -   **方式 A：SSH 管道 (推荐用于自动化，支持 Base64 传输)**：
+        由于部分 R68S 固件缺少 `base64` 命令，建议使用 `openssl` 进行解码：
         ```bash
-        cat target/aarch64-unknown-linux-musl/release/zeroclaw | sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no root@<R68S_IP> "cat > /usr/bin/zeroclaw"
+        # 使用 openssl 进行 Base64 传输 (最稳妥)
+        base64 target/aarch64-unknown-linux-musl/release/zeroclaw | ssh root@<R68S_IP> "openssl base64 -d -A > /usr/bin/zeroclaw"
+
+        # 如果 R68S 有 base64 命令
+        base64 target/aarch64-unknown-linux-musl/release/zeroclaw | ssh root@<R68S_IP> "base64 -d > /usr/bin/zeroclaw"
         ```
-    -   **方式 B：FTP 传输 (推荐用于大文件/Skills 包)**：
-        R68S 已预装 `vsftpd`，可使用 `curl` 快速上传：
+    -   **方式 B：FTP 传输 (端口 21)**：
+        R68S 已预装 `vsftpd`，可使用 `curl` 或 FTP 客户端通过 21 端口上传：
         ```bash
-        curl -T target/aarch64-unknown-linux-musl/release/zeroclaw ftp://<R68S_IP>/zeroclaw --user root:<R68S_PASSWORD>
+        # 使用 curl 通过 FTP 协议上传
+        curl -T target/aarch64-unknown-linux-musl/release/zeroclaw ftp://<R68S_IP>:21/zeroclaw --user root:<R68S_PASSWORD>
         ```
-        *注意：FTP 默认上传至 `/root/` 目录，上传后需手动移动至目标路径。*
+        *注意：FTP 默认上传至 `/root/` 目录，上传后需手动移动至目标路径 `/usr/bin/zeroclaw`。*
+
 4.  **权限恢复与启动**：执行 `chmod +x` 并启动服务。
 
 **权限管理：**
