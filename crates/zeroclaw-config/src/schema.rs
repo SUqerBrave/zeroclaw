@@ -11817,6 +11817,9 @@ pub struct ModelRouteConfig {
     #[credential_class = "encrypted_secret"]
     #[cfg_attr(feature = "schema-export", schemars(extend("x-secret" = true)))]
     pub api_key: Option<String>,
+    /// Optional list of fallback hints to try if this route fails.
+    #[serde(default)]
+    pub fallbacks: Vec<String>,
 }
 
 // ── Embedding routing ───────────────────────────────────────────

@@ -1700,6 +1700,7 @@ pub fn create_routed_model_provider_with_options(
                 router::Route {
                     provider_name: r.model_provider.clone(),
                     model: r.model.clone(),
+                    fallbacks: r.fallbacks.clone(),
                 },
             )
         })

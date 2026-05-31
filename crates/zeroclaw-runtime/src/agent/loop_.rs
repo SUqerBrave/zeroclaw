@@ -11494,6 +11494,7 @@ This is an example, not an invocation."#;
                 Route {
                     provider_name: "fast".to_string(),
                     model: "routed-model".to_string(),
+                    fallbacks: Vec::new(),
                 },
             )],
             "default-model".to_string(),

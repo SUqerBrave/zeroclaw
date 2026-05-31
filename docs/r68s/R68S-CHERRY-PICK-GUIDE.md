@@ -313,3 +313,17 @@ git cherry-pick 615185f7a 195a00490 7db43cfe9
 2. **Provider fallback 是本地补丁**: 上游 master 没有 channel 级别的 provider fallback，这是 R68S 分支独有的。
 3. **Cron fallback_model 是新特性**: 上游 master 的 `CronJob` 结构体没有 `fallback_model` 字段，cherry-pick 时需注意结构体定义变更。
 4. **格式化差异**: `factory.rs` 和 `scheduler.rs` 有 `cargo fmt` 格式化改动，cherry-pick 时可能冲突，手动解决即可。
+
+### Web UI 及通道对话的 LLM 保底机制 (Fallback Mechanism)
+支持配置多级 `fallbacks`，在遇到模型 API 失败（如限流、Key失效）时，自动尝试 `fast -> default -> reasoning` 级别的模型。
+
+**涉及文件**:
+- `crates/zeroclaw-config/src/schema.rs` (`ModelRouteConfig` 新增 `fallbacks: Vec<String>` 字段)
+- `crates/zeroclaw-providers/src/router.rs` (`RouterModelProvider` 升级以支持链式解析 `resolve_chain` 和循环保底执行 `stream_chat/chat` 接口)
+- `crates/zeroclaw-channels/src/orchestrator/mod.rs` (`ChannelRuntimeContext` 从单次失败重试升级为消费 `fallback_chain` 列队并实现重新路由)
+- `crates/zeroclaw-tools/src/model_routing_config.rs` (同步更新 CLI 初始化该配置的代码结构)
+
+**改动**: 当底层 `ModelProvider` 发生且可确定为 `Non-retryable` 类型错误（如 `401 Unauthorized`），通道和 Router 路由会无缝切换尝试配置中的 `fallbacks` 回退。
+
+**Cherry-pick 建议**: 需要按序提交或者手动将这几个文件的变更应用到 master，这涉及到模型请求基础路由链路的改动，解决冲突时关注 `RouterModelProvider` 方法特征定义。
+
