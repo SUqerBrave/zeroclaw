@@ -131,7 +131,7 @@ start_service() {
         done < "\$ENV_FILE"
     fi
     
-    procd_set_param command "\$PROG" --config-dir "\$CONF_DIR" daemon
+    procd_set_param command "\$PROG" --config-dir "\$CONF_DIR" daemon --host 0.0.0.0
     procd_set_param respawn 3600 5 5
     procd_set_param stderr 1
     procd_set_param stdout 1
