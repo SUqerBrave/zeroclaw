@@ -18,6 +18,9 @@
 | 1 | `615185f7a` | feat(r68s): add R68S device support, cron model selector, and provider fixes | R68S 全套 + cron + provider |
 | 2 | `195a00490` | feat(channels): add provider fallback for routed messages | orchestrator provider fallback |
 | 3 | `7db43cfe9` | fix(r68s): restore three-tier model routing and provider fallback | auto-classify + router fix |
+| 4 | `5199eeac7` | feat(r68s): improve deployment script and add persistent secret management | Deployment script + /etc/zeroclaw/env |
+| 5 | `045d150b9` | fix(r68s): bind zeroclaw daemon to 0.0.0.0 by default | Network accessibility fix |
+| 6 | `6f2d5a68e` | fix(r68s): fix environment variable injection in init.d script | procd_append_param fix |
 
 ## 核心代码改动（必须 cherry-pick 的文件）
 
@@ -188,6 +191,44 @@ let (provider_override, model_override) = match job.model.as_deref() {
     }
     other => (None, other.map(ToString::to_string)),
 };
+```
+
+### 8. Cron Job 增强与 UI 优化 (2026-05-31)
+
+**文件**:
+- `crates/zeroclaw-config/src/schema.rs` — `CronJobDecl` 增加 `fallback_model` 支持声明式任务
+- `crates/zeroclaw-runtime/src/cron/store.rs` — 同步声明式任务的 `fallback_model`
+- `crates/zeroclaw-runtime/src/cron/scheduler.rs` — 增强解析逻辑，支持 `provider.alias/model` 混合格式
+- `crates/zeroclaw-runtime/src/agent/loop_.rs` — 修复 `provider_override` 时未正确加载该 provider 默认模型的 Bug
+- `crates/zeroclaw-runtime/src/cron/types.rs` & `crates/zeroclaw-gateway/src/api.rs` — 增加 `clear_model` / `clear_fallback_model` 标记，支持清除配置
+- `web/src/pages/Cron.tsx` — 修复编辑时 Schedule 字段为空的 Bug，并将模型输入改为 Provider 下拉框
+
+**核心改动解析**:
+
+1.  **混合格式解析** (`scheduler.rs`):
+    支持在任务模型中写 `deepseek.default/deepseek-chat`，系统会准确分离出 provider 部分。
+2.  **默认模型修复** (`loop_.rs`):
+    当 `provider_override` 存在但模型名为空时，查找该 override provider 的 `model` 配置而非使用原 Agent 的。
+3.  **UI 体验优化**:
+    通过 `get_agent_options` 接口获取所有已配置的 provider 别名，确保 Web 界面只能选择已有的合法渠道，实现 **1-to-1 模型与 Base URL 映射**，防止误触。
+
+**Cherry-pick 建议**:
+由于涉及多个 crate 及前端代码，建议在提交后记录 commit hash。
+
+### 9. R68S 部署增强与环境注入修复 (2026-05-31)
+
+**文件**:
+- `deploy_to_r68s.sh` — 重构部署逻辑（root 用户、sshpass、Base64 传输）
+- `docs/r68s/R68S-OPERATIONS.md` — 更新环境变量管理与部署文档
+
+**改动**:
+1.  **环境注入修复**: 使用 `procd_append_param env` 替换 `procd_set_param env`，解决 OpenWrt 上环境变量被覆盖的 Bug。
+2.  **网络可见性**: 强制绑定 `daemon --host 0.0.0.0`，修复默认监听 127.0.0.1 导致无法从外网访问的问题。
+3.  **持久化密钥管理**: 引入 `/etc/zeroclaw/env` 文件存放邮件授权码等敏感变量，部署时不覆盖。
+
+**Cherry-pick 命令**:
+```bash
+git cherry-pick 5199eeac7 045d150b9 6f2d5a68e
 ```
 
 ## 非核心改动（R68S 专属，可选 cherry-pick）
