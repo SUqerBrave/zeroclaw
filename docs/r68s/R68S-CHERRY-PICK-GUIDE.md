@@ -22,6 +22,7 @@
 | 5 | `045d150b9` | fix(r68s): bind zeroclaw daemon to 0.0.0.0 by default | Network accessibility fix |
 | 6 | `6f2d5a68e` | fix(r68s): fix environment variable injection in init.d script | procd_append_param fix |
 | 7 | `4b9d6672d` | feat(agent): implement model failure fallback for WebUI and channels | Robust LLM failover logic |
+| 8 | `5459b8058` | feat(agent): implement model failure fallback for CLI agent | CLI-specific failover logic |
 
 ## 核心代码改动（必须 cherry-pick 的文件）
 
@@ -236,17 +237,19 @@ git cherry-pick 5199eeac7 045d150b9 6f2d5a68e
 
 **文件**:
 - `crates/zeroclaw-runtime/src/agent/agent.rs` — 为 WebUI 提供回退支持
+- `crates/zeroclaw-runtime/src/agent/loop_.rs` — 为 CLI 模式提供回退支持
 - `crates/zeroclaw-channels/src/orchestrator/mod.rs` — 为 QQ/Telegram 等通道提供回退支持
 
 **改动**:
-1.  **Agent 级回退**: 在 `Agent::turn` 和 `Agent::turn_streamed` 中增加重试循环。当首选模型返回非重试错误（如认证失败、模型不存在等）且尚未向用户发送任何内容时，自动切换到系统默认模型进行第二次尝试。
+1.  **全场景重试**: 在 `Agent` 运行时和 `loop_` 命令行入口中同步实现了重试逻辑。当首选模型返回非重试错误（如 401/403 认证错误）时，系统会自动 `take()` 预先准备好的系统默认提供者进行第二次尝试。
 2.  **通道级增强**: 将 `Orchestrator` 原有的仅支持 auth 错误的回退逻辑扩展为通用的非重试错误回退。
-3.  **容错设计**: 只有在 `committed_response` 为空（即用户还没看到任何输出）时才会触发回退，避免输出内容混乱。
+3.  **零感切换**: 回退逻辑严格限制在 `committed_response` 为空时触发，确保用户端不会出现重复或混乱的输出。
 
 **Cherry-pick 命令**:
 ```bash
-git cherry-pick 4b9d6672d
+git cherry-pick 4b9d6672d 5459b8058
 ```
+
 
 ## 非核心改动（R68S 专属，可选 cherry-pick）
 
