@@ -149,10 +149,6 @@ start_service() {
     procd_add_jail_mount "\$RUN_DIR" "\$LOG_DIR" "\$CONF_DIR" /root "\$ENV_FILE" /usr/bin
     procd_close_instance
 }
-
-stop_service() {
-    procd_kill zeroclaw
-}
 EOF
 
 chmod +x /etc/init.d/zeroclaw
