@@ -683,6 +683,7 @@ impl ModelRoutingConfigTool {
             model_provider: model_provider.clone(),
             model: model.clone(),
             api_key: None,
+            fallbacks: Vec::new(),
         });
 
         next_route.hint = hint.clone();

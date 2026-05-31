@@ -3,8 +3,9 @@ use super::traits::{
     ChatMessage, ChatRequest, ChatResponse, StreamChunk, StreamEvent, StreamOptions, StreamResult,
 };
 use async_trait::async_trait;
-use futures_util::stream::BoxStream;
+use futures_util::stream::{self, BoxStream, StreamExt};
 use std::collections::HashMap;
+use std::sync::Arc;
 
 /// Score a model against a user-keyed pricing map. Sums any entry matching
 /// the model directly, plus optional `.input` and `.output` dimension keys.
@@ -32,6 +33,22 @@ fn score_model(pricing: &HashMap<String, f64>, model: &str) -> Option<f64> {
 pub struct Route {
     pub provider_name: String,
     pub model: String,
+    pub fallbacks: Vec<String>,
+}
+
+/// Multi-model router — routes requests to different model_provider+model combos
+/// based on a task hint encoded in the model parameter.
+///
+/// The model parameter can be:
+/// - A regular model name (e.g. "anthropic/claude-sonnet-4") → uses default model_provider
+/// - A hint-prefixed string (e.g. "hint:reasoning") → resolves via route table
+///
+/// This wraps multiple pre-created model_providers and selects the right one per request.
+#[derive(Debug, Clone)]
+pub struct ResolvedRoute {
+    pub provider_index: usize,
+    pub model: String,
+    pub fallbacks: Vec<String>,
 }
 
 /// Multi-model router — routes requests to different model_provider+model combos
@@ -45,8 +62,8 @@ pub struct Route {
 pub struct RouterModelProvider {
     /// `[model_providers.<family>.<alias>]` config-key alias.
     alias: String,
-    routes: HashMap<String, (usize, String)>, // hint → (provider_index, model)
-    model_providers: Vec<(String, Box<dyn ModelProvider>)>,
+    routes: HashMap<String, ResolvedRoute>, // hint → ResolvedRoute
+    model_providers: Arc<Vec<(String, Box<dyn ModelProvider>)>>,
     default_index: usize,
     default_model: String,
 }
@@ -70,12 +87,19 @@ impl RouterModelProvider {
             .collect();
 
         // Resolve routes to model_provider indices
-        let resolved_routes: HashMap<String, (usize, String)> = routes
+        let resolved_routes: HashMap<String, ResolvedRoute> = routes
             .into_iter()
             .filter_map(|(hint, route)| {
                 let index = name_to_index.get(route.provider_name.as_str()).copied();
                 match index {
-                    Some(i) => Some((hint, (i, route.model))),
+                    Some(i) => Some((
+                        hint,
+                        ResolvedRoute {
+                            provider_index: i,
+                            model: route.model,
+                            fallbacks: route.fallbacks,
+                        },
+                    )),
                     None => {
                         ::zeroclaw_log::record!(WARN, ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note).with_outcome(::zeroclaw_log::EventOutcome::Unknown).with_attrs(::serde_json::json!({"hint": hint, "model_provider": route.provider_name})), "Route references unknown model_provider, skipping");
                         None
@@ -87,7 +111,7 @@ impl RouterModelProvider {
         Self {
             alias: alias.to_string(),
             routes: resolved_routes,
-            model_providers,
+            model_providers: Arc::new(model_providers),
             default_index: 0,
             default_model,
         }
@@ -116,9 +140,12 @@ impl RouterModelProvider {
 
         let mut candidates: Vec<(usize, String, f64)> = Vec::new();
 
-        for (idx, route_model) in self.routes.values() {
+        for route in self.routes.values() {
+            let idx: usize = route.provider_index;
+            let route_model: &String = &route.model;
+
             // Capability filtering
-            if let Some((_, model_provider)) = self.model_providers.get(*idx) {
+            if let Some((_, model_provider)) = self.model_providers.get(idx) {
                 if required_vision && !model_provider.supports_vision() {
                     continue;
                 }
@@ -127,13 +154,13 @@ impl RouterModelProvider {
                 }
             }
 
-            let Some((model_provider_name, _)) = self.model_providers.get(*idx) else {
+            let Some((model_provider_name, _)): Option<&(String, Box<dyn ModelProvider>)> = self.model_providers.get(idx) else {
                 continue;
             };
             if let Some(pricing) = model_provider_pricing.get(model_provider_name)
                 && let Some(total_cost) = score_model(pricing, route_model)
             {
-                candidates.push((*idx, route_model.clone(), total_cost));
+                candidates.push((idx, route_model.clone(), total_cost));
             }
         }
 
@@ -155,15 +182,11 @@ impl RouterModelProvider {
         (self.default_index, self.default_model.clone())
     }
 
-    /// Resolve a model parameter to a (model_provider, actual_model) pair.
-    ///
-    /// If the model starts with "hint:", look up the hint in the route table.
-    /// Otherwise, use the default model_provider with the given model name.
-    /// Resolve a model parameter to a (provider_index, actual_model) pair.
-    fn resolve(&self, model: &str) -> (usize, String) {
+    /// Resolve a model parameter to a (model_provider_index, model_name) pair.
+    pub fn resolve(&self, model: &str) -> (usize, String) {
         if let Some(hint) = model.strip_prefix("hint:") {
-            if let Some((idx, resolved_model)) = self.routes.get(hint) {
-                return (*idx, resolved_model.clone());
+            if let Some(route) = self.routes.get(hint) {
+                return (route.provider_index, route.model.clone());
             }
             ::zeroclaw_log::record!(
                 WARN,
@@ -177,6 +200,33 @@ impl RouterModelProvider {
 
         // Not a hint or hint not found — use default model_provider with the model as-is
         (self.default_index, model.to_string())
+    }
+
+    /// Resolve a model parameter to a chain of (model_provider_index, model_name)
+    /// pairs to try in order upon failure.
+    pub fn resolve_chain(&self, model: &str) -> Vec<(usize, String)> {
+        let mut chain = Vec::new();
+
+        if let Some(hint) = model.strip_prefix("hint:") {
+            if let Some(route) = self.routes.get(hint) {
+                chain.push((route.provider_index, route.model.clone()));
+                for fallback_hint in &route.fallbacks {
+                    // Recursive hint resolution
+                    if fallback_hint == "default" {
+                        chain.push((self.default_index, self.default_model.clone()));
+                    } else if let Some(fallback_route) = self.routes.get(fallback_hint) {
+                        chain.push((
+                            fallback_route.provider_index,
+                            fallback_route.model.clone(),
+                        ));
+                    }
+                }
+                return chain;
+            }
+        }
+
+        chain.push((self.default_index, model.to_string()));
+        chain
     }
 }
 
@@ -237,17 +287,52 @@ impl ModelProvider for RouterModelProvider {
         model: &str,
         temperature: Option<f64>,
     ) -> anyhow::Result<String> {
-        let (provider_idx, resolved_model) = self.resolve(model);
+        let chain = self.resolve_chain(model);
+        let mut last_err = None;
 
-        let (provider_name, model_provider) = &self.model_providers[provider_idx];
-        // `provider_name` is the configured `<type>.<alias>` key the
-        // caller registered with `RouterModelProvider::new` — already a
-        // composite. Layer's `set_composite` splits it on emit.
-        ::zeroclaw_log::record!(INFO, ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note).with_attrs(::serde_json::json!({"model_provider": provider_name.as_str(), "model": resolved_model.as_str()})), "router dispatching request");
+        for (i, (provider_idx, resolved_model)) in chain.iter().enumerate() {
+            let (provider_name, model_provider): &(_ , Box<dyn ModelProvider>) = &self.model_providers[*provider_idx];
 
-        model_provider
-            .chat_with_system(system_prompt, message, &resolved_model, temperature)
-            .await
+            if i > 0 {
+                ::zeroclaw_log::record!(
+                    INFO,
+                    ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                        .with_attrs(::serde_json::json!({
+                            "from_model": model,
+                            "to_provider": provider_name,
+                            "to_model": resolved_model,
+                            "attempt": i + 1,
+                        })),
+                    "Primary model failed, attempting fallback"
+                );
+            } else {
+                ::zeroclaw_log::record!(
+                    INFO,
+                    ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                        .with_attrs(::serde_json::json!({
+                            "model_provider": provider_name.as_str(),
+                            "model": resolved_model.as_str()
+                        })),
+                    "router dispatching request"
+                );
+            }
+
+            match model_provider
+                .chat_with_system(system_prompt, message, resolved_model, temperature)
+                .await
+            {
+                Ok(resp) => return Ok(resp),
+                Err(e) => {
+                    if i < chain.len() - 1 && crate::reliable::is_non_retryable(&e) {
+                        last_err = Some(e);
+                        continue;
+                    }
+                    return Err(e);
+                }
+            }
+        }
+
+        Err(last_err.unwrap_or_else(|| anyhow::anyhow!("All models in fallback chain failed")))
     }
 
     async fn chat_with_history(
@@ -256,11 +341,28 @@ impl ModelProvider for RouterModelProvider {
         model: &str,
         temperature: Option<f64>,
     ) -> anyhow::Result<String> {
-        let (provider_idx, resolved_model) = self.resolve(model);
-        let (_, model_provider) = &self.model_providers[provider_idx];
-        model_provider
-            .chat_with_history(messages, &resolved_model, temperature)
-            .await
+        let chain = self.resolve_chain(model);
+        let mut last_err = None;
+
+        for (i, (provider_idx, resolved_model)) in chain.iter().enumerate() {
+            let (_, model_provider): &(_, Box<dyn ModelProvider>) = &self.model_providers[*provider_idx];
+
+            match model_provider
+                .chat_with_history(messages, resolved_model, temperature)
+                .await
+            {
+                Ok(resp) => return Ok(resp),
+                Err(e) => {
+                    if i < chain.len() - 1 && crate::reliable::is_non_retryable(&e) {
+                        last_err = Some(e);
+                        continue;
+                    }
+                    return Err(e);
+                }
+            }
+        }
+
+        Err(last_err.unwrap_or_else(|| anyhow::anyhow!("All models in fallback chain failed")))
     }
 
     async fn chat(
@@ -269,11 +371,28 @@ impl ModelProvider for RouterModelProvider {
         model: &str,
         temperature: Option<f64>,
     ) -> anyhow::Result<ChatResponse> {
-        let (provider_idx, resolved_model) = self.resolve(model);
-        let (_, model_provider) = &self.model_providers[provider_idx];
-        model_provider
-            .chat(request, &resolved_model, temperature)
-            .await
+        let chain = self.resolve_chain(model);
+        let mut last_err = None;
+
+        for (i, (provider_idx, resolved_model)) in chain.iter().enumerate() {
+            let (_, model_provider): &(_, Box<dyn ModelProvider>) = &self.model_providers[*provider_idx];
+
+            match model_provider
+                .chat(request, resolved_model, temperature)
+                .await
+            {
+                Ok(resp) => return Ok(resp),
+                Err(e) => {
+                    if i < chain.len() - 1 && crate::reliable::is_non_retryable(&e) {
+                        last_err = Some(e);
+                        continue;
+                    }
+                    return Err(e);
+                }
+            }
+        }
+
+        Err(last_err.unwrap_or_else(|| anyhow::anyhow!("All models in fallback chain failed")))
     }
 
     async fn chat_with_tools(
@@ -283,30 +402,47 @@ impl ModelProvider for RouterModelProvider {
         model: &str,
         temperature: Option<f64>,
     ) -> anyhow::Result<ChatResponse> {
-        let (provider_idx, resolved_model) = self.resolve(model);
-        let (_, model_provider) = &self.model_providers[provider_idx];
-        model_provider
-            .chat_with_tools(messages, tools, &resolved_model, temperature)
-            .await
+        let chain = self.resolve_chain(model);
+        let mut last_err = None;
+
+        for (i, (provider_idx, resolved_model)) in chain.iter().enumerate() {
+            let (_, model_provider): &(_, Box<dyn ModelProvider>) = &self.model_providers[*provider_idx];
+
+            match model_provider
+                .chat_with_tools(messages, tools, resolved_model, temperature)
+                .await
+            {
+                Ok(resp) => return Ok(resp),
+                Err(e) => {
+                    if i < chain.len() - 1 && crate::reliable::is_non_retryable(&e) {
+                        last_err = Some(e);
+                        continue;
+                    }
+                    return Err(e);
+                }
+            }
+        }
+
+        Err(last_err.unwrap_or_else(|| anyhow::anyhow!("All models in fallback chain failed")))
     }
 
     fn supports_native_tools(&self) -> bool {
         self.model_providers
             .get(self.default_index)
-            .map(|(_, p)| p.supports_native_tools())
+            .map(|(_, p): &(_, Box<dyn ModelProvider>)| p.supports_native_tools())
             .unwrap_or(false)
     }
 
     fn supports_streaming(&self) -> bool {
         self.model_providers
             .iter()
-            .any(|(_, model_provider)| model_provider.supports_streaming())
+            .any(|(_, model_provider): &(_, Box<dyn ModelProvider>)| model_provider.supports_streaming())
     }
 
     fn supports_streaming_tool_events(&self) -> bool {
         self.model_providers
             .iter()
-            .any(|(_, model_provider)| model_provider.supports_streaming_tool_events())
+            .any(|(_, model_provider): &(_, Box<dyn ModelProvider>)| model_provider.supports_streaming_tool_events())
     }
 
     fn stream_chat_with_system(
@@ -317,15 +453,76 @@ impl ModelProvider for RouterModelProvider {
         temperature: Option<f64>,
         options: StreamOptions,
     ) -> BoxStream<'static, StreamResult<StreamChunk>> {
-        let (provider_idx, resolved_model) = self.resolve(model);
-        let (_, model_provider) = &self.model_providers[provider_idx];
-        model_provider.stream_chat_with_system(
-            system_prompt,
-            message,
-            &resolved_model,
-            temperature,
-            options,
+        let chain = self.resolve_chain(model);
+        if chain.len() <= 1 {
+            let (idx, resolved_model) = chain[0].clone();
+            let (_, model_provider) = &self.model_providers[idx];
+            return model_provider.stream_chat_with_system(
+                system_prompt,
+                message,
+                &resolved_model,
+                temperature,
+                options,
+            );
+        }
+
+        let system_prompt = system_prompt.map(|s| s.to_string());
+        let message = message.to_string();
+        let providers = Arc::clone(&self.model_providers);
+
+        let current_chain = chain;
+        let current_stream: Option<BoxStream<'static, StreamResult<StreamChunk>>> = None;
+        let first_event_seen = false;
+
+        stream::unfold(
+            (current_chain, current_stream, first_event_seen),
+            move |(mut chain, mut stream, mut first_seen): (Vec<(usize, String)>, Option<BoxStream<'static, StreamResult<StreamChunk>>>, bool)| {
+                let system_prompt = system_prompt.clone();
+                let message = message.clone();
+                let providers = Arc::clone(&providers);
+
+                async move {
+                    loop {
+                        if stream.is_none() {
+                            if chain.is_empty() {
+                                return None;
+                            }
+                            let (idx, resolved_model): (usize, String) = chain.remove(0);
+                            let (_, model_provider): &(_, Box<dyn ModelProvider>) = &providers[idx];
+
+                            if first_seen {
+                                return None;
+                            }
+
+                            stream = Some(model_provider.stream_chat_with_system(
+                                system_prompt.as_deref(),
+                                &message,
+                                &resolved_model,
+                                temperature,
+                                options,
+                            ));
+                        }
+
+                        let s: &mut BoxStream<'static, StreamResult<StreamChunk>> = stream.as_mut().unwrap();
+                        match s.next().await {
+                            Some(Ok(event)) => {
+                                first_seen = true;
+                                return Some((Ok(event), (chain, Some(stream.take().unwrap()), first_seen)));
+                            }
+                            Some(Err(e)) if !first_seen && !chain.is_empty() && crate::reliable::is_non_retryable(&anyhow::Error::msg(e.to_string())) => {
+                                stream = None;
+                                continue;
+                            }
+                            Some(Err(e)) => {
+                                return Some((Err(e), (chain, Some(stream.take().unwrap()), first_seen)));
+                            }
+                            None => return None,
+                        }
+                    }
+                }
+            },
         )
+        .boxed()
     }
 
     fn stream_chat_with_history(
@@ -335,9 +532,67 @@ impl ModelProvider for RouterModelProvider {
         temperature: Option<f64>,
         options: StreamOptions,
     ) -> BoxStream<'static, StreamResult<StreamChunk>> {
-        let (provider_idx, resolved_model) = self.resolve(model);
-        let (_, model_provider) = &self.model_providers[provider_idx];
-        model_provider.stream_chat_with_history(messages, &resolved_model, temperature, options)
+        let chain = self.resolve_chain(model);
+        if chain.len() <= 1 {
+            let (idx, resolved_model) = chain[0].clone();
+            let (_, model_provider) = &self.model_providers[idx];
+            return model_provider.stream_chat_with_history(messages, &resolved_model, temperature, options);
+        }
+
+        let messages = messages.to_vec();
+        let providers = Arc::clone(&self.model_providers);
+
+        let current_chain = chain;
+        let current_stream: Option<BoxStream<'static, StreamResult<StreamChunk>>> = None;
+        let first_event_seen = false;
+
+        stream::unfold(
+            (current_chain, current_stream, first_event_seen),
+            move |(mut chain, mut stream, mut first_seen): (Vec<(usize, String)>, Option<BoxStream<'static, StreamResult<StreamChunk>>>, bool)| {
+                let messages = messages.clone();
+                let providers = Arc::clone(&providers);
+
+                async move {
+                    loop {
+                        if stream.is_none() {
+                            if chain.is_empty() {
+                                return None;
+                            }
+                            let (idx, resolved_model): (usize, String) = chain.remove(0);
+                            let (_, model_provider): &(_, Box<dyn ModelProvider>) = &providers[idx];
+
+                            if first_seen {
+                                return None;
+                            }
+
+                            stream = Some(model_provider.stream_chat_with_history(
+                                &messages,
+                                &resolved_model,
+                                temperature,
+                                options,
+                            ));
+                        }
+
+                        let s: &mut BoxStream<'static, StreamResult<StreamChunk>> = stream.as_mut().unwrap();
+                        match s.next().await {
+                            Some(Ok(event)) => {
+                                first_seen = true;
+                                return Some((Ok(event), (chain, Some(stream.take().unwrap()), first_seen)));
+                            }
+                            Some(Err(e)) if !first_seen && !chain.is_empty() && crate::reliable::is_non_retryable(&anyhow::Error::msg(e.to_string())) => {
+                                stream = None;
+                                continue;
+                            }
+                            Some(Err(e)) => {
+                                return Some((Err(e), (chain, Some(stream.take().unwrap()), first_seen)));
+                            }
+                            None => return None,
+                        }
+                    }
+                }
+            },
+        )
+        .boxed()
     }
 
     fn stream_chat(
@@ -347,20 +602,110 @@ impl ModelProvider for RouterModelProvider {
         temperature: Option<f64>,
         options: StreamOptions,
     ) -> BoxStream<'static, StreamResult<StreamEvent>> {
-        let (provider_idx, resolved_model) = self.resolve(model);
-        let (_, model_provider) = &self.model_providers[provider_idx];
-        model_provider.stream_chat(request, &resolved_model, temperature, options)
+        let chain = self.resolve_chain(model);
+        if chain.len() <= 1 {
+            let (idx, resolved_model) = chain[0].clone();
+            let (_, model_provider) = &self.model_providers[idx];
+            return model_provider.stream_chat(request, &resolved_model, temperature, options);
+        }
+
+        // Multiple models in chain — implement fallback stream.
+        // We must clone the request pieces to move them into the stream.
+        let messages = request.messages.to_vec();
+        let tools = request.tools.map(|t| t.to_vec());
+        let thinking = request.thinking;
+        let providers = Arc::clone(&self.model_providers);
+
+        let current_chain = chain;
+        let current_stream: Option<BoxStream<'static, StreamResult<StreamEvent>>> = None;
+        let first_event_seen = false;
+
+        stream::unfold(
+            (current_chain, current_stream, first_event_seen),
+            move |(mut chain, mut stream, mut first_seen): (Vec<(usize, String)>, Option<BoxStream<'static, StreamResult<StreamEvent>>>, bool)| {
+                let messages = messages.clone();
+                let tools = tools.clone();
+                let providers = Arc::clone(&providers);
+
+                async move {
+                    loop {
+                        if stream.is_none() {
+                            if chain.is_empty() {
+                                return None;
+                            }
+                            let (idx, resolved_model): (usize, String) = chain.remove(0);
+                            let (provider_name, model_provider): &(String, Box<dyn ModelProvider>) = &providers[idx];
+
+                            if first_seen {
+                                // This shouldn't happen with the logic below, but safety first.
+                                return None;
+                            }
+
+                            ::zeroclaw_log::record!(
+                                INFO,
+                                ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                                    .with_attrs(::serde_json::json!({
+                                        "model_provider": provider_name.as_str(),
+                                        "model": resolved_model.as_str(),
+                                        "chain_len": chain.len() + 1,
+                                    })),
+                                "router dispatching streamed request"
+                            );
+
+                            let req = ChatRequest {
+                                messages: &messages,
+                                tools: tools.as_deref(),
+                                thinking,
+                            };
+                            stream = Some(model_provider.stream_chat(
+                                req,
+                                &resolved_model,
+                                temperature,
+                                options,
+                            ));
+                        }
+
+                        let s: &mut BoxStream<'static, StreamResult<StreamEvent>> = stream.as_mut().unwrap();
+                        match s.next().await {
+                            Some(Ok(event)) => {
+                                first_seen = true;
+                                return Some((Ok(event), (chain, Some(stream.take().unwrap()), first_seen)));
+                            }
+                            Some(Err(e)) if !first_seen && !chain.is_empty() && crate::reliable::is_non_retryable(&anyhow::Error::msg(e.to_string())) => {
+                                ::zeroclaw_log::record!(
+                                    INFO,
+                                    ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                                        .with_attrs(::serde_json::json!({
+                                            "error": e.to_string(),
+                                            "remaining": chain.len(),
+                                        })),
+                                    "Stream failed before any events; attempting fallback"
+                                );
+                                stream = None;
+                                continue;
+                            }
+                            Some(Err(e)) => {
+                                return Some((Err(e), (chain, Some(stream.take().unwrap()), first_seen)));
+                            }
+                            None => return None,
+                        }
+                    }
+                }
+            },
+        )
+        .boxed()
     }
 
     fn supports_vision(&self) -> bool {
         self.model_providers
             .get(self.default_index)
-            .map(|(_, p)| p.supports_vision())
+            .map(|(_, p): &(_, Box<dyn ModelProvider>)| p.supports_vision())
             .unwrap_or(false)
     }
 
     async fn warmup(&self) -> anyhow::Result<()> {
-        for (name, model_provider) in &self.model_providers {
+        for (name, model_provider) in self.model_providers.iter() {
+            let (name, model_provider): (&String, &Box<dyn ModelProvider>) = (name, model_provider);
             ::zeroclaw_log::record!(
                 INFO,
                 ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
@@ -494,6 +839,7 @@ mod tests {
                     Route {
                         provider_name: (*provider_name).to_string(),
                         model: (*model).to_string(),
+                        fallbacks: Vec::new(),
                     },
                 )
             })
@@ -942,6 +1288,7 @@ mod tests {
                 Route {
                     provider_name: "expensive".into(),
                     model: "big-model".into(),
+                    fallbacks: Vec::new(),
                 },
             ),
             (
@@ -949,6 +1296,7 @@ mod tests {
                 Route {
                     provider_name: "cheap".into(),
                     model: "small-model".into(),
+                    fallbacks: Vec::new(),
                 },
             ),
         ];
@@ -984,6 +1332,7 @@ mod tests {
                 Route {
                     provider_name: "no-vision".into(),
                     model: "cheap-model".into(),
+                    fallbacks: Vec::new(),
                 },
             ),
             (
@@ -991,6 +1340,7 @@ mod tests {
                 Route {
                     provider_name: "has-vision".into(),
                     model: "vision-model".into(),
+                    fallbacks: Vec::new(),
                 },
             ),
         ];
@@ -1025,6 +1375,7 @@ mod tests {
                 Route {
                     provider_name: "no-tools".into(),
                     model: "basic-model".into(),
+                    fallbacks: Vec::new(),
                 },
             ),
             (
@@ -1032,6 +1383,7 @@ mod tests {
                 Route {
                     provider_name: "has-tools".into(),
                     model: "tools-model".into(),
+                    fallbacks: Vec::new(),
                 },
             ),
         ];
@@ -1074,6 +1426,7 @@ mod tests {
             Route {
                 provider_name: "only".into(),
                 model: "the-model".into(),
+                fallbacks: Vec::new(),
             },
         )];
         let router =
@@ -1108,6 +1461,7 @@ mod tests {
                 Route {
                     provider_name: "p1".into(),
                     model: "model-a".into(),
+                    fallbacks: Vec::new(),
                 },
             ),
             (
@@ -1115,6 +1469,7 @@ mod tests {
                 Route {
                     provider_name: "p2".into(),
                     model: "model-b".into(),
+                    fallbacks: Vec::new(),
                 },
             ),
             (
@@ -1122,6 +1477,7 @@ mod tests {
                 Route {
                     provider_name: "p3".into(),
                     model: "model-c".into(),
+                    fallbacks: Vec::new(),
                 },
             ),
         ];
@@ -1367,6 +1723,7 @@ mod tests {
                 Route {
                     provider_name: "vision".into(),
                     model: "vision-model".into(),
+                    fallbacks: Vec::new(),
                 },
             )],
             "default-model".into(),

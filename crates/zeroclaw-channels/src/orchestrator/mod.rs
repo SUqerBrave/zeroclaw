@@ -3380,11 +3380,11 @@ async fn process_channel_message_body(
         }
     }
 
-    if let Some(hint) = matched_hint
+    if let Some(ref hint) = matched_hint
         && let Some(matched_route) = ctx
             .model_routes
             .iter()
-            .find(|r| r.hint.eq_ignore_ascii_case(&hint))
+            .find(|r| r.hint.eq_ignore_ascii_case(hint))
     {
         ::zeroclaw_log::record!(INFO, ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note).with_attrs(::serde_json::json!({"hint": hint.as_str(), "model_provider": matched_route.model_provider.as_str(), "model": matched_route.model.as_str()})), "Channel message classified — overriding route");
         route = ChannelRouteSelection {
@@ -3933,14 +3933,41 @@ async fn process_channel_message_body(
             collector: std::sync::Arc::clone(&tool_receipts_collector),
         }
     });
-    // Pre-compute fallback route: when the current route uses a non-default
-    // provider and it fails with an auth error, we retry once with the default.
-    let fallback_route = if route.model_provider != ctx.default_model_provider.as_str() {
-        Some(default_route_selection(&ctx))
-    } else {
-        None
-    };
-    let mut fallback_attempted = false;
+    // Pre-compute fallback chain: when the current route fails with a non-retryable
+    // error, we try the models in the fallback chain (e.g. fast -> default -> reasoning).
+    let mut fallback_chain = Vec::new();
+    if let Some(ref hint) = matched_hint {
+        if let Some(matched_route) = ctx
+            .model_routes
+            .iter()
+            .find(|r| r.hint.eq_ignore_ascii_case(hint))
+        {
+            for fallback_hint in &matched_route.fallbacks {
+                if fallback_hint == "default" {
+                    fallback_chain.push(default_route_selection(&ctx));
+                } else if let Some(fb_route) = ctx
+                    .model_routes
+                    .iter()
+                    .find(|r| r.hint.eq_ignore_ascii_case(fallback_hint))
+                {
+                    fallback_chain.push(ChannelRouteSelection {
+                        model_provider: fb_route.model_provider.clone(),
+                        model: fb_route.model.clone(),
+                        api_key: fb_route.api_key.clone(),
+                    });
+                }
+            }
+        }
+    }
+    // Also include default route as a final fallback if the current route is NOT the default
+    let drs = default_route_selection(&ctx);
+    if route.model_provider != drs.model_provider || route.model != drs.model {
+        if !fallback_chain.iter().any(|r| {
+            r.model_provider == drs.model_provider && r.model == drs.model
+        }) {
+            fallback_chain.push(drs);
+        }
+    }
 
     let (llm_result, fallback_info) = scope_provider_fallback(async {
         let llm_result = loop {
@@ -3952,58 +3979,58 @@ async fn process_channel_message_body(
                         msg.interruption_scope_id.clone()
                             .or_else(|| msg.thread_ts.clone())
                             .or_else(|| Some(msg.id.clone())),
-                    scope_session_key(
-                        Some(history_key.clone()),
-                        zeroclaw_runtime::agent::loop_::TOOL_LOOP_COST_TRACKING_CONTEXT.scope(
-                            cost_tracking_context.clone(),
-                        zeroclaw_runtime::agent::tool_receipts::TOOL_LOOP_RECEIPT_CONTEXT.scope(
-                            receipt_scope.clone(),
-                        run_tool_call_loop(
-                        active_model_provider.as_ref(),
-                        &mut history,
-                        ctx.tools_registry.as_ref(),
-                        notify_observer.as_ref() as &dyn Observer,
-                        route.model_provider.as_str(),
-                        route.model.as_str(),
-                        runtime_defaults.temperature,
-                        true,
-                        Some(&*ctx.approval_manager),
-                        msg.channel.as_str(),
-                        Some(msg.reply_target.as_str()),
-                        &ctx.multimodal,
-                        ctx.max_tool_iterations,
-                        Some(cancellation_token.clone()),
-                        delta_tx.clone(),
-                        ctx.hooks.as_deref(),
-                        if msg.channel == "cli"
-                            || ctx.autonomy_level == AutonomyLevel::Full
-                        {
-                            &[]
-                        } else {
-                            ctx.non_cli_excluded_tools.as_ref()
-                        },
-                        ctx.tool_call_dedup_exempt.as_ref(),
-                        ctx.activated_tools.as_ref(),
-                        Some(model_switch_callback.clone()),
-                        &ctx.pacing,
-                        ctx.prompt_config
-                            .agent(ctx.agent_alias.as_str())
-                            .is_some_and(|agent| agent.strict_tool_parsing),
-                        ctx.max_tool_result_chars,
-                        ctx.context_token_budget,
-                        None, // shared_budget
-                        target_channel.as_deref(),
-                        ctx.receipt_generator.as_ref(),
-                        // Collector is meaningful only when the generator is
-                        // active. Pass None when receipts are disabled so the
-                        // call site reflects that coupling explicitly.
-                        ctx.receipt_generator
-                            .as_ref()
-                            .map(|_| tool_receipts_collector.as_ref()),
-                    ),
-                    ),
-                    ),
-                    ),
+                        scope_session_key(
+                            Some(history_key.clone()),
+                            zeroclaw_runtime::agent::loop_::TOOL_LOOP_COST_TRACKING_CONTEXT.scope(
+                                cost_tracking_context.clone(),
+                                zeroclaw_runtime::agent::tool_receipts::TOOL_LOOP_RECEIPT_CONTEXT.scope(
+                                    receipt_scope.clone(),
+                                    run_tool_call_loop(
+                                        active_model_provider.as_ref(),
+                                        &mut history,
+                                        ctx.tools_registry.as_ref(),
+                                        notify_observer.as_ref() as &dyn Observer,
+                                        route.model_provider.as_str(),
+                                        route.model.as_str(),
+                                        runtime_defaults.temperature,
+                                        true,
+                                        Some(&*ctx.approval_manager),
+                                        msg.channel.as_str(),
+                                        Some(msg.reply_target.as_str()),
+                                        &ctx.multimodal,
+                                        ctx.max_tool_iterations,
+                                        Some(cancellation_token.clone()),
+                                        delta_tx.clone(),
+                                        ctx.hooks.as_deref(),
+                                        if msg.channel == "cli"
+                                            || ctx.autonomy_level == AutonomyLevel::Full
+                                        {
+                                            &[]
+                                        } else {
+                                            ctx.non_cli_excluded_tools.as_ref()
+                                        },
+                                        ctx.tool_call_dedup_exempt.as_ref(),
+                                        ctx.activated_tools.as_ref(),
+                                        Some(model_switch_callback.clone()),
+                                        &ctx.pacing,
+                                        ctx.prompt_config
+                                            .agent(ctx.agent_alias.as_str())
+                                            .is_some_and(|agent| agent.strict_tool_parsing),
+                                        ctx.max_tool_result_chars,
+                                        ctx.context_token_budget,
+                                        None, // shared_budget
+                                        target_channel.as_deref(),
+                                        ctx.receipt_generator.as_ref(),
+                                        // Collector is meaningful only when the generator is
+                                        // active. Pass None when receipts are disabled so the
+                                        // call site reflects that coupling explicitly.
+                                        ctx.receipt_generator
+                                            .as_ref()
+                                            .map(|_| tool_receipts_collector.as_ref()),
+                                    ),
+                                ),
+                            ),
+                        ),
                     ),
                 ) => LlmExecutionResult::Completed(result),
             };
@@ -4062,47 +4089,51 @@ async fn process_channel_message_body(
             }
 
             // Provider fallback: if routed provider failed with a non-retryable error,
-            // retry once with the default provider.
+            // retry with the next provider in the fallback chain.
             if let LlmExecutionResult::Completed(Ok(Err(ref e))) = loop_result {
-                if !fallback_attempted {
-                    if let Some(ref fb_route) = fallback_route {
-                        if zeroclaw_providers::reliable::is_non_retryable(e)
-                            && !zeroclaw_providers::reliable::is_context_window_exceeded(e)
-                        {
-                            fallback_attempted = true;
-                            ::zeroclaw_log::record!(
-                                INFO,
-                                ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                                    .with_attrs(::serde_json::json!({
-                                        "from_provider": route.model_provider,
-                                        "to_provider": fb_route.model_provider,
-                                        "error": e.to_string(),
-                                    })),
-                                "Routed provider failed with a non-retryable error, falling back to default provider"
-                            );
-                            // Evict the failed provider from cache
-                            let cache_key = provider_cache_key(&route.model_provider, route.api_key.as_deref());
-                            ctx.provider_cache.lock().unwrap_or_else(|p| p.into_inner()).remove(&cache_key);
+                if !fallback_chain.is_empty() {
+                    if zeroclaw_providers::reliable::is_non_retryable(e)
+                        && !zeroclaw_providers::reliable::is_context_window_exceeded(e)
+                    {
+                        let fb_route = fallback_chain.remove(0);
+                        ::zeroclaw_log::record!(
+                            INFO,
+                            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                                .with_attrs(::serde_json::json!({
+                                    "from_provider": route.model_provider,
+                                    "to_provider": fb_route.model_provider,
+                                    "to_model": fb_route.model,
+                                    "error": e.to_string(),
+                                    "remaining_fallbacks": fallback_chain.len(),
+                                })),
+                            "Routed provider failed with a non-retryable error, attempting fallback"
+                        );
+                        // Evict the failed provider from cache
+                        let cache_key = provider_cache_key(&route.model_provider, route.api_key.as_deref());
+                        ctx.provider_cache.lock().unwrap_or_else(|p| p.into_inner()).remove(&cache_key);
 
-                            // Swap to fallback provider
-                            match get_or_create_provider(ctx.as_ref(), &fb_route.model_provider, fb_route.api_key.as_deref()).await {
-                                Ok(new_prov) => {
-                                    active_model_provider = new_prov;
-                                    route = fb_route.clone();
-                                    // Rollback the failed user turn so retry has clean history
-                                    rollback_orphan_user_turn(ctx.as_ref(), &history_key, &msg.content);
-                                    append_sender_turn(ctx.as_ref(), &history_key, ChatMessage::user(&msg.content));
-                                    continue; // retry with fallback provider
-                                }
-                                Err(err) => {
-                                    ::zeroclaw_log::record!(
-                                        WARN,
-                                        ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Fail)
-                                            .with_attrs(::serde_json::json!({"err": err.to_string()})),
-                                        "Failed to create fallback provider, reporting original error"
-                                    );
-                                    // Fall through with the original error
-                                }
+                        // Swap to fallback provider
+                        match get_or_create_provider(ctx.as_ref(), &fb_route.model_provider, fb_route.api_key.as_deref()).await {
+                            Ok(new_prov) => {
+                                active_model_provider = new_prov;
+                                route = fb_route.clone();
+                                // Rollback the failed user turn so retry has clean history
+                                rollback_orphan_user_turn(ctx.as_ref(), &history_key, &msg.content);
+                                append_sender_turn(ctx.as_ref(), &history_key, ChatMessage::user(&msg.content));
+                                continue; // retry with fallback provider
+                            }
+                            Err(err) => {
+                                ::zeroclaw_log::record!(
+                                    WARN,
+                                    ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Fail)
+                                        .with_outcome(::zeroclaw_log::EventOutcome::Failure)
+                                        .with_attrs(::serde_json::json!({
+                                            "fallback_provider": fb_route.model_provider,
+                                            "error": err.to_string()
+                                        })),
+                                    "Fallback provider initialization failed"
+                                );
+                                // Fall through to original error
                             }
                         }
                     }

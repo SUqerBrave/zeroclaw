@@ -9321,6 +9321,9 @@ pub struct ModelRouteConfig {
     /// Optional API key override for this route's model provider
     #[serde(default)]
     pub api_key: Option<String>,
+    /// Optional list of fallback hints to try if this route fails.
+    #[serde(default)]
+    pub fallbacks: Vec<String>,
 }
 
 // ── Embedding routing ───────────────────────────────────────────
