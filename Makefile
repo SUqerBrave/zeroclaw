@@ -2,10 +2,33 @@ IMAGE_NAME    = zeroclaw
 IMAGE_TAG     = stagex
 IMAGE_FAT_TAG = stagex-fat
 
-.PHONY: build build-fat extract extract-fat shell-debug clean
+.PHONY: help build build-fat app-build web-build rust-build extract extract-fat shell-debug clean
+
+.DEFAULT_GOAL := help
+
+help:
+	@echo "ZeroClaw Makefile"
+	@echo ""
+	@echo "Usage:"
+	@echo "  make              - Show this help message (default)"
+	@echo "  make build        - Build the StageX container image"
+	@echo "  make app-build    - Build the Web UI and embedded-web Rust backend"
+	@echo "  make web-build    - Build the Web UI"
+	@echo "  make rust-build   - Build the Rust backend with embedded-web"
 
 build:
 	podman build -t $(IMAGE_NAME):$(IMAGE_TAG) --target package -f Containerfile .
+
+web-build:
+	@echo "Building Web UI..."
+	cd web && npm ci && npm run build
+
+rust-build:
+	@echo "Building Rust backend with embedded-web feature..."
+	cargo build --features embedded-web
+
+app-build: web-build rust-build
+	@echo "Build complete."
 
 build-fat:
 	podman build -t $(IMAGE_NAME):$(IMAGE_FAT_TAG) --target package-fat -f Containerfile .
