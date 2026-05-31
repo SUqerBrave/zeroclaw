@@ -182,7 +182,6 @@ pub struct AgentBuilder {
 }
 
 impl AgentBuilder {
-
     fn default() -> Self {
         Self::new()
     }
@@ -399,7 +398,6 @@ impl AgentBuilder {
     }
 
     pub fn build(self) -> Result<Agent> {
-
         let mut tools = self.tools.ok_or_else(|| {
             ::zeroclaw_log::record!(
                 ERROR,
@@ -1025,7 +1023,8 @@ impl Agent {
             && dpa != &provider_ref
         {
             if let Some((family, alias)) = dpa.split_once('.') {
-                let d_opts = zeroclaw_providers::provider_runtime_options_for_alias(config, family, alias);
+                let d_opts =
+                    zeroclaw_providers::provider_runtime_options_for_alias(config, family, alias);
                 let d_entry = config.providers.models.find(family, alias);
                 let d_model = d_entry.and_then(|e| e.model.clone());
 
@@ -1046,8 +1045,11 @@ impl Agent {
                         Err(e) => {
                             ::zeroclaw_log::record!(
                                 WARN,
-                                ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                                    .with_attrs(::serde_json::json!({"error": e.to_string()})),
+                                ::zeroclaw_log::Event::new(
+                                    module_path!(),
+                                    ::zeroclaw_log::Action::Note
+                                )
+                                .with_attrs(::serde_json::json!({"error": e.to_string()})),
                                 "Failed to pre-construct fallback provider"
                             );
                         }
@@ -1650,11 +1652,13 @@ impl Agent {
                                         module_path!(),
                                         ::zeroclaw_log::Action::Note
                                     )
-                                    .with_attrs(::serde_json::json!({
-                                        "from_model": active_model,
-                                        "to_model": fallback_name,
-                                        "error": err.to_string(),
-                                    })),
+                                    .with_attrs(
+                                        ::serde_json::json!({
+                                            "from_model": active_model,
+                                            "to_model": fallback_name,
+                                            "error": err.to_string(),
+                                        })
+                                    ),
                                     "Primary model failed, falling back to system default"
                                 );
                                 if let Some(fb_prov) = self.fallback_model_provider.take() {
@@ -1854,214 +1858,8 @@ impl Agent {
                 let stream_opts = zeroclaw_providers::traits::StreamOptions::new(
                     self.model_provider.supports_streaming(),
                 );
-            let mut stream = self.model_provider.stream_chat(
-                zeroclaw_providers::ChatRequest {
-                    messages: &prepared_messages,
-                    tools: if self.should_send_tool_specs() {
-                        Some(&self.tool_specs)
-                    } else {
-                        None
-                    },
-                    thinking: None,
-                },
-                &active_model,
-                Some(self.temperature),
-                stream_opts,
-            );
-
-            let mut streamed_text = String::new();
-            let mut streamed_reasoning = String::new();
-            let mut streamed_tool_calls: Vec<zeroclaw_providers::traits::ToolCall> = Vec::new();
-            let mut streamed_usage: Option<zeroclaw_providers::traits::TokenUsage> = None;
-            let mut got_stream = false;
-            let mut pre_executed_call_ids: HashMap<String, VecDeque<String>> = HashMap::new();
-            let mut was_cancelled = false;
-
-            // Consume the stream, checking for cancellation between chunks.
-            // We use a manual loop with `tokio::select!` so that a cancel
-            // signal interrupts even while waiting for the next SSE event
-            // from the model_provider.
-            loop {
-                let next_item = stream.next();
-
-                let item = if let Some(ref token) = cancel_token {
-                    tokio::select! {
-                        biased;
-                        () = token.cancelled() => {
-                            was_cancelled = true;
-                            break;
-                        }
-                        item = next_item => item,
-                    }
-                } else {
-                    next_item.await
-                };
-
-                let Some(item) = item else { break };
-                match item {
-                    Ok(event) => match event {
-                        zeroclaw_providers::traits::StreamEvent::TextDelta(chunk) => {
-                            if let Some(reasoning) = chunk.reasoning
-                                && !reasoning.is_empty()
-                            {
-                                // Accumulate for signed-block round-trip on
-                                // providers that carry signatures in this
-                                // field (Anthropic native-thinking fallback).
-                                streamed_reasoning.push_str(&reasoning);
-                                let _ = event_tx
-                                    .send(TurnEvent::Thinking { delta: reasoning })
-                                    .await;
-                            }
-                            if !chunk.delta.is_empty() {
-                                got_stream = true;
-                                streamed_text.push_str(&chunk.delta);
-                                let _ =
-                                    event_tx.send(TurnEvent::Chunk { delta: chunk.delta }).await;
-                            }
-                        }
-                        zeroclaw_providers::traits::StreamEvent::ToolCall(tc) => {
-                            got_stream = true;
-                            // ToolCall event is sent later (after parse_response) to
-                            // avoid duplicates; just collect here.
-                            streamed_tool_calls.push(tc);
-                        }
-                        zeroclaw_providers::traits::StreamEvent::PreExecutedToolCall {
-                            name,
-                            args,
-                        } => {
-                            let call_id = uuid::Uuid::new_v4().to_string();
-                            pre_executed_call_ids
-                                .entry(name.clone())
-                                .or_default()
-                                .push_back(call_id.clone());
-                            let _ = event_tx
-                                .send(TurnEvent::ToolCall {
-                                    id: call_id,
-                                    name,
-                                    args: serde_json::from_str(&args).unwrap_or_default(),
-                                })
-                                .await;
-                            // NOT pushed to streamed_tool_calls — already executed by proxy
-                        }
-                        zeroclaw_providers::traits::StreamEvent::PreExecutedToolResult {
-                            name,
-                            output,
-                        } => {
-                            let result_id = pre_executed_call_ids
-                                .get_mut(&name)
-                                .and_then(|ids| ids.pop_front())
-                                .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-                            let _ = event_tx
-                                .send(TurnEvent::ToolResult {
-                                    id: result_id,
-                                    name,
-                                    output,
-                                })
-                                .await;
-                        }
-                        zeroclaw_providers::traits::StreamEvent::Usage(usage) => {
-                            streamed_usage = Some(usage);
-                        }
-                        zeroclaw_providers::traits::StreamEvent::Final => break,
-                    },
-                    Err(error) => {
-                        if got_stream || !committed_response.is_empty() {
-                            if !streamed_text.is_empty() {
-                                let partial = Self::marked_partial_response(
-                                    &streamed_text,
-                                    "[stream interrupted]",
-                                );
-                                self.append_streamed_assistant_message_to_history(
-                                    partial,
-                                    &mut new_msgs,
-                                    &mut committed_response,
-                                );
-                            }
-                            return Err(StreamedTurnError {
-                                error: anyhow::Error::msg(error.to_string()),
-                                committed_response,
-                                new_messages: new_msgs,
-                            });
-                        }
-
-                        // Potential fallback: stream failed before producing any content
-                        let err = anyhow::Error::msg(error.to_string());
-                        if !fallback_attempted
-                            && let Some(ref _fallback_prov) = self.fallback_model_provider
-                            && let Some(ref fallback_name) = self.fallback_model_name
-                            && committed_response.is_empty()
-                        {
-                            if zeroclaw_providers::reliable::is_non_retryable(&err)
-                                && !zeroclaw_providers::reliable::is_context_window_exceeded(&err)
-                            {
-                                if let Some(fb_prov) = self.fallback_model_provider.take() {
-                                    ::zeroclaw_log::record!(
-                                        INFO,
-                                        ::zeroclaw_log::Event::new(
-                                            module_path!(),
-                                            ::zeroclaw_log::Action::Note
-                                        )
-                                        .with_attrs(::serde_json::json!({
-                                            "from_model": active_model,
-                                            "to_model": fallback_name,
-                                            "error": err.to_string(),
-                                        })),
-                                        "Primary model failed to stream, falling back to system default"
-                                    );
-                                    self.model_provider = fb_prov;
-                                    active_model = fallback_name.clone();
-                                    fallback_attempted = true;
-                                    continue;
-                                }
-                            }
-                        }
-                        return Err(StreamedTurnError {
-                            error: err,
-                            committed_response,
-                            new_messages: new_msgs,
-                        });
-                    }
-                }
-            }
-            // Drop the stream so we release the borrow on model_provider.
-            drop(stream);
-
-            // If cancelled during streaming, return partial content with
-            // the interruption marker appended. The caller (ws.rs) will
-            // persist this truncated message and send an abort frame.
-            if was_cancelled {
-                let partial =
-                    Self::marked_partial_response(&streamed_text, "[interrupted by user]");
-                self.append_streamed_assistant_message_to_history(
-                    partial,
-                    &mut new_msgs,
-                    &mut committed_response,
-                );
-                return Err(StreamedTurnError {
-                    error: crate::agent::loop_::ToolLoopCancelled.into(),
-                    committed_response,
-                    new_messages: new_msgs,
-                });
-            }
-
-            // If streaming produced text, use it as the response and
-            // check for tool calls via the dispatcher.
-            if got_stream {
-                // Build a synthetic ChatResponse from streamed text.
-                break zeroclaw_providers::ChatResponse {
-                    text: Some(streamed_text),
-                    tool_calls: streamed_tool_calls,
-                    usage: streamed_usage.clone(),
-                    reasoning_content: if streamed_reasoning.is_empty() {
-                        None
-                    } else {
-                        Some(streamed_reasoning)
-                    },
-                };
-            } else {
-                // Fall back to non-streaming chat, with cancellation guard
-                let chat_fut = self.model_provider.chat(
-                    ChatRequest {
+                let mut stream = self.model_provider.stream_chat(
+                    zeroclaw_providers::ChatRequest {
                         messages: &prepared_messages,
                         tools: if self.should_send_tool_specs() {
                             Some(&self.tool_specs)
@@ -2070,73 +1868,281 @@ impl Agent {
                         },
                         thinking: None,
                     },
-                    &effective_model,
+                    &active_model,
                     Some(self.temperature),
+                    stream_opts,
                 );
-                let chat_result = if let Some(ref token) = cancel_token {
-                    tokio::select! {
-                        biased;
-                        () = token.cancelled() => {
-                            self.append_streamed_assistant_message_to_history(
-                                "[interrupted by user]".to_string(),
-                                &mut new_msgs,
-                                &mut committed_response,
-                            );
+
+                let mut streamed_text = String::new();
+                let mut streamed_reasoning = String::new();
+                let mut streamed_tool_calls: Vec<zeroclaw_providers::traits::ToolCall> = Vec::new();
+                let mut streamed_usage: Option<zeroclaw_providers::traits::TokenUsage> = None;
+                let mut got_stream = false;
+                let mut pre_executed_call_ids: HashMap<String, VecDeque<String>> = HashMap::new();
+                let mut was_cancelled = false;
+
+                // Consume the stream, checking for cancellation between chunks.
+                // We use a manual loop with `tokio::select!` so that a cancel
+                // signal interrupts even while waiting for the next SSE event
+                // from the model_provider.
+                loop {
+                    let next_item = stream.next();
+
+                    let item = if let Some(ref token) = cancel_token {
+                        tokio::select! {
+                            biased;
+                            () = token.cancelled() => {
+                                was_cancelled = true;
+                                break;
+                            }
+                            item = next_item => item,
+                        }
+                    } else {
+                        next_item.await
+                    };
+
+                    let Some(item) = item else { break };
+                    match item {
+                        Ok(event) => match event {
+                            zeroclaw_providers::traits::StreamEvent::TextDelta(chunk) => {
+                                if let Some(reasoning) = chunk.reasoning
+                                    && !reasoning.is_empty()
+                                {
+                                    // Accumulate for signed-block round-trip on
+                                    // providers that carry signatures in this
+                                    // field (Anthropic native-thinking fallback).
+                                    streamed_reasoning.push_str(&reasoning);
+                                    let _ = event_tx
+                                        .send(TurnEvent::Thinking { delta: reasoning })
+                                        .await;
+                                }
+                                if !chunk.delta.is_empty() {
+                                    got_stream = true;
+                                    streamed_text.push_str(&chunk.delta);
+                                    let _ = event_tx
+                                        .send(TurnEvent::Chunk { delta: chunk.delta })
+                                        .await;
+                                }
+                            }
+                            zeroclaw_providers::traits::StreamEvent::ToolCall(tc) => {
+                                got_stream = true;
+                                // ToolCall event is sent later (after parse_response) to
+                                // avoid duplicates; just collect here.
+                                streamed_tool_calls.push(tc);
+                            }
+                            zeroclaw_providers::traits::StreamEvent::PreExecutedToolCall {
+                                name,
+                                args,
+                            } => {
+                                let call_id = uuid::Uuid::new_v4().to_string();
+                                pre_executed_call_ids
+                                    .entry(name.clone())
+                                    .or_default()
+                                    .push_back(call_id.clone());
+                                let _ = event_tx
+                                    .send(TurnEvent::ToolCall {
+                                        id: call_id,
+                                        name,
+                                        args: serde_json::from_str(&args).unwrap_or_default(),
+                                    })
+                                    .await;
+                                // NOT pushed to streamed_tool_calls — already executed by proxy
+                            }
+                            zeroclaw_providers::traits::StreamEvent::PreExecutedToolResult {
+                                name,
+                                output,
+                            } => {
+                                let result_id = pre_executed_call_ids
+                                    .get_mut(&name)
+                                    .and_then(|ids| ids.pop_front())
+                                    .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+                                let _ = event_tx
+                                    .send(TurnEvent::ToolResult {
+                                        id: result_id,
+                                        name,
+                                        output,
+                                    })
+                                    .await;
+                            }
+                            zeroclaw_providers::traits::StreamEvent::Usage(usage) => {
+                                streamed_usage = Some(usage);
+                            }
+                            zeroclaw_providers::traits::StreamEvent::Final => break,
+                        },
+                        Err(error) => {
+                            if got_stream || !committed_response.is_empty() {
+                                if !streamed_text.is_empty() {
+                                    let partial = Self::marked_partial_response(
+                                        &streamed_text,
+                                        "[stream interrupted]",
+                                    );
+                                    self.append_streamed_assistant_message_to_history(
+                                        partial,
+                                        &mut new_msgs,
+                                        &mut committed_response,
+                                    );
+                                }
+                                return Err(StreamedTurnError {
+                                    error: anyhow::Error::msg(error.to_string()),
+                                    committed_response,
+                                    new_messages: new_msgs,
+                                });
+                            }
+
+                            // Potential fallback: stream failed before producing any content
+                            let err = anyhow::Error::msg(error.to_string());
+                            if !fallback_attempted
+                                && let Some(ref _fallback_prov) = self.fallback_model_provider
+                                && let Some(ref fallback_name) = self.fallback_model_name
+                                && committed_response.is_empty()
+                            {
+                                if zeroclaw_providers::reliable::is_non_retryable(&err)
+                                    && !zeroclaw_providers::reliable::is_context_window_exceeded(
+                                        &err,
+                                    )
+                                {
+                                    if let Some(fb_prov) = self.fallback_model_provider.take() {
+                                        ::zeroclaw_log::record!(
+                                            INFO,
+                                            ::zeroclaw_log::Event::new(
+                                                module_path!(),
+                                                ::zeroclaw_log::Action::Note
+                                            )
+                                            .with_attrs(::serde_json::json!({
+                                                "from_model": active_model,
+                                                "to_model": fallback_name,
+                                                "error": err.to_string(),
+                                            })),
+                                            "Primary model failed to stream, falling back to system default"
+                                        );
+                                        self.model_provider = fb_prov;
+                                        active_model = fallback_name.clone();
+                                        fallback_attempted = true;
+                                        continue;
+                                    }
+                                }
+                            }
                             return Err(StreamedTurnError {
-                                error: crate::agent::loop_::ToolLoopCancelled.into(),
+                                error: err,
                                 committed_response,
                                 new_messages: new_msgs,
                             });
                         }
-                        result = chat_fut => result,
-                    }
-                } else {
-                    chat_fut.await
-                };
-                match chat_result {
-                    Ok(resp) => break resp,
-                    Err(error) => {
-                        if !fallback_attempted
-                            && let Some(ref _fallback_prov) = self.fallback_model_provider
-                            && let Some(ref fallback_name) = self.fallback_model_name
-                            && committed_response.is_empty()
-                        {
-                            if zeroclaw_providers::reliable::is_non_retryable(&error)
-                                && !zeroclaw_providers::reliable::is_context_window_exceeded(
-                                    &error,
-                                )
-                            {
-                                if let Some(fb_prov) = self.fallback_model_provider.take() {
-                                    ::zeroclaw_log::record!(
-                                        INFO,
-                                        ::zeroclaw_log::Event::new(
-                                            module_path!(),
-                                            ::zeroclaw_log::Action::Note
-                                        )
-                                        .with_attrs(::serde_json::json!({
-                                            "from_model": active_model,
-                                            "to_model": fallback_name,
-                                            "error": error.to_string(),
-                                        })),
-                                        "Primary model failed (non-stream), falling back to system default"
-                                    );
-                                    self.model_provider = fb_prov;
-                                    active_model = fallback_name.clone();
-                                    fallback_attempted = true;
-                                    continue;
-                                }
-
-                            }
-                        }
-                        return Err(StreamedTurnError {
-                            error,
-                            committed_response,
-                            new_messages: new_msgs,
-                        });
                     }
                 }
+                // Drop the stream so we release the borrow on model_provider.
+                drop(stream);
+
+                // If cancelled during streaming, return partial content with
+                // the interruption marker appended. The caller (ws.rs) will
+                // persist this truncated message and send an abort frame.
+                if was_cancelled {
+                    let partial =
+                        Self::marked_partial_response(&streamed_text, "[interrupted by user]");
+                    self.append_streamed_assistant_message_to_history(
+                        partial,
+                        &mut new_msgs,
+                        &mut committed_response,
+                    );
+                    return Err(StreamedTurnError {
+                        error: crate::agent::loop_::ToolLoopCancelled.into(),
+                        committed_response,
+                        new_messages: new_msgs,
+                    });
+                }
+
+                // If streaming produced text, use it as the response and
+                // check for tool calls via the dispatcher.
+                if got_stream {
+                    // Build a synthetic ChatResponse from streamed text.
+                    break zeroclaw_providers::ChatResponse {
+                        text: Some(streamed_text),
+                        tool_calls: streamed_tool_calls,
+                        usage: streamed_usage.clone(),
+                        reasoning_content: if streamed_reasoning.is_empty() {
+                            None
+                        } else {
+                            Some(streamed_reasoning)
+                        },
+                    };
+                } else {
+                    // Fall back to non-streaming chat, with cancellation guard
+                    let chat_fut = self.model_provider.chat(
+                        ChatRequest {
+                            messages: &prepared_messages,
+                            tools: if self.should_send_tool_specs() {
+                                Some(&self.tool_specs)
+                            } else {
+                                None
+                            },
+                            thinking: None,
+                        },
+                        &effective_model,
+                        Some(self.temperature),
+                    );
+                    let chat_result = if let Some(ref token) = cancel_token {
+                        tokio::select! {
+                            biased;
+                            () = token.cancelled() => {
+                                self.append_streamed_assistant_message_to_history(
+                                    "[interrupted by user]".to_string(),
+                                    &mut new_msgs,
+                                    &mut committed_response,
+                                );
+                                return Err(StreamedTurnError {
+                                    error: crate::agent::loop_::ToolLoopCancelled.into(),
+                                    committed_response,
+                                    new_messages: new_msgs,
+                                });
+                            }
+                            result = chat_fut => result,
+                        }
+                    } else {
+                        chat_fut.await
+                    };
+                    match chat_result {
+                        Ok(resp) => break resp,
+                        Err(error) => {
+                            if !fallback_attempted
+                                && let Some(ref _fallback_prov) = self.fallback_model_provider
+                                && let Some(ref fallback_name) = self.fallback_model_name
+                                && committed_response.is_empty()
+                            {
+                                if zeroclaw_providers::reliable::is_non_retryable(&error)
+                                    && !zeroclaw_providers::reliable::is_context_window_exceeded(
+                                        &error,
+                                    )
+                                {
+                                    if let Some(fb_prov) = self.fallback_model_provider.take() {
+                                        ::zeroclaw_log::record!(
+                                            INFO,
+                                            ::zeroclaw_log::Event::new(
+                                                module_path!(),
+                                                ::zeroclaw_log::Action::Note
+                                            )
+                                            .with_attrs(::serde_json::json!({
+                                                "from_model": active_model,
+                                                "to_model": fallback_name,
+                                                "error": error.to_string(),
+                                            })),
+                                            "Primary model failed (non-stream), falling back to system default"
+                                        );
+                                        self.model_provider = fb_prov;
+                                        active_model = fallback_name.clone();
+                                        fallback_attempted = true;
+                                        continue;
+                                    }
+                                }
+                            }
+                            return Err(StreamedTurnError {
+                                error,
+                                committed_response,
+                                new_messages: new_msgs,
+                            });
+                        }
+                    }
+                };
             };
-        };
 
             // Forward per-call token usage so the WS gateway (and any other
             // consumer) can include aggregated usage in the final done frame

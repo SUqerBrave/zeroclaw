@@ -3962,9 +3962,10 @@ async fn process_channel_message_body(
     // Also include default route as a final fallback if the current route is NOT the default
     let drs = default_route_selection(&ctx);
     if route.model_provider != drs.model_provider || route.model != drs.model {
-        if !fallback_chain.iter().any(|r| {
-            r.model_provider == drs.model_provider && r.model == drs.model
-        }) {
+        if !fallback_chain
+            .iter()
+            .any(|r| r.model_provider == drs.model_provider && r.model == drs.model)
+        {
             fallback_chain.push(drs);
         }
     }
