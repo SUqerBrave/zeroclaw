@@ -24,13 +24,10 @@
 3.  **安全传输**：由于 R68S 环境可能缺少完整的 SCP/SFTP 支持，建议使用以下两种方式之一：
 
     -   **方式 A：SSH 管道 (推荐用于自动化，支持 Base64 传输)**：
-        由于部分 R68S 固件缺少 `base64` 命令，建议使用 `openssl` 进行解码：
+        由于部分 R68S 固件缺少 `base64` 命令，建议使用 `openssl` 进行解码。同时，为了避免环境变量在 `procd` 中被覆盖，部署脚本使用了 `procd_append_param env` 机制。
         ```bash
-        # 使用 openssl 进行 Base64 传输 (最稳妥)
-        base64 target/aarch64-unknown-linux-musl/release/zeroclaw | ssh root@<R68S_IP> "openssl base64 -d -A > /usr/bin/zeroclaw"
-
-        # 如果 R68S 有 base64 命令
-        base64 target/aarch64-unknown-linux-musl/release/zeroclaw | ssh root@<R68S_IP> "base64 -d > /usr/bin/zeroclaw"
+        # 敏感变量推荐存放在 /etc/zeroclaw/env (KEY=VALUE 格式，无需引号)
+        # 部署脚本会自动解析该文件并注入到服务环境
         ```
     -   **方式 B：FTP 传输 (端口 21)**：
         R68S 已预装 `vsftpd`，可使用 `curl` 或 FTP 客户端通过 21 端口上传：
