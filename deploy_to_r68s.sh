@@ -25,14 +25,15 @@ echo "✓ 找到二进制文件: $ZEROCLAW_BIN"
 # 检查 SSH 连接
 echo ""
 echo "检查 SSH 连接..."
-if ! ssh -p "$SSH_PORT" -o ConnectTimeout=5 "$SSH_USER@$R68S_IP" "echo '连接成功'" 2>/dev/null; then
+SSH_CMD="ssh -p $SSH_PORT -o ConnectTimeout=5 -o StrictHostKeyChecking=no"
+
+if [ -n "$SSHPASS" ]; then
+    SSH_CMD="sshpass -e $SSH_CMD"
+fi
+
+if ! $SSH_CMD "$SSH_USER@$R68S_IP" "echo '连接成功'" 2>/dev/null; then
     echo "❌ 无法连接到 $SSH_USER@$R68S_IP:$SSH_PORT"
     echo ""
-    echo "请确保:"
-    echo "  1. R68S 已启动并连接到网络"
-    echo "  2. IP 地址正确 (当前: $R68S_IP)"
-    echo "  3. SSH 服务已启用"
-    echo "  4. 已配置 SSH 密钥认证或准备好密码"
     exit 1
 fi
 
@@ -48,41 +49,93 @@ set -e
 
 echo "安装 ZeroClaw..."
 
+# 核心路径
+CONFIG_DIR="/var/lib/zeroclaw/.zeroclaw"
+SECRET_DIR="/etc/zeroclaw"
+SECRET_FILE="$SECRET_DIR/env"
+BINARY="/usr/bin/zeroclaw"
+USER="root"
+HOME_DIR="/root"
+
 # 创建目录
 mkdir -p /usr/bin
-mkdir -p /etc/zeroclaw
+mkdir -p "$CONFIG_DIR"
+mkdir -p "$SECRET_DIR"
 mkdir -p /var/log/zeroclaw
 mkdir -p /var/run/zeroclaw
 
-# 停止运行中的服务
+# 初始敏感环境变量文件 (如果不存在)
+if [ ! -f "$SECRET_FILE" ]; then
+    cat > "$SECRET_FILE" << EOF
+# ZeroClaw 敏感环境变量
+# 部署时不会覆盖此文件。请手动在此填入您的授权码。
+ZC_EMAIL_PASSWORD=""
+SMTP_FROM=""
+SMTP_SERVER=""
+SMTP_PORT=""
+EOF
+    chmod 600 "$SECRET_FILE"
+    echo "✓ 已创建初始环境文件: $SECRET_FILE (请稍后手动编辑)"
+else
+    echo "✓ 环境文件已存在，跳过创建以保护现有凭据。"
+fi
+
+# 停止运行中的服务 (防止 Text file busy)
 if [ -f /etc/init.d/zeroclaw ]; then
     /etc/init.d/zeroclaw stop 2>/dev/null || true
 fi
+killall zeroclaw 2>/dev/null || true
 
-# 安装二进制
-cat > /usr/bin/zeroclaw && chmod +x /usr/bin/zeroclaw
+# 解码二进制到目标位置
+if command -v openssl >/dev/null 2>&1; then
+    openssl base64 -d -A > "$BINARY"
+elif command -v base64 >/dev/null 2>&1; then
+    base64 -d > "$BINARY"
+else
+    cat > "$BINARY"
+fi
+chmod +x "$BINARY"
 
 # 创建 OpenWrt init 脚本
-cat > /etc/init.d/zeroclaw << '"'"'EOF'"'"'
+cat > /etc/init.d/zeroclaw << EOF
 #!/bin/sh /etc/rc.common
 
 START=95
 STOP=10
 USE_PROCD=1
 
-PROG=/usr/bin/zeroclaw
+PROG="$BINARY"
+CONF_DIR="$CONFIG_DIR"
+ENV_FILE="$SECRET_FILE"
 RUN_DIR=/var/run/zeroclaw
 LOG_DIR=/var/log/zeroclaw
 
 start_service() {
-    mkdir -p "$RUN_DIR" "$LOG_DIR"
+    mkdir -p "\$RUN_DIR" "\$LOG_DIR"
 
     procd_open_instance
-    procd_set_param command "$PROG" daemon
-    procd_set_param respawn
+    procd_set_param user "$USER"
+    procd_set_param env HOME="$HOME_DIR"
+    procd_set_param env RUST_LOG=info
+    
+    # 动态注入环境文件中的变量
+    if [ -f "\$ENV_FILE" ]; then
+        # 逐行读取并注入到 procd
+        while IFS= read -r line || [ -n "\$line" ]; do
+            # 跳过注释和空行
+            case "\$line" in
+                "#"*) continue ;;
+                "") continue ;;
+                *=*) procd_set_param env "\$line" ;;
+            esac
+        done < "\$ENV_FILE"
+    fi
+    
+    procd_set_param command "\$PROG" --config-dir "\$CONF_DIR" daemon
+    procd_set_param respawn 3600 5 5
     procd_set_param stderr 1
     procd_set_param stdout 1
-    procd_add_jail_mount "$RUN_DIR" "$LOG_DIR" /etc/zeroclaw
+    procd_add_jail_mount "\$RUN_DIR" "\$LOG_DIR" "\$CONF_DIR" /root "\$ENV_FILE"
     procd_close_instance
 }
 
@@ -93,46 +146,19 @@ EOF
 
 chmod +x /etc/init.d/zeroclaw
 
-# 创建默认配置
-if [ ! -f /etc/zeroclaw/config.toml ]; then
-    cat > /etc/zeroclaw/config.toml << '"'"'EOF'"'"'
-# ZeroClaw 配置文件
-
-[agent]
-name = "zeroclaw-r68s"
-
-[providers.openai]
-enabled = false
-
-[providers.anthropic]
-enabled = false
-EOF
-fi
-
 echo "✓ ZeroClaw 安装完成"
 echo ""
 echo "使用方法:"
-echo "  /usr/bin/zeroclaw --help"
 echo "  /etc/init.d/zeroclaw start"
-echo "  /etc/init.d/zeroclaw enable"
+echo ""
+echo "配置提示:"
+echo "  敏感变量请编辑: $SECRET_FILE"
 '
 
 # 通过 SSH 执行安装
-echo "上传并安装..."
-scp -P "$SSH_PORT" "$ZEROCLAW_BIN" "$SSH_USER@$R68S_IP:/tmp/zeroclaw"
-ssh -p "$SSH_PORT" "$SSH_USER@$R68S_IP" "$INSTALL_SCRIPT"
+base64 "$ZEROCLAW_BIN" | $SSH_CMD "$SSH_USER@$R68S_IP" "$INSTALL_SCRIPT"
 
 echo ""
 echo "=========================================="
 echo "✓ 部署完成！"
-echo ""
-echo "登录到 R68S:"
-echo "  ssh $SSH_USER@$R68S_IP"
-echo ""
-echo "启动 ZeroClaw:"
-echo "  /etc/init.d/zeroclaw start"
-echo "  /etc/init.d/zeroclaw enable  # 开机自启"
-echo ""
-echo "查看日志:"
-echo "  logread | grep zeroclaw"
 echo "=========================================="

@@ -38,10 +38,11 @@ rustup target add aarch64-unknown-linux-gnu
 
 由于 R68S 可能不支持 SFTP/SCP，脚本使用以下方式传输：
 
-| 方式 | 工具 | 速度 | 需要交互 |
+| 方式 | 工具 | 速度 | 备注 |
 |------|------|------|---------|
-| Base64 + SSH | sshpass -p "<R68S_PASSWORD>" ssh -o StrictHostKeyChecking=no | 中等 | 需要密码 |
-| SCP | sshpass | 快 | 自动（需安装） |
+| Base64 + SSH | ssh + openssl | 中等 | 最稳妥，推荐 (无需 SFTP) |
+| Raw SSH Pipe | ssh + cat | 中等 | 简单管道 |
+| FTP (Port 21) | curl -T | 快 | 需要 FTP 服务 |
 
 ### 安装 sshpass（可选，自动输入密码）
 
