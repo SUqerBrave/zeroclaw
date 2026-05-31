@@ -21,6 +21,7 @@
 | 4 | `5199eeac7` | feat(r68s): improve deployment script and add persistent secret management | Deployment script + /etc/zeroclaw/env |
 | 5 | `045d150b9` | fix(r68s): bind zeroclaw daemon to 0.0.0.0 by default | Network accessibility fix |
 | 6 | `6f2d5a68e` | fix(r68s): fix environment variable injection in init.d script | procd_append_param fix |
+| 7 | `4b9d6672d` | feat(agent): implement model failure fallback for WebUI and channels | Robust LLM failover logic |
 
 ## 核心代码改动（必须 cherry-pick 的文件）
 
@@ -229,6 +230,22 @@ let (provider_override, model_override) = match job.model.as_deref() {
 **Cherry-pick 命令**:
 ```bash
 git cherry-pick 5199eeac7 045d150b9 6f2d5a68e
+```
+
+### 10. 全局模型失败回退机制 (2026-05-31)
+
+**文件**:
+- `crates/zeroclaw-runtime/src/agent/agent.rs` — 为 WebUI 提供回退支持
+- `crates/zeroclaw-channels/src/orchestrator/mod.rs` — 为 QQ/Telegram 等通道提供回退支持
+
+**改动**:
+1.  **Agent 级回退**: 在 `Agent::turn` 和 `Agent::turn_streamed` 中增加重试循环。当首选模型返回非重试错误（如认证失败、模型不存在等）且尚未向用户发送任何内容时，自动切换到系统默认模型进行第二次尝试。
+2.  **通道级增强**: 将 `Orchestrator` 原有的仅支持 auth 错误的回退逻辑扩展为通用的非重试错误回退。
+3.  **容错设计**: 只有在 `committed_response` 为空（即用户还没看到任何输出）时才会触发回退，避免输出内容混乱。
+
+**Cherry-pick 命令**:
+```bash
+git cherry-pick 4b9d6672d
 ```
 
 ## 非核心改动（R68S 专属，可选 cherry-pick）
