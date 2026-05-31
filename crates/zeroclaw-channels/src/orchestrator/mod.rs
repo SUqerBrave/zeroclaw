@@ -5821,12 +5821,14 @@ async fn process_channel_message_body(
                 }
             }
 
-            // Provider fallback: if routed provider failed with auth error,
+            // Provider fallback: if routed provider failed with a non-retryable error,
             // retry once with the default provider.
             if let LlmExecutionResult::Completed(Ok(Err(ref e))) = loop_result {
                 if !fallback_attempted {
                     if let Some(ref fb_route) = fallback_route {
-                        if zeroclaw_providers::reliable::is_auth_error(e) {
+                        if zeroclaw_providers::reliable::is_non_retryable(e)
+                            && !zeroclaw_providers::reliable::is_context_window_exceeded(e)
+                        {
                             fallback_attempted = true;
                             ::zeroclaw_log::record!(
                                 INFO,
@@ -5836,7 +5838,7 @@ async fn process_channel_message_body(
                                         "to_provider": fb_route.model_provider,
                                         "error": e.to_string(),
                                     })),
-                                "Routed provider failed, falling back to default provider"
+                                "Routed provider failed with a non-retryable error, falling back to default provider"
                             );
                             // Evict the failed provider from cache
                             let cache_key = provider_cache_key(
