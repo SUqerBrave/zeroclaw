@@ -1476,9 +1476,16 @@ pub async fn run(
             })?
             .to_string();
 
+        let effective_provider_config = if let Some((family, alias)) = provider_name.split_once('.')
+        {
+            config.providers.models.find(family, alias)
+        } else {
+            agent_model_provider
+        };
+
         let mut model_name = match model_override
             .as_deref()
-            .or(agent_model_provider.and_then(|e| e.model.as_deref()))
+            .or(effective_provider_config.and_then(|e| e.model.as_deref()))
         {
             Some(m) => m.to_string(),
             None => anyhow::bail!(
@@ -1521,6 +1528,39 @@ pub async fn run(
                 &model_name,
                 &provider_runtime_options,
             )?;
+
+        // ── Fallback provider initialization ───────────────────────
+        let default_provider_alias = agent_provider_ref.clone();
+        let mut fallback_model_provider = None;
+        let mut fallback_model_name = None;
+
+        if let Some(ref dpa) = default_provider_alias
+            && dpa != &provider_name
+        {
+            if let Some((family, alias)) = dpa.split_once('.') {
+                let d_opts = zeroclaw_providers::provider_runtime_options_for_alias(&config, family, alias);
+                let d_entry = config.providers.models.find(family, alias);
+                let d_model = d_entry.and_then(|e| e.model.clone());
+
+                if let Some(m) = d_model {
+                    match zeroclaw_providers::create_resilient_model_provider_for_alias(
+                        &config,
+                        family,
+                        alias,
+                        d_entry.and_then(|e| e.api_key.as_deref()),
+                        d_entry.and_then(|e| e.uri.as_deref()),
+                        &config.reliability,
+                        &d_opts,
+                    ) {
+                        Ok(p) => {
+                            fallback_model_provider = Some(p);
+                            fallback_model_name = Some(m);
+                        }
+                        Err(_) => {}
+                    }
+                }
+            }
+        }
 
         let model_switch_callback = get_model_switch_state();
 
@@ -1753,6 +1793,7 @@ pub async fn run(
         let start = Instant::now();
 
         let mut final_output = String::new();
+        let mut fallback_attempted = false;
 
         // Save the base system prompt before any thinking modifications so
         // the interactive loop can restore it between turns.
@@ -2059,6 +2100,35 @@ pub async fn run(
 
                             continue;
                         }
+
+                        if !fallback_attempted
+                            && zeroclaw_providers::reliable::is_non_retryable(&e)
+                            && !zeroclaw_providers::reliable::is_context_window_exceeded(&e)
+                            && let Some(ref fb_name) = fallback_model_name
+                            && let Some(fb_prov) = fallback_model_provider.take()
+                        {
+                                ::zeroclaw_log::record!(
+                                    INFO,
+                                    ::zeroclaw_log::Event::new(
+                                        module_path!(),
+                                        ::zeroclaw_log::Action::Note
+                                    )
+                                    .with_attrs(::serde_json::json!({
+                                        "from_model": model_name,
+                                        "to_model": fb_name,
+                                        "error": scrub_credentials(&e.to_string()),
+                                    })),
+                                    "Primary model failed (CLI non-interactive), falling back to system default"
+                                );
+                                model_provider = fb_prov;
+                                model_name = fb_name.clone();
+                                if let Some(ref dpa) = default_provider_alias {
+                                    provider_name = dpa.clone();
+                                }
+                                fallback_attempted = true;
+                                continue;
+                        }
+
                         return Err(e);
                     }
                 }
@@ -2627,6 +2697,34 @@ pub async fn run(
 
                                 continue;
                             }
+                            if !fallback_attempted
+                                && zeroclaw_providers::reliable::is_non_retryable(&e)
+                                && !zeroclaw_providers::reliable::is_context_window_exceeded(&e)
+                                && let Some(ref fb_name) = fallback_model_name
+                                && let Some(fb_prov) = fallback_model_provider.take()
+                            {
+                                ::zeroclaw_log::record!(
+                                    INFO,
+                                    ::zeroclaw_log::Event::new(
+                                        module_path!(),
+                                        ::zeroclaw_log::Action::Note
+                                    )
+                                    .with_attrs(::serde_json::json!({
+                                        "from_model": model_name,
+                                        "to_model": fb_name,
+                                        "error": scrub_credentials(&e.to_string()),
+                                    })),
+                                    "Primary model failed (CLI interactive), falling back to system default"
+                                );
+                                model_provider = fb_prov;
+                                model_name = fb_name.clone();
+                                if let Some(ref dpa) = default_provider_alias {
+                                    provider_name = dpa.clone();
+                                }
+                                fallback_attempted = true;
+                                continue;
+                            }
+
                             // Context overflow recovery: drop oldest whole
                             // turns and retry. No summarization, no splicing.
                             if zeroclaw_providers::reliable::is_context_window_exceeded(&e) {
