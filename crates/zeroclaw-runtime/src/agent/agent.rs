@@ -70,6 +70,10 @@ pub struct Agent {
     hook_runner: Option<Arc<crate::hooks::HookRunner>>,
     /// Approval manager for direct Agent execution paths such as ACP.
     approval_manager: Option<Arc<ApprovalManager>>,
+    /// Fallback model provider used when the primary fails with a non-retryable error.
+    fallback_model_provider: Option<Box<dyn ModelProvider>>,
+    /// Model name to use with the fallback provider.
+    fallback_model_name: Option<String>,
     /// Late-bound channel maps for the four channel-driven tools
     /// (`ask_user`, `reaction`, `escalate_to_human`, `poll`). Held so that
     /// per-session callers (e.g. the ACP server) can register a back-channel
@@ -173,9 +177,12 @@ pub struct AgentBuilder {
     activated_tools: Option<Arc<std::sync::Mutex<crate::tools::ActivatedToolSet>>>,
     hook_runner: Option<Arc<crate::hooks::HookRunner>>,
     approval_manager: Option<Arc<ApprovalManager>>,
+    fallback_model_provider: Option<Box<dyn ModelProvider>>,
+    fallback_model_name: Option<String>,
 }
 
-impl Default for AgentBuilder {
+impl AgentBuilder {
+
     fn default() -> Self {
         Self::new()
     }
@@ -213,6 +220,8 @@ impl AgentBuilder {
             activated_tools: None,
             hook_runner: None,
             approval_manager: None,
+            fallback_model_provider: None,
+            fallback_model_name: None,
         }
     }
 
@@ -374,12 +383,23 @@ impl AgentBuilder {
         self
     }
 
-    pub fn approval_manager(mut self, manager: Option<Arc<ApprovalManager>>) -> Self {
-        self.approval_manager = manager;
+    pub fn approval_manager(mut self, value: Option<Arc<ApprovalManager>>) -> Self {
+        self.approval_manager = value;
+        self
+    }
+
+    pub fn fallback_model_provider(mut self, value: Option<Box<dyn ModelProvider>>) -> Self {
+        self.fallback_model_provider = value;
+        self
+    }
+
+    pub fn fallback_model_name(mut self, value: Option<String>) -> Self {
+        self.fallback_model_name = value;
         self
     }
 
     pub fn build(self) -> Result<Agent> {
+
         let mut tools = self.tools.ok_or_else(|| {
             ::zeroclaw_log::record!(
                 ERROR,
@@ -484,6 +504,8 @@ impl AgentBuilder {
             activated_tools: self.activated_tools,
             hook_runner: self.hook_runner,
             approval_manager: self.approval_manager,
+            fallback_model_provider: self.fallback_model_provider,
+            fallback_model_name: self.fallback_model_name,
             channel_handles: AgentChannelHandles::default(),
         })
     }
@@ -992,6 +1014,48 @@ impl Agent {
                 &provider_runtime_options,
             )?;
 
+        // ── Fallback provider initialization ───────────────────────
+        // When the primary provider is NOT the system default, we pre-construct
+        // the default provider to serve as a fallback if the primary fails.
+        let default_provider_alias = config.first_model_provider_alias();
+        let mut fallback_model_provider = None;
+        let mut fallback_model_name = None;
+
+        if let Some(ref dpa) = default_provider_alias
+            && dpa != &provider_ref
+        {
+            if let Some((family, alias)) = dpa.split_once('.') {
+                let d_opts = zeroclaw_providers::provider_runtime_options_for_alias(config, family, alias);
+                let d_entry = config.providers.models.find(family, alias);
+                let d_model = d_entry.and_then(|e| e.model.clone());
+
+                if let Some(m) = d_model {
+                    match zeroclaw_providers::create_resilient_model_provider_for_alias(
+                        config,
+                        family,
+                        alias,
+                        d_entry.and_then(|e| e.api_key.as_deref()),
+                        d_entry.and_then(|e| e.uri.as_deref()),
+                        &config.reliability,
+                        &d_opts,
+                    ) {
+                        Ok(p) => {
+                            fallback_model_provider = Some(p);
+                            fallback_model_name = Some(m);
+                        }
+                        Err(e) => {
+                            ::zeroclaw_log::record!(
+                                WARN,
+                                ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                                    .with_attrs(::serde_json::json!({"error": e.to_string()})),
+                                "Failed to pre-construct fallback provider"
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
         let dispatcher_choice = agent_cfg.tool_dispatcher.as_str();
         let tool_dispatcher: Box<dyn ToolDispatcher> = match dispatcher_choice {
             "native" => Box::new(NativeToolDispatcher),
@@ -1090,6 +1154,8 @@ impl Agent {
                 None
             })
             .approval_manager(Some(Arc::new(approval_manager)))
+            .fallback_model_provider(fallback_model_provider)
+            .fallback_model_name(fallback_model_name)
             .build()?;
 
         agent.channel_handles = AgentChannelHandles {
@@ -1522,6 +1588,8 @@ impl Agent {
             .push(ConversationMessage::Chat(ChatMessage::user(enriched)));
 
         let effective_model = self.classify_model(user_message);
+        let mut active_model = effective_model.clone();
+        let mut fallback_attempted = false;
 
         for _ in 0..self.config.max_tool_iterations {
             let messages = self.tool_dispatcher.to_provider_messages(&self.history);
@@ -1551,9 +1619,8 @@ impl Agent {
                 });
             }
 
-            let response = match self
-                .model_provider
-                .chat(
+            let response = loop {
+                let chat_fut = self.model_provider.chat(
                     ChatRequest {
                         messages: &prepared_messages,
                         tools: if self.should_send_tool_specs() {
@@ -1563,19 +1630,50 @@ impl Agent {
                         },
                         thinking: None,
                     },
-                    &effective_model,
+                    &active_model,
                     Some(self.temperature),
-                )
-                .await
-            {
-                Ok(resp) => resp,
-                Err(err) => return Err(err),
+                );
+
+                match chat_fut.await {
+                    Ok(resp) => break resp,
+                    Err(err) => {
+                        if !fallback_attempted
+                            && self.fallback_model_provider.is_some()
+                            && let Some(ref fallback_name) = self.fallback_model_name
+                        {
+                            if zeroclaw_providers::reliable::is_non_retryable(&err)
+                                && !zeroclaw_providers::reliable::is_context_window_exceeded(&err)
+                            {
+                                ::zeroclaw_log::record!(
+                                    INFO,
+                                    ::zeroclaw_log::Event::new(
+                                        module_path!(),
+                                        ::zeroclaw_log::Action::Note
+                                    )
+                                    .with_attrs(::serde_json::json!({
+                                        "from_model": active_model,
+                                        "to_model": fallback_name,
+                                        "error": err.to_string(),
+                                    })),
+                                    "Primary model failed, falling back to system default"
+                                );
+                                if let Some(fb_prov) = self.fallback_model_provider.take() {
+                                    self.model_provider = fb_prov;
+                                    active_model = fallback_name.clone();
+                                    fallback_attempted = true;
+                                    continue;
+                                }
+                            }
+                        }
+                        return Err(err);
+                    }
+                }
             };
 
             let (text, calls) = self.parse_response_for_effective_tools(&response);
             if calls.is_empty() {
                 let final_text = if text.is_empty() && !self.tool_specs.is_empty() {
-                    response.text.unwrap_or_default()
+                    response.text.as_deref().unwrap_or_default().to_string()
                 } else {
                     text
                 };
@@ -1672,6 +1770,8 @@ impl Agent {
             .await;
 
         let effective_model = self.classify_model(user_message);
+        let mut active_model = effective_model.clone();
+        let mut fallback_attempted = false;
         let turn_started_at = std::time::Instant::now();
         let mut committed_response = String::new();
 
@@ -1750,9 +1850,10 @@ impl Agent {
             // forward deltas.  Otherwise fall back to non-streaming chat.
             use futures_util::StreamExt;
 
-            let stream_opts = zeroclaw_providers::traits::StreamOptions::new(
-                self.model_provider.supports_streaming(),
-            );
+            let response = loop {
+                let stream_opts = zeroclaw_providers::traits::StreamOptions::new(
+                    self.model_provider.supports_streaming(),
+                );
             let mut stream = self.model_provider.stream_chat(
                 zeroclaw_providers::ChatRequest {
                     messages: &prepared_messages,
@@ -1763,7 +1864,7 @@ impl Agent {
                     },
                     thinking: None,
                 },
-                &effective_model,
+                &active_model,
                 Some(self.temperature),
                 stream_opts,
             );
@@ -1882,7 +1983,43 @@ impl Agent {
                                 new_messages: new_msgs,
                             });
                         }
-                        break;
+
+                        // Potential fallback: stream failed before producing any content
+                        let err = anyhow::Error::msg(error.to_string());
+                        if !fallback_attempted
+                            && let Some(ref _fallback_prov) = self.fallback_model_provider
+                            && let Some(ref fallback_name) = self.fallback_model_name
+                            && committed_response.is_empty()
+                        {
+                            if zeroclaw_providers::reliable::is_non_retryable(&err)
+                                && !zeroclaw_providers::reliable::is_context_window_exceeded(&err)
+                            {
+                                if let Some(fb_prov) = self.fallback_model_provider.take() {
+                                    ::zeroclaw_log::record!(
+                                        INFO,
+                                        ::zeroclaw_log::Event::new(
+                                            module_path!(),
+                                            ::zeroclaw_log::Action::Note
+                                        )
+                                        .with_attrs(::serde_json::json!({
+                                            "from_model": active_model,
+                                            "to_model": fallback_name,
+                                            "error": err.to_string(),
+                                        })),
+                                        "Primary model failed to stream, falling back to system default"
+                                    );
+                                    self.model_provider = fb_prov;
+                                    active_model = fallback_name.clone();
+                                    fallback_attempted = true;
+                                    continue;
+                                }
+                            }
+                        }
+                        return Err(StreamedTurnError {
+                            error: err,
+                            committed_response,
+                            new_messages: new_msgs,
+                        });
                     }
                 }
             }
@@ -1909,13 +2046,9 @@ impl Agent {
 
             // If streaming produced text, use it as the response and
             // check for tool calls via the dispatcher.
-            let response = if got_stream {
+            if got_stream {
                 // Build a synthetic ChatResponse from streamed text.
-                // `streamed_reasoning` carries signed thinking blocks from
-                // providers that emit them via `StreamChunk.reasoning`
-                // (Anthropic's native-thinking non-streaming fallback), so
-                // the signature round-trip survives into conversation history.
-                zeroclaw_providers::ChatResponse {
+                break zeroclaw_providers::ChatResponse {
                     text: Some(streamed_text),
                     tool_calls: streamed_tool_calls,
                     usage: streamed_usage.clone(),
@@ -1924,7 +2057,7 @@ impl Agent {
                     } else {
                         Some(streamed_reasoning)
                     },
-                }
+                };
             } else {
                 // Fall back to non-streaming chat, with cancellation guard
                 let chat_fut = self.model_provider.chat(
@@ -1961,8 +2094,40 @@ impl Agent {
                     chat_fut.await
                 };
                 match chat_result {
-                    Ok(resp) => resp,
+                    Ok(resp) => break resp,
                     Err(error) => {
+                        if !fallback_attempted
+                            && let Some(ref _fallback_prov) = self.fallback_model_provider
+                            && let Some(ref fallback_name) = self.fallback_model_name
+                            && committed_response.is_empty()
+                        {
+                            if zeroclaw_providers::reliable::is_non_retryable(&error)
+                                && !zeroclaw_providers::reliable::is_context_window_exceeded(
+                                    &error,
+                                )
+                            {
+                                if let Some(fb_prov) = self.fallback_model_provider.take() {
+                                    ::zeroclaw_log::record!(
+                                        INFO,
+                                        ::zeroclaw_log::Event::new(
+                                            module_path!(),
+                                            ::zeroclaw_log::Action::Note
+                                        )
+                                        .with_attrs(::serde_json::json!({
+                                            "from_model": active_model,
+                                            "to_model": fallback_name,
+                                            "error": error.to_string(),
+                                        })),
+                                        "Primary model failed (non-stream), falling back to system default"
+                                    );
+                                    self.model_provider = fb_prov;
+                                    active_model = fallback_name.clone();
+                                    fallback_attempted = true;
+                                    continue;
+                                }
+
+                            }
+                        }
                         return Err(StreamedTurnError {
                             error,
                             committed_response,
@@ -1971,6 +2136,7 @@ impl Agent {
                     }
                 }
             };
+        };
 
             // Forward per-call token usage so the WS gateway (and any other
             // consumer) can include aggregated usage in the final done frame
@@ -1989,7 +2155,7 @@ impl Agent {
             let (text, mut calls) = self.parse_response_for_effective_tools(&response);
             if calls.is_empty() {
                 let final_text = if text.is_empty() && !self.tool_specs.is_empty() {
-                    response.text.unwrap_or_default()
+                    response.text.as_deref().unwrap_or_default().to_string()
                 } else {
                     text
                 };
@@ -2027,6 +2193,7 @@ impl Agent {
                 }
 
                 // If we didn't stream, send the full response as a single chunk
+                let got_stream = response.text.is_some() && !final_text.is_empty();
                 if !got_stream && !final_text.is_empty() {
                     let _ = event_tx
                         .send(TurnEvent::Chunk {
