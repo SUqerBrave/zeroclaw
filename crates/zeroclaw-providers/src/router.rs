@@ -236,6 +236,11 @@ impl RouterModelProvider {
             return chain;
         }
 
+        if model.starts_with("hint:") {
+            chain.push((self.default_index, self.default_model.clone()));
+            return chain;
+        }
+
         chain.push((self.default_index, model.to_string()));
         chain
     }
