@@ -155,7 +155,9 @@ impl RouterModelProvider {
                 }
             }
 
-            let Some((model_provider_name, _)): Option<&(String, Box<dyn ModelProvider>)> = self.model_providers.get(idx) else {
+            let Some((model_provider_name, _)): Option<&(String, Box<dyn ModelProvider>)> =
+                self.model_providers.get(idx)
+            else {
                 continue;
             };
             if let Some(pricing) = model_provider_pricing.get(model_provider_name)
@@ -216,10 +218,7 @@ impl RouterModelProvider {
                     if fallback_hint == "default" {
                         chain.push((self.default_index, self.default_model.clone()));
                     } else if let Some(fallback_route) = self.routes.get(fallback_hint) {
-                        chain.push((
-                            fallback_route.provider_index,
-                            fallback_route.model.clone(),
-                        ));
+                        chain.push((fallback_route.provider_index, fallback_route.model.clone()));
                     }
                 }
                 return chain;
@@ -292,7 +291,8 @@ impl ModelProvider for RouterModelProvider {
         let mut last_err = None;
 
         for (i, (provider_idx, resolved_model)) in chain.iter().enumerate() {
-            let (provider_name, model_provider): &(_ , Box<dyn ModelProvider>) = &self.model_providers[*provider_idx];
+            let (provider_name, model_provider): &(_, Box<dyn ModelProvider>) =
+                &self.model_providers[*provider_idx];
 
             if i > 0 {
                 ::zeroclaw_log::record!(
@@ -346,7 +346,8 @@ impl ModelProvider for RouterModelProvider {
         let mut last_err = None;
 
         for (i, (provider_idx, resolved_model)) in chain.iter().enumerate() {
-            let (_, model_provider): &(_, Box<dyn ModelProvider>) = &self.model_providers[*provider_idx];
+            let (_, model_provider): &(_, Box<dyn ModelProvider>) =
+                &self.model_providers[*provider_idx];
 
             match ProviderDispatch::from_ref(&**model_provider)
                 .chat_with_history(messages, resolved_model, temperature)
@@ -376,7 +377,8 @@ impl ModelProvider for RouterModelProvider {
         let mut last_err = None;
 
         for (i, (provider_idx, resolved_model)) in chain.iter().enumerate() {
-            let (_, model_provider): &(_, Box<dyn ModelProvider>) = &self.model_providers[*provider_idx];
+            let (_, model_provider): &(_, Box<dyn ModelProvider>) =
+                &self.model_providers[*provider_idx];
 
             match ProviderDispatch::from_ref(&**model_provider)
                 .chat(request, resolved_model, temperature)
@@ -407,7 +409,8 @@ impl ModelProvider for RouterModelProvider {
         let mut last_err = None;
 
         for (i, (provider_idx, resolved_model)) in chain.iter().enumerate() {
-            let (_, model_provider): &(_, Box<dyn ModelProvider>) = &self.model_providers[*provider_idx];
+            let (_, model_provider): &(_, Box<dyn ModelProvider>) =
+                &self.model_providers[*provider_idx];
 
             match ProviderDispatch::from_ref(&**model_provider)
                 .chat_with_tools(messages, tools, resolved_model, temperature)
@@ -437,13 +440,17 @@ impl ModelProvider for RouterModelProvider {
     fn supports_streaming(&self) -> bool {
         self.model_providers
             .iter()
-            .any(|(_, model_provider): &(_, Box<dyn ModelProvider>)| model_provider.supports_streaming())
+            .any(|(_, model_provider): &(_, Box<dyn ModelProvider>)| {
+                model_provider.supports_streaming()
+            })
     }
 
     fn supports_streaming_tool_events(&self) -> bool {
         self.model_providers
             .iter()
-            .any(|(_, model_provider): &(_, Box<dyn ModelProvider>)| model_provider.supports_streaming_tool_events())
+            .any(|(_, model_provider): &(_, Box<dyn ModelProvider>)| {
+                model_provider.supports_streaming_tool_events()
+            })
     }
 
     fn stream_chat_with_system(
@@ -458,7 +465,7 @@ impl ModelProvider for RouterModelProvider {
         if chain.len() <= 1 {
             let (idx, resolved_model) = chain[0].clone();
             let (_, model_provider) = &self.model_providers[idx];
-            return ProviderDispatch::from_ref(&**model_provider).stream_chat_with_system(
+            return model_provider.stream_chat_with_system(
                 system_prompt,
                 message,
                 &resolved_model,
@@ -477,7 +484,11 @@ impl ModelProvider for RouterModelProvider {
 
         stream::unfold(
             (current_chain, current_stream, first_event_seen),
-            move |(mut chain, mut stream, mut first_seen): (Vec<(usize, String)>, Option<BoxStream<'static, StreamResult<StreamChunk>>>, bool)| {
+            move |(mut chain, mut stream, mut first_seen): (
+                Vec<(usize, String)>,
+                Option<BoxStream<'static, StreamResult<StreamChunk>>>,
+                bool,
+            )| {
                 let system_prompt = system_prompt.clone();
                 let message = message.clone();
                 let providers = Arc::clone(&providers);
@@ -495,7 +506,7 @@ impl ModelProvider for RouterModelProvider {
                                 return None;
                             }
 
-                            stream = Some(ProviderDispatch::from_ref(&**model_provider).stream_chat_with_system(
+                            stream = Some(model_provider.stream_chat_with_system(
                                 system_prompt.as_deref(),
                                 &message,
                                 &resolved_model,
@@ -504,18 +515,31 @@ impl ModelProvider for RouterModelProvider {
                             ));
                         }
 
-                        let s: &mut BoxStream<'static, StreamResult<StreamChunk>> = stream.as_mut().unwrap();
+                        let s: &mut BoxStream<'static, StreamResult<StreamChunk>> =
+                            stream.as_mut().unwrap();
                         match s.next().await {
                             Some(Ok(event)) => {
                                 first_seen = true;
-                                return Some((Ok(event), (chain, Some(stream.take().unwrap()), first_seen)));
+                                return Some((
+                                    Ok(event),
+                                    (chain, Some(stream.take().unwrap()), first_seen),
+                                ));
                             }
-                            Some(Err(e)) if !first_seen && !chain.is_empty() && crate::reliable::is_non_retryable(&anyhow::Error::msg(e.to_string())) => {
+                            Some(Err(e))
+                                if !first_seen
+                                    && !chain.is_empty()
+                                    && crate::reliable::is_non_retryable(&anyhow::Error::msg(
+                                        e.to_string(),
+                                    )) =>
+                            {
                                 stream = None;
                                 continue;
                             }
                             Some(Err(e)) => {
-                                return Some((Err(e), (chain, Some(stream.take().unwrap()), first_seen)));
+                                return Some((
+                                    Err(e),
+                                    (chain, Some(stream.take().unwrap()), first_seen),
+                                ));
                             }
                             None => return None,
                         }
@@ -537,8 +561,12 @@ impl ModelProvider for RouterModelProvider {
         if chain.len() <= 1 {
             let (idx, resolved_model) = chain[0].clone();
             let (_, model_provider) = &self.model_providers[idx];
-            return ProviderDispatch::from_ref(&**model_provider)
-                .stream_chat_with_history(messages, &resolved_model, temperature, options);
+            return model_provider.stream_chat_with_history(
+                messages,
+                &resolved_model,
+                temperature,
+                options,
+            );
         }
 
         let messages = messages.to_vec();
@@ -550,7 +578,11 @@ impl ModelProvider for RouterModelProvider {
 
         stream::unfold(
             (current_chain, current_stream, first_event_seen),
-            move |(mut chain, mut stream, mut first_seen): (Vec<(usize, String)>, Option<BoxStream<'static, StreamResult<StreamChunk>>>, bool)| {
+            move |(mut chain, mut stream, mut first_seen): (
+                Vec<(usize, String)>,
+                Option<BoxStream<'static, StreamResult<StreamChunk>>>,
+                bool,
+            )| {
                 let messages = messages.clone();
                 let providers = Arc::clone(&providers);
 
@@ -567,7 +599,7 @@ impl ModelProvider for RouterModelProvider {
                                 return None;
                             }
 
-                            stream = Some(ProviderDispatch::from_ref(&**model_provider).stream_chat_with_history(
+                            stream = Some(model_provider.stream_chat_with_history(
                                 &messages,
                                 &resolved_model,
                                 temperature,
@@ -575,18 +607,31 @@ impl ModelProvider for RouterModelProvider {
                             ));
                         }
 
-                        let s: &mut BoxStream<'static, StreamResult<StreamChunk>> = stream.as_mut().unwrap();
+                        let s: &mut BoxStream<'static, StreamResult<StreamChunk>> =
+                            stream.as_mut().unwrap();
                         match s.next().await {
                             Some(Ok(event)) => {
                                 first_seen = true;
-                                return Some((Ok(event), (chain, Some(stream.take().unwrap()), first_seen)));
+                                return Some((
+                                    Ok(event),
+                                    (chain, Some(stream.take().unwrap()), first_seen),
+                                ));
                             }
-                            Some(Err(e)) if !first_seen && !chain.is_empty() && crate::reliable::is_non_retryable(&anyhow::Error::msg(e.to_string())) => {
+                            Some(Err(e))
+                                if !first_seen
+                                    && !chain.is_empty()
+                                    && crate::reliable::is_non_retryable(&anyhow::Error::msg(
+                                        e.to_string(),
+                                    )) =>
+                            {
                                 stream = None;
                                 continue;
                             }
                             Some(Err(e)) => {
-                                return Some((Err(e), (chain, Some(stream.take().unwrap()), first_seen)));
+                                return Some((
+                                    Err(e),
+                                    (chain, Some(stream.take().unwrap()), first_seen),
+                                ));
                             }
                             None => return None,
                         }
@@ -608,8 +653,12 @@ impl ModelProvider for RouterModelProvider {
         if chain.len() <= 1 {
             let (idx, resolved_model) = chain[0].clone();
             let (_, model_provider) = &self.model_providers[idx];
-            return ProviderDispatch::from_ref(&**model_provider)
-                .stream_chat(request, &resolved_model, temperature, options);
+            return ProviderDispatch::from_ref(&**model_provider).stream_chat(
+                request,
+                &resolved_model,
+                temperature,
+                options,
+            );
         }
 
         // Multiple models in chain — implement fallback stream.
@@ -625,7 +674,11 @@ impl ModelProvider for RouterModelProvider {
 
         stream::unfold(
             (current_chain, current_stream, first_event_seen),
-            move |(mut chain, mut stream, mut first_seen): (Vec<(usize, String)>, Option<BoxStream<'static, StreamResult<StreamEvent>>>, bool)| {
+            move |(mut chain, mut stream, mut first_seen): (
+                Vec<(usize, String)>,
+                Option<BoxStream<'static, StreamResult<StreamEvent>>>,
+                bool,
+            )| {
                 let messages = messages.clone();
                 let tools = tools.clone();
                 let providers = Arc::clone(&providers);
@@ -637,7 +690,8 @@ impl ModelProvider for RouterModelProvider {
                                 return None;
                             }
                             let (idx, resolved_model): (usize, String) = chain.remove(0);
-                            let (provider_name, model_provider): &(String, Box<dyn ModelProvider>) = &providers[idx];
+                            let (provider_name, model_provider): &(String, Box<dyn ModelProvider>) =
+                                &providers[idx];
 
                             if first_seen {
                                 // This shouldn't happen with the logic below, but safety first.
@@ -646,12 +700,15 @@ impl ModelProvider for RouterModelProvider {
 
                             ::zeroclaw_log::record!(
                                 INFO,
-                                ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                                    .with_attrs(::serde_json::json!({
-                                        "model_provider": provider_name.as_str(),
-                                        "model": resolved_model.as_str(),
-                                        "chain_len": chain.len() + 1,
-                                    })),
+                                ::zeroclaw_log::Event::new(
+                                    module_path!(),
+                                    ::zeroclaw_log::Action::Note
+                                )
+                                .with_attrs(::serde_json::json!({
+                                    "model_provider": provider_name.as_str(),
+                                    "model": resolved_model.as_str(),
+                                    "chain_len": chain.len() + 1,
+                                })),
                                 "router dispatching streamed request"
                             );
 
@@ -660,35 +717,54 @@ impl ModelProvider for RouterModelProvider {
                                 tools: tools.as_deref(),
                                 thinking,
                             };
-                            stream = Some(ProviderDispatch::from_ref(&**model_provider).stream_chat(
-                                req,
-                                &resolved_model,
-                                temperature,
-                                options,
-                            ));
+                            stream =
+                                Some(ProviderDispatch::from_ref(&**model_provider).stream_chat(
+                                    req,
+                                    &resolved_model,
+                                    temperature,
+                                    options,
+                                ));
                         }
 
-                        let s: &mut BoxStream<'static, StreamResult<StreamEvent>> = stream.as_mut().unwrap();
+                        let s: &mut BoxStream<'static, StreamResult<StreamEvent>> =
+                            stream.as_mut().unwrap();
                         match s.next().await {
                             Some(Ok(event)) => {
                                 first_seen = true;
-                                return Some((Ok(event), (chain, Some(stream.take().unwrap()), first_seen)));
+                                return Some((
+                                    Ok(event),
+                                    (chain, Some(stream.take().unwrap()), first_seen),
+                                ));
                             }
-                            Some(Err(e)) if !first_seen && !chain.is_empty() && crate::reliable::is_non_retryable(&anyhow::Error::msg(e.to_string())) => {
+                            Some(Err(e))
+                                if !first_seen
+                                    && !chain.is_empty()
+                                    && crate::reliable::is_non_retryable(&anyhow::Error::msg(
+                                        e.to_string(),
+                                    )) =>
+                            {
                                 ::zeroclaw_log::record!(
                                     INFO,
-                                    ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                                        .with_attrs(::serde_json::json!({
+                                    ::zeroclaw_log::Event::new(
+                                        module_path!(),
+                                        ::zeroclaw_log::Action::Note
+                                    )
+                                    .with_attrs(
+                                        ::serde_json::json!({
                                             "error": e.to_string(),
                                             "remaining": chain.len(),
-                                        })),
+                                        })
+                                    ),
                                     "Stream failed before any events; attempting fallback"
                                 );
                                 stream = None;
                                 continue;
                             }
                             Some(Err(e)) => {
-                                return Some((Err(e), (chain, Some(stream.take().unwrap()), first_seen)));
+                                return Some((
+                                    Err(e),
+                                    (chain, Some(stream.take().unwrap()), first_seen),
+                                ));
                             }
                             None => return None,
                         }

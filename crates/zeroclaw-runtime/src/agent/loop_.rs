@@ -1538,7 +1538,8 @@ pub async fn run(
             && dpa != &provider_name
         {
             if let Some((family, alias)) = dpa.split_once('.') {
-                let d_opts = zeroclaw_providers::provider_runtime_options_for_alias(&config, family, alias);
+                let d_opts =
+                    zeroclaw_providers::provider_runtime_options_for_alias(&config, family, alias);
                 let d_entry = config.providers.models.find(family, alias);
                 let d_model = d_entry.and_then(|e| e.model.clone());
 
@@ -2107,26 +2108,26 @@ pub async fn run(
                             && let Some(ref fb_name) = fallback_model_name
                             && let Some(fb_prov) = fallback_model_provider.take()
                         {
-                                ::zeroclaw_log::record!(
-                                    INFO,
-                                    ::zeroclaw_log::Event::new(
-                                        module_path!(),
-                                        ::zeroclaw_log::Action::Note
-                                    )
-                                    .with_attrs(::serde_json::json!({
-                                        "from_model": model_name,
-                                        "to_model": fb_name,
-                                        "error": scrub_credentials(&e.to_string()),
-                                    })),
-                                    "Primary model failed (CLI non-interactive), falling back to system default"
-                                );
-                                model_provider = fb_prov;
-                                model_name = fb_name.clone();
-                                if let Some(ref dpa) = default_provider_alias {
-                                    provider_name = dpa.clone();
-                                }
-                                fallback_attempted = true;
-                                continue;
+                            ::zeroclaw_log::record!(
+                                INFO,
+                                ::zeroclaw_log::Event::new(
+                                    module_path!(),
+                                    ::zeroclaw_log::Action::Note
+                                )
+                                .with_attrs(::serde_json::json!({
+                                    "from_model": model_name,
+                                    "to_model": fb_name,
+                                    "error": scrub_credentials(&e.to_string()),
+                                })),
+                                "Primary model failed (CLI non-interactive), falling back to system default"
+                            );
+                            model_provider = fb_prov;
+                            model_name = fb_name.clone();
+                            if let Some(ref dpa) = default_provider_alias {
+                                provider_name = dpa.clone();
+                            }
+                            fallback_attempted = true;
+                            continue;
                         }
 
                         return Err(e);
@@ -2709,11 +2710,13 @@ pub async fn run(
                                         module_path!(),
                                         ::zeroclaw_log::Action::Note
                                     )
-                                    .with_attrs(::serde_json::json!({
-                                        "from_model": model_name,
-                                        "to_model": fb_name,
-                                        "error": scrub_credentials(&e.to_string()),
-                                    })),
+                                    .with_attrs(
+                                        ::serde_json::json!({
+                                            "from_model": model_name,
+                                            "to_model": fb_name,
+                                            "error": scrub_credentials(&e.to_string()),
+                                        })
+                                    ),
                                     "Primary model failed (CLI interactive), falling back to system default"
                                 );
                                 model_provider = fb_prov;

@@ -5623,9 +5623,10 @@ async fn process_channel_message_body(
     // Also include default route as a final fallback if the current route is NOT the default
     let drs = default_route_selection_from_snapshot(&runtime_defaults);
     if route.model_provider != drs.model_provider || route.model != drs.model {
-        if !fallback_chain.iter().any(|r| {
-            r.model_provider == drs.model_provider && r.model == drs.model
-        }) {
+        if !fallback_chain
+            .iter()
+            .any(|r| r.model_provider == drs.model_provider && r.model == drs.model)
+        {
             fallback_chain.push(drs);
         }
     }
@@ -5855,14 +5856,17 @@ async fn process_channel_message_body(
                         let fb_route = fallback_chain.remove(0);
                         ::zeroclaw_log::record!(
                             INFO,
-                            ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
-                                .with_attrs(::serde_json::json!({
-                                    "from_provider": route.model_provider,
-                                    "to_provider": fb_route.model_provider,
-                                    "to_model": fb_route.model,
-                                    "error": e.to_string(),
-                                    "remaining_fallbacks": fallback_chain.len(),
-                                })),
+                            ::zeroclaw_log::Event::new(
+                                module_path!(),
+                                ::zeroclaw_log::Action::Note
+                            )
+                            .with_attrs(::serde_json::json!({
+                                "from_provider": route.model_provider,
+                                "to_provider": fb_route.model_provider,
+                                "to_model": fb_route.model,
+                                "error": e.to_string(),
+                                "remaining_fallbacks": fallback_chain.len(),
+                            })),
                             "Routed provider failed with a non-retryable error, attempting fallback"
                         );
                         // Evict the failed provider from cache
@@ -5871,7 +5875,10 @@ async fn process_channel_message_body(
                             route.api_key.as_deref(),
                             runtime_defaults.generation,
                         );
-                        ctx.provider_cache.lock().unwrap_or_else(|p| p.into_inner()).remove(&cache_key);
+                        ctx.provider_cache
+                            .lock()
+                            .unwrap_or_else(|p| p.into_inner())
+                            .remove(&cache_key);
 
                         // Swap to fallback provider
                         match get_or_create_provider(
@@ -5879,24 +5886,35 @@ async fn process_channel_message_body(
                             &fb_route.model_provider,
                             fb_route.api_key.as_deref(),
                             &runtime_defaults,
-                        ).await {
+                        )
+                        .await
+                        {
                             Ok(new_prov) => {
                                 active_model_provider = new_prov;
                                 route = fb_route.clone();
                                 // Rollback the failed user turn so retry has clean history
                                 rollback_orphan_user_turn(ctx.as_ref(), &history_key, &msg.content);
-                                append_sender_turn(ctx.as_ref(), &history_key, ChatMessage::user(&msg.content));
+                                append_sender_turn(
+                                    ctx.as_ref(),
+                                    &history_key,
+                                    ChatMessage::user(&msg.content),
+                                );
                                 continue; // retry with fallback provider
                             }
                             Err(err) => {
                                 ::zeroclaw_log::record!(
                                     WARN,
-                                    ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Fail)
-                                        .with_outcome(::zeroclaw_log::EventOutcome::Failure)
-                                        .with_attrs(::serde_json::json!({
+                                    ::zeroclaw_log::Event::new(
+                                        module_path!(),
+                                        ::zeroclaw_log::Action::Fail
+                                    )
+                                    .with_outcome(::zeroclaw_log::EventOutcome::Failure)
+                                    .with_attrs(
+                                        ::serde_json::json!({
                                             "fallback_provider": fb_route.model_provider,
                                             "error": err.to_string()
-                                        })),
+                                        })
+                                    ),
                                     "Fallback provider initialization failed"
                                 );
                                 // Fall through to original error
