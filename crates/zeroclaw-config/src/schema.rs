@@ -32275,6 +32275,7 @@ allowed_users = []
             model_provider: "openai.default".into(),
             model: "gpt-4".into(),
             api_key: None,
+            fallbacks: Vec::new(),
         });
         config.embedding_routes.push(EmbeddingRouteConfig {
             hint: "semantic".into(),

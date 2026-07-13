@@ -8,6 +8,17 @@ use futures_util::stream::{self, BoxStream, StreamExt};
 use std::collections::HashMap;
 use std::sync::Arc;
 
+type ChunkFallbackState = (
+    Vec<(usize, String)>,
+    Option<BoxStream<'static, StreamResult<StreamChunk>>>,
+    bool,
+);
+type EventFallbackState = (
+    Vec<(usize, String)>,
+    Option<BoxStream<'static, StreamResult<StreamEvent>>>,
+    bool,
+);
+
 /// Score a model against a user-keyed pricing map. Sums any entry matching
 /// the model directly, plus optional `.input` and `.output` dimension keys.
 /// Returns `None` when nothing matches.
@@ -210,19 +221,19 @@ impl RouterModelProvider {
     pub fn resolve_chain(&self, model: &str) -> Vec<(usize, String)> {
         let mut chain = Vec::new();
 
-        if let Some(hint) = model.strip_prefix("hint:") {
-            if let Some(route) = self.routes.get(hint) {
-                chain.push((route.provider_index, route.model.clone()));
-                for fallback_hint in &route.fallbacks {
-                    // Recursive hint resolution
-                    if fallback_hint == "default" {
-                        chain.push((self.default_index, self.default_model.clone()));
-                    } else if let Some(fallback_route) = self.routes.get(fallback_hint) {
-                        chain.push((fallback_route.provider_index, fallback_route.model.clone()));
-                    }
+        if let Some(hint) = model.strip_prefix("hint:")
+            && let Some(route) = self.routes.get(hint)
+        {
+            chain.push((route.provider_index, route.model.clone()));
+            for fallback_hint in &route.fallbacks {
+                // Recursive hint resolution
+                if fallback_hint == "default" {
+                    chain.push((self.default_index, self.default_model.clone()));
+                } else if let Some(fallback_route) = self.routes.get(fallback_hint) {
+                    chain.push((fallback_route.provider_index, fallback_route.model.clone()));
                 }
-                return chain;
             }
+            return chain;
         }
 
         chain.push((self.default_index, model.to_string()));
@@ -333,7 +344,7 @@ impl ModelProvider for RouterModelProvider {
             }
         }
 
-        Err(last_err.unwrap_or_else(|| anyhow::anyhow!("All models in fallback chain failed")))
+        Err(last_err.unwrap_or_else(|| anyhow::Error::msg("All models in fallback chain failed")))
     }
 
     async fn chat_with_history(
@@ -364,7 +375,7 @@ impl ModelProvider for RouterModelProvider {
             }
         }
 
-        Err(last_err.unwrap_or_else(|| anyhow::anyhow!("All models in fallback chain failed")))
+        Err(last_err.unwrap_or_else(|| anyhow::Error::msg("All models in fallback chain failed")))
     }
 
     async fn chat(
@@ -395,7 +406,7 @@ impl ModelProvider for RouterModelProvider {
             }
         }
 
-        Err(last_err.unwrap_or_else(|| anyhow::anyhow!("All models in fallback chain failed")))
+        Err(last_err.unwrap_or_else(|| anyhow::Error::msg("All models in fallback chain failed")))
     }
 
     async fn chat_with_tools(
@@ -427,7 +438,7 @@ impl ModelProvider for RouterModelProvider {
             }
         }
 
-        Err(last_err.unwrap_or_else(|| anyhow::anyhow!("All models in fallback chain failed")))
+        Err(last_err.unwrap_or_else(|| anyhow::Error::msg("All models in fallback chain failed")))
     }
 
     fn supports_native_tools(&self) -> bool {
@@ -484,11 +495,7 @@ impl ModelProvider for RouterModelProvider {
 
         stream::unfold(
             (current_chain, current_stream, first_event_seen),
-            move |(mut chain, mut stream, mut first_seen): (
-                Vec<(usize, String)>,
-                Option<BoxStream<'static, StreamResult<StreamChunk>>>,
-                bool,
-            )| {
+            move |(mut chain, mut stream, mut first_seen): ChunkFallbackState| {
                 let system_prompt = system_prompt.clone();
                 let message = message.clone();
                 let providers = Arc::clone(&providers);
@@ -578,11 +585,7 @@ impl ModelProvider for RouterModelProvider {
 
         stream::unfold(
             (current_chain, current_stream, first_event_seen),
-            move |(mut chain, mut stream, mut first_seen): (
-                Vec<(usize, String)>,
-                Option<BoxStream<'static, StreamResult<StreamChunk>>>,
-                bool,
-            )| {
+            move |(mut chain, mut stream, mut first_seen): ChunkFallbackState| {
                 let messages = messages.clone();
                 let providers = Arc::clone(&providers);
 
@@ -674,11 +677,7 @@ impl ModelProvider for RouterModelProvider {
 
         stream::unfold(
             (current_chain, current_stream, first_event_seen),
-            move |(mut chain, mut stream, mut first_seen): (
-                Vec<(usize, String)>,
-                Option<BoxStream<'static, StreamResult<StreamEvent>>>,
-                bool,
-            )| {
+            move |(mut chain, mut stream, mut first_seen): EventFallbackState| {
                 let messages = messages.clone();
                 let tools = tools.clone();
                 let providers = Arc::clone(&providers);
@@ -784,7 +783,6 @@ impl ModelProvider for RouterModelProvider {
 
     async fn warmup(&self) -> anyhow::Result<()> {
         for (name, model_provider) in self.model_providers.iter() {
-            let (name, model_provider): (&String, &Box<dyn ModelProvider>) = (name, model_provider);
             ::zeroclaw_log::record!(
                 INFO,
                 ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
@@ -1618,6 +1616,7 @@ mod tests {
                 Route {
                     provider_name: "streaming".into(),
                     model: "claude-opus".into(),
+                    fallbacks: Vec::new(),
                 },
             )],
             "model".into(),
@@ -1646,6 +1645,7 @@ mod tests {
                 Route {
                     provider_name: "streaming".into(),
                     model: "claude-opus".into(),
+                    fallbacks: Vec::new(),
                 },
             )],
             "model".into(),
@@ -1690,6 +1690,7 @@ mod tests {
                 Route {
                     provider_name: "streaming".into(),
                     model: "claude-opus".into(),
+                    fallbacks: Vec::new(),
                 },
             )],
             "model".into(),
@@ -1734,6 +1735,7 @@ mod tests {
                 Route {
                     provider_name: "streaming".into(),
                     model: "claude-opus".into(),
+                    fallbacks: Vec::new(),
                 },
             )],
             "model".into(),

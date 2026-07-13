@@ -1536,29 +1536,34 @@ pub async fn run(
 
         if let Some(ref dpa) = default_provider_alias
             && dpa != &provider_name
+            && let Some((family, alias)) = dpa.split_once('.')
         {
-            if let Some((family, alias)) = dpa.split_once('.') {
-                let d_opts =
-                    zeroclaw_providers::provider_runtime_options_for_alias(&config, family, alias);
-                let d_entry = config.providers.models.find(family, alias);
-                let d_model = d_entry.and_then(|e| e.model.clone());
+            let d_opts =
+                zeroclaw_providers::provider_runtime_options_for_alias(&config, family, alias);
+            let d_entry = config.providers.models.find(family, alias);
+            let d_model = d_entry.and_then(|e| e.model.clone());
 
-                if let Some(m) = d_model {
-                    match zeroclaw_providers::create_resilient_model_provider_for_alias(
-                        &config,
-                        family,
-                        alias,
-                        d_entry.and_then(|e| e.api_key.as_deref()),
-                        d_entry.and_then(|e| e.uri.as_deref()),
-                        &config.reliability,
-                        &d_opts,
-                    ) {
-                        Ok(p) => {
-                            fallback_model_provider = Some(p);
-                            fallback_model_name = Some(m);
-                        }
-                        Err(_) => {}
+            if let Some(m) = d_model {
+                match zeroclaw_providers::create_resilient_model_provider_for_alias(
+                    &config,
+                    family,
+                    alias,
+                    d_entry.and_then(|e| e.api_key.as_deref()),
+                    d_entry.and_then(|e| e.uri.as_deref()),
+                    &config.reliability,
+                    &d_opts,
+                ) {
+                    Ok(p) => {
+                        fallback_model_provider = Some(p);
+                        fallback_model_name = Some(m);
                     }
+                    Err(err) => ::zeroclaw_log::record!(
+                        WARN,
+                        ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Fail)
+                            .with_outcome(::zeroclaw_log::EventOutcome::Failure)
+                            .with_attrs(::serde_json::json!({"error": err.to_string()})),
+                        "Failed to construct CLI fallback provider"
+                    ),
                 }
             }
         }

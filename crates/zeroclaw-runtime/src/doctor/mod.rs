@@ -1877,6 +1877,7 @@ mod tests {
                 model_provider: "groq".into(),
                 model: String::new(),
                 api_key: None,
+                fallbacks: Vec::new(),
             }],
             ..Config::default()
         };

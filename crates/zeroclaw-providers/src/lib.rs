@@ -2833,6 +2833,7 @@ mod tests {
                 model_provider: "openrouter.route".to_string(),
                 model: "openrouter/auto".to_string(),
                 api_key: None,
+                fallbacks: Vec::new(),
             }],
             "gpt-test",
             &options,
@@ -3707,6 +3708,7 @@ mod tests {
             model_provider: "openai.alias".into(),
             model: "gpt-4o".into(),
             api_key: Some("route-key".into()),
+            fallbacks: Vec::new(),
         }];
 
         let result = create_routed_model_provider_with_options(
@@ -3737,6 +3739,7 @@ mod tests {
             model_provider: "openai.alias".into(),
             model: "gpt-4o".into(),
             api_key: None,
+            fallbacks: Vec::new(),
         }];
 
         let result = create_routed_model_provider_with_options(
@@ -3767,6 +3770,7 @@ mod tests {
             model_provider: "openai".into(),
             model: "gpt-4o".into(),
             api_key: None,
+            fallbacks: Vec::new(),
         }];
 
         let result = create_routed_model_provider_with_options(
@@ -3798,6 +3802,7 @@ mod tests {
             model_provider: "openai".into(),
             model: "gpt-4o".into(),
             api_key: None,
+            fallbacks: Vec::new(),
         }];
 
         let result = create_routed_model_provider_with_options(
@@ -3863,6 +3868,7 @@ mod tests {
             model_provider: "openai.routed".to_string(),
             model: "gpt-4.1".to_string(),
             api_key: None,
+            fallbacks: Vec::new(),
         }];
 
         let result = create_routed_model_provider_with_options(

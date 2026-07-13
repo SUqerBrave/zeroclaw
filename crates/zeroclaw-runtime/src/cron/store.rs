@@ -2764,6 +2764,7 @@ schedule = { kind = "every", every_ms = 300000 }
             job_type: JobType::Shell,
             session_target: SessionTarget::Isolated,
             model: None,
+            fallback_model: None,
             agent_alias: agent_alias.to_string(),
             enabled: true,
             delivery: DeliveryConfig::default(),

@@ -5597,38 +5597,36 @@ async fn process_channel_message_body(
     // Pre-compute fallback chain: when the current route fails with a non-retryable
     // error, we try the models in the fallback chain (e.g. fast -> default -> reasoning).
     let mut fallback_chain = Vec::new();
-    if let Some(ref hint) = matched_hint {
-        if let Some(matched_route) = ctx
+    if let Some(ref hint) = matched_hint
+        && let Some(matched_route) = ctx
             .model_routes
             .iter()
             .find(|r| r.hint.eq_ignore_ascii_case(hint))
-        {
-            for fallback_hint in &matched_route.fallbacks {
-                if fallback_hint == "default" {
-                    fallback_chain.push(default_route_selection_from_snapshot(&runtime_defaults));
-                } else if let Some(fb_route) = ctx
-                    .model_routes
-                    .iter()
-                    .find(|r| r.hint.eq_ignore_ascii_case(fallback_hint))
-                {
-                    fallback_chain.push(ChannelRouteSelection {
-                        model_provider: fb_route.model_provider.clone(),
-                        model: fb_route.model.clone(),
-                        api_key: fb_route.api_key.clone(),
-                    });
-                }
+    {
+        for fallback_hint in &matched_route.fallbacks {
+            if fallback_hint == "default" {
+                fallback_chain.push(default_route_selection_from_snapshot(&runtime_defaults));
+            } else if let Some(fb_route) = ctx
+                .model_routes
+                .iter()
+                .find(|r| r.hint.eq_ignore_ascii_case(fallback_hint))
+            {
+                fallback_chain.push(ChannelRouteSelection {
+                    model_provider: fb_route.model_provider.clone(),
+                    model: fb_route.model.clone(),
+                    api_key: fb_route.api_key.clone(),
+                });
             }
         }
     }
     // Also include default route as a final fallback if the current route is NOT the default
     let drs = default_route_selection_from_snapshot(&runtime_defaults);
-    if route.model_provider != drs.model_provider || route.model != drs.model {
-        if !fallback_chain
+    if (route.model_provider != drs.model_provider || route.model != drs.model)
+        && !fallback_chain
             .iter()
             .any(|r| r.model_provider == drs.model_provider && r.model == drs.model)
-        {
-            fallback_chain.push(drs);
-        }
+    {
+        fallback_chain.push(drs);
     }
     let (llm_result, fallback_info) = scope_provider_fallback(async {
         let llm_result = loop {
@@ -5848,78 +5846,71 @@ async fn process_channel_message_body(
 
             // Provider fallback: if routed provider failed with a non-retryable error,
             // retry with the next provider in the fallback chain.
-            if let LlmExecutionResult::Completed(Ok(Err(ref e))) = loop_result {
-                if !fallback_chain.is_empty() {
-                    if zeroclaw_providers::reliable::is_non_retryable(e)
-                        && !zeroclaw_providers::reliable::is_context_window_exceeded(e)
-                    {
-                        let fb_route = fallback_chain.remove(0);
+            if let LlmExecutionResult::Completed(Ok(Err(ref e))) = loop_result
+                && !fallback_chain.is_empty()
+                && zeroclaw_providers::reliable::is_non_retryable(e)
+                && !zeroclaw_providers::reliable::is_context_window_exceeded(e)
+            {
+                let fb_route = fallback_chain.remove(0);
+                ::zeroclaw_log::record!(
+                    INFO,
+                    ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Note)
+                        .with_attrs(::serde_json::json!({
+                            "from_provider": route.model_provider,
+                            "to_provider": fb_route.model_provider,
+                            "to_model": fb_route.model,
+                            "error": e.to_string(),
+                            "remaining_fallbacks": fallback_chain.len(),
+                        })),
+                    "Routed provider failed with a non-retryable error, attempting fallback"
+                );
+                // Evict the failed provider from cache
+                let cache_key = provider_cache_key(
+                    &route.model_provider,
+                    route.api_key.as_deref(),
+                    runtime_defaults.generation,
+                );
+                ctx.provider_cache
+                    .lock()
+                    .unwrap_or_else(|p| p.into_inner())
+                    .remove(&cache_key);
+
+                // Swap to fallback provider
+                match get_or_create_provider(
+                    ctx.as_ref(),
+                    &fb_route.model_provider,
+                    fb_route.api_key.as_deref(),
+                    &runtime_defaults,
+                )
+                .await
+                {
+                    Ok(new_prov) => {
+                        active_model_provider = new_prov;
+                        route = fb_route.clone();
+                        // Rollback the failed user turn so retry has clean history
+                        rollback_orphan_user_turn(ctx.as_ref(), &history_key, &msg.content);
+                        append_sender_turn(
+                            ctx.as_ref(),
+                            &history_key,
+                            ChatMessage::user(&msg.content),
+                        );
+                        continue; // retry with fallback provider
+                    }
+                    Err(err) => {
                         ::zeroclaw_log::record!(
-                            INFO,
+                            WARN,
                             ::zeroclaw_log::Event::new(
                                 module_path!(),
-                                ::zeroclaw_log::Action::Note
+                                ::zeroclaw_log::Action::Fail
                             )
+                            .with_outcome(::zeroclaw_log::EventOutcome::Failure)
                             .with_attrs(::serde_json::json!({
-                                "from_provider": route.model_provider,
-                                "to_provider": fb_route.model_provider,
-                                "to_model": fb_route.model,
-                                "error": e.to_string(),
-                                "remaining_fallbacks": fallback_chain.len(),
+                                "fallback_provider": fb_route.model_provider,
+                                "error": err.to_string()
                             })),
-                            "Routed provider failed with a non-retryable error, attempting fallback"
+                            "Fallback provider initialization failed"
                         );
-                        // Evict the failed provider from cache
-                        let cache_key = provider_cache_key(
-                            &route.model_provider,
-                            route.api_key.as_deref(),
-                            runtime_defaults.generation,
-                        );
-                        ctx.provider_cache
-                            .lock()
-                            .unwrap_or_else(|p| p.into_inner())
-                            .remove(&cache_key);
-
-                        // Swap to fallback provider
-                        match get_or_create_provider(
-                            ctx.as_ref(),
-                            &fb_route.model_provider,
-                            fb_route.api_key.as_deref(),
-                            &runtime_defaults,
-                        )
-                        .await
-                        {
-                            Ok(new_prov) => {
-                                active_model_provider = new_prov;
-                                route = fb_route.clone();
-                                // Rollback the failed user turn so retry has clean history
-                                rollback_orphan_user_turn(ctx.as_ref(), &history_key, &msg.content);
-                                append_sender_turn(
-                                    ctx.as_ref(),
-                                    &history_key,
-                                    ChatMessage::user(&msg.content),
-                                );
-                                continue; // retry with fallback provider
-                            }
-                            Err(err) => {
-                                ::zeroclaw_log::record!(
-                                    WARN,
-                                    ::zeroclaw_log::Event::new(
-                                        module_path!(),
-                                        ::zeroclaw_log::Action::Fail
-                                    )
-                                    .with_outcome(::zeroclaw_log::EventOutcome::Failure)
-                                    .with_attrs(
-                                        ::serde_json::json!({
-                                            "fallback_provider": fb_route.model_provider,
-                                            "error": err.to_string()
-                                        })
-                                    ),
-                                    "Fallback provider initialization failed"
-                                );
-                                // Fall through to original error
-                            }
-                        }
+                        // Fall through to original error
                     }
                 }
             }
@@ -16426,6 +16417,7 @@ BTC is currently around $65,000 based on latest tool output."#
             model_provider: "openrouter".to_string(),
             model: "switched-model".to_string(),
             api_key: Some("route-specific-key".to_string()),
+            fallbacks: Vec::new(),
         }];
 
         // `resolve_provider_ref_for_runtime_switch` resolves `openrouter`
@@ -24302,6 +24294,7 @@ This is an example JSON object for profile settings."#;
             model_provider: "vision-provider".into(),
             model: "gpt-4-vision".into(),
             api_key: None,
+            fallbacks: Vec::new(),
         }];
 
         let runtime_ctx = Arc::new(ChannelRuntimeContext {
@@ -24455,6 +24448,7 @@ This is an example JSON object for profile settings."#;
             model_provider: "vision-provider".into(),
             model: "gpt-4-vision".into(),
             api_key: None,
+            fallbacks: Vec::new(),
         }];
 
         let runtime_ctx = Arc::new(ChannelRuntimeContext {
@@ -24600,6 +24594,7 @@ This is an example JSON object for profile settings."#;
             model_provider: "vision-provider".into(),
             model: "gpt-4-vision".into(),
             api_key: None,
+            fallbacks: Vec::new(),
         }];
 
         let runtime_ctx = Arc::new(ChannelRuntimeContext {
@@ -24758,12 +24753,14 @@ This is an example JSON object for profile settings."#;
                 model_provider: "fast-provider".into(),
                 model: "fast-model".into(),
                 api_key: None,
+                fallbacks: Vec::new(),
             },
             zeroclaw_config::schema::ModelRouteConfig {
                 hint: "code".into(),
                 model_provider: "code-provider".into(),
                 model: "code-model".into(),
                 api_key: None,
+                fallbacks: Vec::new(),
             },
         ];
 

@@ -1554,6 +1554,7 @@ mod tests {
             model_provider: "anthropic.default".to_string(),
             model: "claude".to_string(),
             api_key: None,
+            fallbacks: Vec::new(),
         });
 
         let kind = provider_kind("anthropic");
@@ -1739,6 +1740,7 @@ mod tests {
             model_provider: " anthropic.default ".to_string(),
             model: "claude".to_string(),
             api_key: None,
+            fallbacks: Vec::new(),
         });
         let kind = provider_kind("anthropic");
         let sites = find_all_references(&cfg, &kind, "default");
@@ -2037,6 +2039,7 @@ mod tests {
             model_provider: "anthropic.default".to_string(),
             model: "claude".to_string(),
             api_key: None,
+            fallbacks: Vec::new(),
         });
         cfg.embedding_routes.push(EmbeddingRouteConfig {
             hint: "sem".to_string(),
@@ -2090,6 +2093,7 @@ mod tests {
             model_provider: " anthropic.default ".to_string(),
             model: "claude".to_string(),
             api_key: None,
+            fallbacks: Vec::new(),
         });
         let kind = provider_kind("anthropic");
         let report = delete_with_cascade(&mut cfg, &kind, "default", CascadePolicy::RefuseOnHard)
@@ -2843,6 +2847,7 @@ mod tests {
             model_provider: "anthropic.default".to_string(),
             model: "claude".to_string(),
             api_key: None,
+            fallbacks: Vec::new(),
         });
 
         let kind = provider_kind("anthropic");

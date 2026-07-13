@@ -8651,6 +8651,7 @@ mod tests {
             model: "tinyllama".to_string(),
             hint: "fast".to_string(),
             api_key: Some("route-specific-key".to_string()),
+            fallbacks: Vec::new(),
         };
 
         let route_config = zeroclaw_config::schema::Config {
